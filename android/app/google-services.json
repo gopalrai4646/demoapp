@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "146404897369",
+    "project_id": "lms-project-418ee",
+    "storage_bucket": "lms-project-418ee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146404897369:android:c401ea67530b0ff4567748",
+        "android_client_info": {
+          "package_name": "com.demoapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "146404897369-4h5do7cgdo0hi4csl5t48nr9u3tqfkan.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrNU3uatVyphev4Qdn1gx-hOYTweswA_U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "146404897369-4h5do7cgdo0hi4csl5t48nr9u3tqfkan.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "146404897369-l5grsg0bdcibu72tq5827mv3663ou6ov.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.demoapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
