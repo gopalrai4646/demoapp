@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { useDispatch, useSelector } from 'react-redux';
-import { signupRequest, clearError } from '../store/slices/authSlice';
+import { signupRequest, googleLoginRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { useNavigation } from '@react-navigation/native';
@@ -253,10 +253,17 @@ const CreateAccount = () => {
           </View>
 
           {/* Google Button */}
-          <TouchableOpacity style={styles.googleButton} activeOpacity={0.7}>
-            <Text style={styles.googleButtonText}>
-              <Text style={{ fontWeight: 'bold' }}>G</Text>{'  '}Google
-            </Text>
+          <TouchableOpacity 
+            style={styles.googleButton} 
+            activeOpacity={0.7}
+            onPress={() => dispatch(googleLoginRequest())}
+            disabled={loading}
+          >
+            <Image
+              source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }}
+              style={styles.googleIcon}
+            />
+            <Text style={styles.googleButtonText}>Sign in with Google</Text>
           </TouchableOpacity>
 
           {/* Footer */}
@@ -423,6 +430,11 @@ const styles = StyleSheet.create({
     borderRadius: ROUNDNESS.md,
     paddingVertical: SPACING.md,
     backgroundColor: COLORS.surface,
+    gap: 12,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
   },
   googleButtonText: {
     ...TYPOGRAPHY.cardTitle,

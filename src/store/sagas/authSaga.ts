@@ -1,6 +1,7 @@
 import { call, put, takeLatest, all, take, fork, cancel, select } from 'redux-saga/effects';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { eventChannel } from 'redux-saga';
 import { 
   loginRequest, 
@@ -189,9 +190,96 @@ function* handleLogout(): any {
 }
 
 function* handleGoogleLogin(): any {
-  // Google sign in on React Native requires `@react-native-google-signin/google-signin`.
-  // We mock the failure here until it's configured natively.
-  yield put(authFailure('Google Sign-In requires native module configuration on React Native.'));
+  try {
+    // Basic Google Sign-In configuration
+    GoogleSignin.configure({
+      webClientId: '146404897369-4h5do7cgdo0hi4csl5t48nr9u3tqfkan.apps.googleusercontent.com',
+      offlineAccess: true,
+    });
+
+    // Check if device has Play Services
+    yield call([GoogleSignin, 'hasPlayServices']);
+    
+    // Sign out from any previous Google session to force account picker
+    try {
+      yield call([GoogleSignin, 'signOut']);
+    } catch (e) {
+      // Ignore sign out errors
+    }
+
+    // Trigger identity flow
+    const signInResult = yield call([GoogleSignin, 'signIn']);
+    
+    // In newer versions, idToken might be inside data
+    const idToken = signInResult.data?.idToken || signInResult.idToken;
+    
+    if (!idToken) {
+      throw new Error('Google Sign-In failed: No ID Token received.');
+    }
+
+    // Create Firebase credential
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    
+    // Sign in to Firebase
+    const userCredential = yield call([auth(), auth().signInWithCredential], googleCredential);
+    const user = userCredential.user;
+
+    // Sync with Firestore
+    const userRef = firestore().collection('users').doc(user.uid);
+    const userDoc: any = yield call([userRef, 'get'] as any);
+    
+    let role: 'student' | 'admin' = 'student';
+    let userData: any = {};
+
+    if (!userDoc.exists) {
+      // Register new user
+      userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        role: 'student',
+        photoURL: user.photoURL,
+        phoneNumber: user.phoneNumber || null,
+        enrolledCourses: [],
+        savedCourses: [],
+        assignedTrainingPlans: [],
+        createdAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      };
+      yield call([userRef, 'set'] as any, userData);
+    } else {
+      userData = userDoc.data();
+      role = userData.role || 'student';
+    }
+
+    yield put(authSuccess({ 
+      user: { 
+        uid: user.uid, 
+        email: user.email, 
+        displayName: user.displayName || userData.displayName,
+        enrolledCourses: userData.enrolledCourses || [], 
+        savedCourses: userData.savedCourses || [], 
+        assignedTrainingPlans: userData.assignedTrainingPlans || [],
+        photoURL: userData.photoURL || user.photoURL,
+        phoneNumber: userData.phoneNumber || user.phoneNumber || null
+      }, 
+      role, 
+      isNewUser: !userDoc.exists 
+    }));
+
+    // Start background sync task
+    if (userSyncTask) yield cancel(userSyncTask);
+    userSyncTask = yield fork(syncUserSession, user.uid);
+
+  } catch (error: any) {
+    if (error.code === 'SIGN_IN_CANCELLED') {
+      // User cancelled, just stop loading
+      yield put(authFailure('Sign-in cancelled.'));
+      return;
+    }
+    console.error('Google Sign-In Error:', error);
+    yield put(authFailure(error.message || 'Google authentication failed.'));
+  }
 }
 
 function* handleUpdatePassword(action: ReturnType<typeof updatePasswordRequest>): any {

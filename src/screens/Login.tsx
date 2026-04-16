@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginRequest, clearError } from '../store/slices/authSlice';
+import { loginRequest, googleLoginRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { useNavigation } from '@react-navigation/native';
@@ -135,7 +135,10 @@ const Login = () => {
                 <Text style={styles.visibilityIcon}>{showPassword ? '👁' : '👁‍🗨'}</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.forgotButton}>
+            <TouchableOpacity 
+              style={styles.forgotButton}
+              onPress={() => navigation.navigate('ResetPassword')}
+            >
               <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
           </View>
@@ -170,7 +173,12 @@ const Login = () => {
           </View>
 
           {/* Google Sign In */}
-          <TouchableOpacity style={styles.googleButton} activeOpacity={0.7}>
+          <TouchableOpacity 
+            style={styles.googleButton} 
+            activeOpacity={0.7}
+            onPress={() => dispatch(googleLoginRequest())}
+            disabled={loading}
+          >
             <Image
               source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }}
               style={styles.googleIcon}
