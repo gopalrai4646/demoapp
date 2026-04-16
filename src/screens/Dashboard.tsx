@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { StatCard } from '../components/StatCard';
 import { CourseCard } from '../components/CourseCard';
@@ -16,29 +15,18 @@ import { RootState } from '../store';
 import { Image } from 'react-native';
 
 const Dashboard: React.FC = () => {
-  const insets = useSafeAreaInsets();
   const { user } = useSelector((state: RootState) => state.auth);
   const firstName = user?.displayName?.split(' ')[0] || 'User';
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={TYPOGRAPHY.headline}>Welcome back, {firstName}! 👋</Text>
-            <Text style={TYPOGRAPHY.subHeadline}>
-              Here's what's happening with your learning today.
-            </Text>
-          </View>
-          <View style={styles.profileContainer}>
-            {user?.photoURL ? (
-              <Image source={{ uri: user.photoURL }} style={styles.profileImage} />
-            ) : (
-              <View style={styles.profilePlaceholder} />
-            )}
-          </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Welcome Section (below global nav) */}
+        <View style={styles.welcomeSection}>
+          <Text style={TYPOGRAPHY.headline}>Welcome back, {firstName}! 👋</Text>
+          <Text style={TYPOGRAPHY.subHeadline}>
+            Here's what's happening with your learning today.
+          </Text>
         </View>
 
         {/* Stats Row */}
@@ -60,7 +48,6 @@ const Dashboard: React.FC = () => {
         <CourseCard title="Advanced UI patterns" count="6 video" />
         <CourseCard title="Data structures 101" count="3 video" />
       </ScrollView>
-      </SafeAreaView>
     </View>
   );
 };
@@ -75,12 +62,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.md,
-    paddingBottom: 100, // Space for bottom nav
+    paddingBottom: 40,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  welcomeSection: {
     marginBottom: SPACING.lg,
     marginTop: SPACING.sm,
   },

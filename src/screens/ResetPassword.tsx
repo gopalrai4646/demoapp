@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { forgotPasswordRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
+import { BRANDING, MENTORA_LOGO } from '../constants/Branding';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
@@ -100,7 +101,7 @@ const ResetPassword = () => {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image
-              source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPo5ubdlpPFDr61DGxotB38FuvVZEgxGhJJx9pJbrtGojYlZznOBK7bqm-e-kbn_vpEiN-N-6ABYyc_lUivYbfHj3xPpwD0i_hQfFMphOZh3QBBhdwWgfYdOkLGGdOQUWajnPR4qbG7RCVVeb7SUKktjZr2OAnl5MZFfhY7ZXlNbrniKsBorxTGTKVTkiIqLBGWtrn6lhN79rNbMpLCsF4yCflCtFMt_PfEw864oTqKxofa2F3hcQjovCxoWf_oQpe07ZUmjuImv4' }}
+              source={MENTORA_LOGO}
               style={styles.logo}
               resizeMode="contain"
             />

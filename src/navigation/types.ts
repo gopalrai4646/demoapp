@@ -8,6 +8,7 @@ export type MainTabParamList = {
   Dashboard: undefined;
   Courses: undefined;
   Plans: undefined;
+  Account: undefined;
 };
 
 export type RootStackParamList = {

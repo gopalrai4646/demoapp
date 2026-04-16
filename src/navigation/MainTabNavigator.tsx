@@ -2,9 +2,11 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
 import Dashboard from '../screens/Dashboard';
+import Account from '../screens/AccountScreen';
 import { CoursesScreen, PlansScreen } from '../screens/Placeholders';
 import { MainTabParamList } from './types';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
+import { AppHeader } from '../components/AppHeader';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -12,7 +14,8 @@ const MainTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        header: () => <AppHeader />,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.onSurfaceVariant,
         tabBarStyle: {
@@ -64,6 +67,19 @@ const MainTabNavigator = () => {
             <View style={styles.iconContainer}>
               {focused && <View style={styles.activeIndicator} />}
               <Text style={{ color, fontSize: 20 }}>📝</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Account"
+        component={Account}
+        options={{
+          tabBarLabel: 'Account',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={styles.iconContainer}>
+              {focused && <View style={styles.activeIndicator} />}
+              <Text style={{ color, fontSize: 20 }}>👤</Text>
             </View>
           ),
         }}
