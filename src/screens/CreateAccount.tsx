@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,16 +16,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { useDispatch, useSelector } from 'react-redux';
-import { signupRequest } from '../store/slices/authSlice';
+import { signupRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
 
 const CreateAccount = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state: RootState) => state.auth);
 
@@ -36,6 +36,20 @@ const CreateAccount = () => {
   const [password, setPassword] = useState('');
   const [photoURL, setPhotoURL] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Clear error on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  const handleInputChange = (setter: (val: string) => void, val: string) => {
+    setter(val);
+    if (error) {
+      dispatch(clearError());
+    }
+  };
 
   const handlePickImage = async () => {
     const result = await launchImageLibrary({
@@ -62,6 +76,17 @@ const CreateAccount = () => {
   const handleSignUp = () => {
     if (!email || !password || !name) {
       Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password should be at least 6 characters.');
       return;
     }
     
@@ -167,7 +192,7 @@ const CreateAccount = () => {
             placeholder="John Doe"
             placeholderTextColor={COLORS.outline}
             value={name}
-            onChangeText={setName}
+            onChangeText={(val) => handleInputChange(setName, val)}
           />
 
           <Text style={styles.label}>Email Address</Text>
@@ -178,7 +203,7 @@ const CreateAccount = () => {
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(val) => handleInputChange(setEmail, val)}
           />
 
           <Text style={styles.label}>Phone Number</Text>
@@ -188,7 +213,7 @@ const CreateAccount = () => {
             placeholderTextColor={COLORS.outline}
             keyboardType="phone-pad"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(val) => handleInputChange(setPhone, val)}
           />
 
           <Text style={styles.label}>Password</Text>
@@ -198,7 +223,7 @@ const CreateAccount = () => {
             placeholderTextColor={COLORS.outline}
             secureTextEntry
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(val) => handleInputChange(setPassword, val)}
           />
 
           {/* Error Message */}

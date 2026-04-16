@@ -60,8 +60,6 @@ const Dashboard: React.FC = () => {
         <CourseCard title="Advanced UI patterns" count="6 video" />
         <CourseCard title="Data structures 101" count="3 video" />
       </ScrollView>
-
-      </ScrollView>
       </SafeAreaView>
     </View>
   );

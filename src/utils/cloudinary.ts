@@ -28,9 +28,6 @@ export const uploadToCloudinary = async (uri: string): Promise<string> => {
       {
         method: 'POST',
         body: data,
-        headers: {
-          'Content-Type': 'multipart/form-external', // Use custom type for FormData in RN
-        },
       }
     );
 

@@ -33,7 +33,8 @@ function createUserChannel(uid: string) {
   return eventChannel(emit => {
     const userRef = firestore().collection('users').doc(uid);
     return userRef.onSnapshot((snapshot) => {
-      if (snapshot.exists) {
+      const exists = typeof snapshot.exists === 'function' ? snapshot.exists() : snapshot.exists;
+      if (exists) {
         const data = snapshot.data();
         if (data) {
           emit({
@@ -76,15 +77,11 @@ function* handleLogin(action: ReturnType<typeof loginRequest>): any {
     const { email, pass } = action.payload;
     const normalizedEmail = email.toLowerCase();
 
-    const bannedDoc = yield call([firestore().collection('bannedEmails').doc(normalizedEmail), firestore().collection('bannedEmails').doc(normalizedEmail).get]);
-    if (bannedDoc.exists) {
-      throw new Error('This account has been permanently disabled by an administrator.');
-    }
-
     const userCredential = yield call([auth(), auth().signInWithEmailAndPassword], normalizedEmail, pass);
     const user = userCredential.user;
     
-    const userDoc: any = yield call([firestore().collection('users').doc(user.uid), firestore().collection('users').doc(user.uid).get]);
+    const userRef = firestore().collection('users').doc(user.uid);
+    const userDoc: any = yield call([userRef, 'get'] as any);
     if (!userDoc.exists) {
       yield call([auth(), auth().signOut]);
       throw new Error('Your account has been deleted by an administrator.');
@@ -127,16 +124,12 @@ function* handleSignup(action: ReturnType<typeof signupRequest>): any {
     const { email, pass, name, role, photoURL, phoneNumber } = action.payload;
     const normalizedEmail = email.toLowerCase();
 
-    const bannedDoc = yield call([firestore().collection('bannedEmails').doc(normalizedEmail), firestore().collection('bannedEmails').doc(normalizedEmail).get]);
-    if (bannedDoc.exists) {
-      throw new Error('This email is banned and cannot be used to create an account.');
-    }
-
     const userCredential = yield call([auth(), auth().createUserWithEmailAndPassword], normalizedEmail, pass);
     yield call([userCredential.user, userCredential.user.updateProfile], { displayName: name, photoURL });
     const user = userCredential.user;
     
-    yield call([firestore().collection('users').doc(user.uid), firestore().collection('users').doc(user.uid).set], {
+    const userRef = firestore().collection('users').doc(user.uid);
+    yield call([userRef, 'set'] as any, {
       uid: user.uid,
       email: user.email,
       displayName: name,
@@ -144,6 +137,7 @@ function* handleSignup(action: ReturnType<typeof signupRequest>): any {
       photoURL: photoURL || null,
       phoneNumber: phoneNumber || null,
       createdAt: firestore.FieldValue.serverTimestamp(),
+      updatedAt: firestore.FieldValue.serverTimestamp(),
     });
 
     yield put(authSuccess({ 
@@ -166,12 +160,17 @@ function* handleSignup(action: ReturnType<typeof signupRequest>): any {
 
   } catch (error: any) {
     let message = 'Failed to create account. Please try again.';
+    console.error('Signup Error:', error);
     if (error.code === 'auth/email-already-in-use') {
       message = 'This email is already registered.';
     } else if (error.code === 'auth/weak-password') {
       message = 'Password should be at least 6 characters.';
+    } else if (error.code === 'auth/invalid-email') {
+      message = 'Please enter a valid email address.';
     } else if (error.code === 'auth/network-request-failed' || error.message.includes('offline')) {
       message = 'Please check your internet connection.';
+    } else if (error.message) {
+      message = error.message;
     }
     yield put(authFailure(message));
   }

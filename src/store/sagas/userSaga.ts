@@ -53,7 +53,8 @@ function* handleDeleteUser(action: ReturnType<typeof deleteUserRequest>): any {
   try {
     const userId = action.payload;
 
-    const userDoc: any = yield call([firestore().collection('users').doc(userId), firestore().collection('users').doc(userId).get]);
+    const userDocRef = firestore().collection('users').doc(userId);
+    const userDoc: any = yield call([userDocRef, 'get']);
     let userEmail = '';
     if (userDoc.exists) {
       userEmail = userDoc.data().email?.toLowerCase();
@@ -70,16 +71,8 @@ function* handleDeleteUser(action: ReturnType<typeof deleteUserRequest>): any {
       throw new Error(errorData.error || 'Failed to delete user from Authentication');
     }
 
-    if (userEmail) {
-      const bannedRef = firestore().collection('bannedEmails').doc(userEmail);
-      yield call([bannedRef, bannedRef.set], { 
-        email: userEmail, 
-        bannedAt: new Date().toISOString() 
-      });
-    }
-
     const userRef = firestore().collection('users').doc(userId);
-    yield call([userRef, userRef.delete]);
+    yield call([userRef, 'delete'] as any);
 
     yield put(deleteUserSuccess(userId));
   } catch (error: any) {
@@ -92,7 +85,7 @@ function* handleAssignTrainingPlan(action: ReturnType<typeof assignTrainingPlanR
   try {
     const { userId, trainingPlanIds } = action.payload;
     const userRef = firestore().collection('users').doc(userId);
-    yield call([userRef, userRef.update], {
+    yield call([userRef, 'update'] as any, {
       assignedTrainingPlans: firestore.FieldValue.arrayUnion(...trainingPlanIds),
     });
     yield put(assignTrainingPlanSuccess({ userId, trainingPlanIds }));
@@ -106,7 +99,7 @@ function* handleUnassignTrainingPlan(action: ReturnType<typeof unassignTrainingP
   try {
     const { userId, trainingPlanId } = action.payload;
     const userRef = firestore().collection('users').doc(userId);
-    yield call([userRef, userRef.update], {
+    yield call([userRef, 'update'] as any, {
       assignedTrainingPlans: firestore.FieldValue.arrayRemove(trainingPlanId),
     });
     yield put(unassignTrainingPlanSuccess({ userId, trainingPlanId }));

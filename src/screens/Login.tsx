@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,16 +14,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginRequest } from '../store/slices/authSlice';
+import { loginRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
 
 const Login = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state: RootState) => state.auth);
 
@@ -31,11 +31,32 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Clear error on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  const handleInputChange = (setter: (val: string) => void, val: string) => {
+    setter(val);
+    if (error) {
+      dispatch(clearError());
+    }
+  };
+
   const handleLogin = () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password.');
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return;
+    }
+
     dispatch(loginRequest({ email, pass: password }));
   };
 
@@ -89,7 +110,7 @@ const Login = () => {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(val) => handleInputChange(setEmail, val)}
               />
             </View>
           </View>
@@ -105,7 +126,7 @@ const Login = () => {
                 placeholderTextColor={COLORS.outline}
                 secureTextEntry={!showPassword}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(val) => handleInputChange(setPassword, val)}
               />
               <TouchableOpacity
                 style={styles.visibilityButton}
