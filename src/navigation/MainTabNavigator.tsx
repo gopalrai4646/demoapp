@@ -1,9 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 import Dashboard from '../screens/Dashboard';
 import Account from '../screens/AccountScreen';
 import AdminCourseStack from './AdminCourseStack';
+import UserCoursesScreen from '../screens/UserCoursesScreen';
 import { PlansScreen } from '../screens/Placeholders';
 import { MainTabParamList } from './types';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
@@ -12,6 +15,9 @@ import { AppHeader } from '../components/AppHeader';
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainTabNavigator = () => {
+  const { role } = useSelector((state: RootState) => state.auth);
+  const isAdmin = role === 'admin';
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -48,9 +54,9 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Courses"
-        component={AdminCourseStack}
+        component={isAdmin ? AdminCourseStack : UserCoursesScreen}
         options={{
-          headerShown: false,
+          headerShown: !isAdmin, // Show header for user screen, hide for admin stack (since it has its own)
           tabBarLabel: 'Courses',
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>

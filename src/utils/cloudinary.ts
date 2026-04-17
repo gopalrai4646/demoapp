@@ -1,12 +1,18 @@
 import { ENV } from '../config/env';
 
 /**
- * Uploads a local image file to Cloudinary using unsigned upload.
+ * Uploads a local file to Cloudinary using unsigned upload.
  * 
  * @param uri The local file path from react-native-image-picker
- * @returns The secure URL of the uploaded image
+ * @param resourceType 'image' or 'video'
+ * @param fileName Optional filename
+ * @returns The secure URL of the uploaded file
  */
-export const uploadToCloudinary = async (uri: string): Promise<string> => {
+export const uploadToCloudinary = async (
+  uri: string, 
+  resourceType: 'image' | 'video' = 'image', 
+  fileName?: string
+): Promise<string> => {
   const { CLOUD_NAME, UPLOAD_PRESET } = ENV.CLOUDINARY;
 
   const data = new FormData();
@@ -14,8 +20,8 @@ export const uploadToCloudinary = async (uri: string): Promise<string> => {
   // Create file object for FormData
   const file = {
     uri: uri,
-    type: 'image/jpeg', // Standard type for profile photos
-    name: 'profile_photo.jpg',
+    type: resourceType === 'image' ? 'image/jpeg' : 'video/mp4',
+    name: fileName || (resourceType === 'image' ? 'photo.jpg' : 'video.mp4'),
   };
 
   data.append('file', file as any);
@@ -24,7 +30,7 @@ export const uploadToCloudinary = async (uri: string): Promise<string> => {
 
   try {
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
       {
         method: 'POST',
         body: data,
@@ -39,7 +45,8 @@ export const uploadToCloudinary = async (uri: string): Promise<string> => {
 
     return result.secure_url;
   } catch (error: any) {
-    console.error('Cloudinary Upload Error:', error);
-    throw new Error(error.message || 'Failed to upload image to Cloudinary');
+    console.error(`Cloudinary ${resourceType} Upload Error:`, error);
+    throw new Error(error.message || `Failed to upload ${resourceType} to Cloudinary`);
   }
 };
+

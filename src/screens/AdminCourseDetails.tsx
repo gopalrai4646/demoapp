@@ -1,27 +1,148 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Switch, Image, ActivityIndicator, Alert } from 'react-native';
 import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { createCourseRequest, updateCourseRequest, Course, VideoItem } from '../store/slices/courseSlice';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { uploadToCloudinary } from '../utils/cloudinary';
+
+type AdminCourseDetailsRouteProp = RouteProp<AdminCourseStackParamList, 'AdminCourseDetails'>;
 
 const AdminCourseDetails = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const route = useRoute<AdminCourseDetailsRouteProp>();
+  const dispatch = useDispatch();
+  
+  const { courseId } = route.params || {};
+  const isEditing = !!courseId;
+
+  const { courses, createLoading, updateLoading } = useSelector((state: RootState) => state.courses);
   const { user } = useSelector((state: RootState) => state.auth);
 
-  const [title, setTitle] = useState('Modern Architecture: Spatial Logic');
-  const [description, setDescription] = useState('This comprehensive module explores the intersection of brutalist geometry and contemporary sustainable materials. Students will analyze structural integrity through the lens of...');
-  const [instructor, setInstructor] = useState('Dr. Elena Van');
-  const [price, setPrice] = useState('149.99');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [instructor, setInstructor] = useState(user?.displayName || '');
+  const [price, setPrice] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [thumbnail, setThumbnail] = useState('');
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState<number[]>([]); // Array of indices currently uploading
 
-  const [lessons, setLessons] = useState([
-    { id: '1', title: '01. Foundations of Geometry', duration: '12:45', status: 'Ready' },
-    { id: '2', title: '02. Materiality in Design', duration: 'Uploading 68%', status: 'Uploading' },
-    { id: '3', title: '03. Lighting and Ambient', duration: 'Duration: Pending', status: 'Pending' },
-  ]);
+  useEffect(() => {
+    if (isEditing) {
+      const course = courses.find(c => c.id === courseId);
+      if (course) {
+        setTitle(course.title);
+        setDescription(course.description);
+        setInstructor(course.instructor);
+        setPrice(course.price.toString());
+        setIsPublic(course.visibility !== 'private');
+        setThumbnail(course.thumbnail || '');
+        setVideos(course.videos || []);
+      }
+    } else {
+        // Reset fields for new course
+        setTitle('');
+        setDescription('');
+        setInstructor(user?.displayName || '');
+        setPrice('');
+        setIsPublic(true);
+        setThumbnail('');
+        setVideos([]);
+    }
+  }, [courseId, courses, isEditing, user]);
+
+  const handleThumbnailPick = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+    });
+
+    if (result.assets && result.assets[0].uri) {
+      setUploadingThumbnail(true);
+      try {
+        const url = await uploadToCloudinary(result.assets[0].uri, 'image');
+        setThumbnail(url);
+      } catch (error: any) {
+        Alert.alert('Upload Error', error.message);
+      } finally {
+        setUploadingThumbnail(false);
+      }
+    }
+  };
+
+  const handleVideoPick = async (index: number) => {
+    const result = await launchImageLibrary({
+      mediaType: 'video',
+    });
+
+    if (result.assets && result.assets[0].uri) {
+      setUploadingVideos(prev => [...prev, index]);
+      try {
+        const url = await uploadToCloudinary(result.assets[0].uri, 'video');
+        const duration = result.assets[0].duration || 0;
+        
+        const newVids = [...videos];
+        newVids[index] = { ...newVids[index], url, duration };
+        setVideos(newVids);
+      } catch (error: any) {
+        Alert.alert('Upload Error', error.message);
+      } finally {
+        setUploadingVideos(prev => prev.filter(i => i !== index));
+      }
+    }
+  };
+
+  const handleSave = () => {
+    if (!title || !description || !instructor || !price) {
+      Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+
+    if (uploadingThumbnail || uploadingVideos.length > 0) {
+      Alert.alert('Please Wait', 'Media is still uploading...');
+      return;
+    }
+
+    const payload = {
+      title,
+      description,
+      instructor,
+      price: parseFloat(price),
+      visibility: isPublic ? ('public' as const) : ('private' as const),
+      videos,
+      thumbnail: thumbnail,
+    };
+
+    if (isEditing) {
+      dispatch(updateCourseRequest({ id: courseId, ...payload }));
+      Alert.alert('Success', 'Course updated successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+    } else {
+      dispatch(createCourseRequest(payload));
+      Alert.alert('Success', 'Course created successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+    }
+  };
+
+  const handleAddLesson = () => {
+    const newLesson: VideoItem = {
+      title: 'New Lesson',
+      url: '',
+      order: videos.length + 1,
+      duration: 0,
+    };
+    setVideos([...videos, newLesson]);
+  };
+
+  const handleDeleteLesson = (index: number) => {
+    const updatedVideos = videos.filter((_, i) => i !== index);
+    setVideos(updatedVideos);
+  };
 
   const renderHeader = () => (
     <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
@@ -47,8 +168,8 @@ const AdminCourseDetails = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.modeOverline}>EDITING MODE</Text>
-        <Text style={TYPOGRAPHY.headline}>Course Details</Text>
+        {isEditing && <Text style={styles.modeOverline}>EDITING MODE</Text>}
+        <Text style={TYPOGRAPHY.headline}>{isEditing ? 'Course Details' : 'Create New Course'}</Text>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Course Title</Text>
@@ -61,13 +182,24 @@ const AdminCourseDetails = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.thumbnailUpload} activeOpacity={0.8}>
-          <View style={styles.thumbnailPlaceholder}>
-            <View style={styles.camIconWrapper}>
-              <Text style={styles.camIcon}>📸</Text>
+        <TouchableOpacity 
+          style={[styles.thumbnailUpload, thumbnail ? { backgroundColor: '#000' } : null]} 
+          activeOpacity={0.8}
+          onPress={handleThumbnailPick}
+          disabled={uploadingThumbnail}
+        >
+          {uploadingThumbnail ? (
+            <ActivityIndicator color="#fff" />
+          ) : thumbnail ? (
+            <Image source={{ uri: thumbnail }} style={styles.thumbnailPreview} />
+          ) : (
+            <View style={styles.thumbnailPlaceholder}>
+              <View style={styles.camIconWrapper}>
+                <Text style={styles.camIcon}>📸</Text>
+              </View>
+              <Text style={styles.thumbUploadText}>{isEditing ? 'Change Thumbnail' : 'Upload Thumbnail'}</Text>
             </View>
-            <Text style={styles.thumbUploadText}>Change Thumbnail</Text>
-          </View>
+          )}
         </TouchableOpacity>
 
         <View style={styles.formGroup}>
@@ -87,10 +219,15 @@ const AdminCourseDetails = () => {
         <View style={styles.row}>
           <View style={[styles.formGroup, { flex: 1, marginRight: SPACING.md }]}>
             <Text style={styles.label}>Instructor</Text>
-            <TouchableOpacity style={styles.inputDropdown}>
-              <Text style={styles.dropdownText}>{instructor}</Text>
-              <Text style={styles.dropdownIcon}>↕</Text>
-            </TouchableOpacity>
+            <View style={styles.inputDropdown}>
+               <TextInput 
+                style={[styles.dropdownText, { flex: 1, height: 20, padding: 0 }]}
+                value={instructor}
+                onChangeText={setInstructor}
+                placeholder="Instructor Name"
+                placeholderTextColor={COLORS.outline}
+              />
+            </View>
           </View>
           <View style={[styles.formGroup, { flex: 1 }]}>
             <Text style={styles.label}>Price</Text>
@@ -101,6 +238,8 @@ const AdminCourseDetails = () => {
                 value={price}
                 onChangeText={setPrice}
                 keyboardType="numeric"
+                placeholder="0.00"
+                placeholderTextColor={COLORS.outline}
               />
             </View>
           </View>
@@ -124,48 +263,76 @@ const AdminCourseDetails = () => {
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Course Content</Text>
-          <TouchableOpacity style={styles.addLessonBtn}>
+          <TouchableOpacity style={styles.addLessonBtn} onPress={handleAddLesson}>
             <Text style={styles.addLessonText}>+ Add Lesson</Text>
           </TouchableOpacity>
         </View>
 
-        {lessons.map((lesson, idx) => (
-          <View key={lesson.id} style={styles.lessonCard}>
-            <View style={styles.dragHandles}>
-              <Text style={styles.handleIcon}>▴</Text>
-              <Text style={styles.handleIcon}>▾</Text>
-            </View>
-            <View style={styles.lessonIconWrapper}>
-              <Text style={styles.lessonIcon}>🎬</Text>
-            </View>
-            <View style={styles.lessonInfo}>
-              <Text style={styles.lessonTitle}>{lesson.title}</Text>
-              <View style={styles.lessonMeta}>
-                <Text style={lesson.status === 'Ready' ? styles.metaReady : styles.metaPending}>
-                  {lesson.duration}
-                </Text>
-                {lesson.status === 'Ready' && <Text style={styles.metaStatusReady}> • ✔ Ready</Text>}
+        {videos.map((lesson, idx) => {
+          const isUploading = uploadingVideos.includes(idx);
+          const hasUrl = !!lesson.url;
+
+          return (
+            <View key={idx.toString()} style={styles.lessonCard}>
+              <View style={styles.dragHandles}>
+                <Text style={styles.handleIcon}>▴</Text>
+                <Text style={styles.handleIcon}>▾</Text>
               </View>
-              {lesson.status === 'Uploading' && (
-                <View style={styles.progressBarBg}>
-                  <View style={[styles.progressBarFill, { width: '68%' }]} />
+              <TouchableOpacity 
+                style={[styles.lessonIconWrapper, hasUrl && { backgroundColor: COLORS.primaryContainer }]}
+                onPress={() => handleVideoPick(idx)}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <ActivityIndicator size="small" color={COLORS.primary} />
+                ) : (
+                  <Text style={styles.lessonIcon}>{hasUrl ? '✅' : '🎬'}</Text>
+                )}
+              </TouchableOpacity>
+              <View style={styles.lessonInfo}>
+                 <TextInput 
+                  style={styles.lessonTitle}
+                  value={lesson.title}
+                  onChangeText={(val) => {
+                      const newVids = [...videos];
+                      newVids[idx] = { ...newVids[idx], title: val };
+                      setVideos(newVids);
+                  }}
+                  placeholder="Lesson Title"
+                />
+                <View style={styles.lessonMeta}>
+                  <Text style={styles.metaReady}>
+                    {isUploading ? 'Uploading...' : hasUrl ? (lesson.duration ? `${Math.floor(lesson.duration / 60)}:${(lesson.duration % 60).toString().padStart(2, '0')}` : 'Ready') : 'No video uploaded'}
+                  </Text>
+                  {!hasUrl && !isUploading && (
+                    <TouchableOpacity onPress={() => handleVideoPick(idx)}>
+                      <Text style={[styles.metaStatusReady, { color: COLORS.primary, marginLeft: 8 }]}>Upload Video</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-              )}
-            </View>
-            {lesson.status !== 'Pending' && (
-              <TouchableOpacity style={styles.deleteLessonBtn}>
+              </View>
+              <TouchableOpacity style={styles.deleteLessonBtn} onPress={() => handleDeleteLesson(idx)}>
                 <Text style={styles.deleteLessonIcon}>✕</Text>
               </TouchableOpacity>
-            )}
-          </View>
-        ))}
+            </View>
+          );
+        })}
+
 
         <View style={{ height: 100 }} />
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveCourseBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.saveCourseText}>Save Course</Text>
+        <TouchableOpacity 
+            style={[styles.saveCourseBtn, (createLoading || updateLoading) && { opacity: 0.7 }]} 
+            onPress={handleSave}
+            disabled={createLoading || updateLoading}
+        >
+          {createLoading || updateLoading ? (
+            <ActivityIndicator color={COLORS.onPrimary} />
+          ) : (
+            <Text style={styles.saveCourseText}>{isEditing ? 'Update Course' : 'Create Course'}</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -257,6 +424,12 @@ const styles = StyleSheet.create({
   },
   thumbnailPlaceholder: {
     alignItems: 'center',
+  },
+  thumbnailPreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: ROUNDNESS.xl,
+    resizeMode: 'cover',
   },
   camIconWrapper: {
     width: 48,

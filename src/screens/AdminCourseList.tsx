@@ -1,88 +1,78 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert } from 'react-native';
 import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AdminCourseStackParamList } from '../navigation/types';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { fetchCoursesRequest, deleteCourseRequest, Course } from '../store/slices/courseSlice';
 
 type NavigationProp = NativeStackNavigationProp<AdminCourseStackParamList, 'AdminCourseList'>;
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width / 2 - SPACING.md * 1.5;
 
-interface Course {
-  id: string;
-  title: string;
-  instructor: string;
-  learners: number;
-  isPublic: boolean;
-  cover: string;
-  avatar: string;
-}
-
-const DUMMY_COURSES: Course[] = [
-  { 
-    id: '1', 
-    title: 'Advanced Visual Design Systems', 
-    instructor: 'Dr. Aris Thorne', 
-    learners: 1420, 
-    isPublic: true, 
-    cover: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?auto=format&fit=crop&q=80&w=600',
-    avatar: 'https://i.pravatar.cc/100?img=11'
-  },
-  { 
-    id: '2', 
-    title: 'Enterprise Security Architecture', 
-    instructor: 'Sarah Jenkins', 
-    learners: 892, 
-    isPublic: false, 
-    cover: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=600',
-    avatar: 'https://i.pravatar.cc/100?img=5'
-  },
-  { 
-    id: '3', 
-    title: 'Mastering Business Intelligence', 
-    instructor: 'Marc Russo', 
-    learners: 2105, 
-    isPublic: true, 
-    cover: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=600',
-    avatar: 'https://i.pravatar.cc/100?img=14'
-  },
-  { 
-    id: '4', 
-    title: 'Full-Stack Web Development', 
-    instructor: 'Elena Rodriguez', 
-    learners: 4500, 
-    isPublic: true, 
-    cover: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600',
-    avatar: 'https://i.pravatar.cc/100?img=9'
-  },
-];
-
 const AdminCourseList = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const dispatch = useDispatch();
+  const { courses, loading } = useSelector((state: RootState) => state.courses);
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filter, setFilter] = useState<'all' | 'public' | 'private'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCourses = DUMMY_COURSES.filter(c => {
-    if (filter === 'public' && !c.isPublic) return false;
-    if (filter === 'private' && c.isPublic) return false;
-    if (searchQuery.length > 0 && !c.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+  useEffect(() => {
+    dispatch(fetchCoursesRequest());
+  }, [dispatch]);
+
+  const handleDelete = (id: string, title: string) => {
+    Alert.alert(
+      'Delete Course',
+      `Are you sure you want to delete "${title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: () => dispatch(deleteCourseRequest(id)) 
+        },
+      ]
+    );
+  };
+
+  const filteredCourses = courses.filter(c => {
+    if (filter === 'public' && c.visibility !== 'public') return false;
+    if (filter === 'private' && c.visibility !== 'private') return false;
+    if (searchQuery.length > 0) {
+      const query = searchQuery.toLowerCase();
+      const matchTitle = c.title.toLowerCase().includes(query);
+      const matchInstructor = c.instructor?.toLowerCase().includes(query);
+      if (!matchTitle && !matchInstructor) return false;
+    }
     return true;
   });
 
   const renderCourseCard = ({ item }: { item: Course }) => {
     const isGrid = viewMode === 'grid';
+    const isPublic = item.visibility !== 'private';
+    const learnerCount = item.enrolledUsers?.length || 0;
+
     return (
       <View style={[styles.cardContainer, isGrid ? styles.cardGrid : styles.cardList]}>
         <View style={[styles.imageContainer, isGrid ? { height: 120 } : { height: 160 }]}>
-          <Image source={{ uri: item.cover }} style={styles.coverImage} />
-          <View style={[styles.badge, item.isPublic ? styles.badgePublic : styles.badgePrivate]}>
-            <Text style={[styles.badgeText, item.isPublic ? styles.badgeTextPublic : styles.badgeTextPrivate]}>
-              {item.isPublic ? 'PUBLIC' : 'PRIVATE'}
+          {item.thumbnail ? (
+            <Image source={{ uri: item.thumbnail }} style={styles.coverImage} />
+          ) : (
+             <View style={[styles.coverImage, { backgroundColor: COLORS.surfaceContainerHigh, justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ fontSize: 40 }}>📚</Text>
+             </View>
+          )}
+          <View style={[styles.badge, isPublic ? styles.badgePublic : styles.badgePrivate]}>
+            <Text style={[styles.badgeText, isPublic ? styles.badgeTextPublic : styles.badgeTextPrivate]}>
+              {isPublic ? 'PUBLIC' : 'PRIVATE'}
             </Text>
           </View>
         </View>
@@ -91,11 +81,13 @@ const AdminCourseList = () => {
           <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
           
           <View style={styles.instructorRow}>
-            <Image source={{ uri: item.avatar }} style={styles.avatarMini} />
-            <Text style={styles.instructorName} numberOfLines={1}>{item.instructor}</Text>
+            <View style={[styles.avatarMini, { backgroundColor: COLORS.primaryContainer, justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ color: '#fff', fontSize: 10 }}>{item.instructor?.charAt(0) || '?'}</Text>
+            </View>
+            <Text style={styles.instructorName} numberOfLines={1}>{item.instructor || 'Unknown'}</Text>
           </View>
           
-          <Text style={styles.learnersText}>👤 {item.learners.toLocaleString()} learners</Text>
+          <Text style={styles.learnersText}>👤 {learnerCount.toLocaleString()} learners</Text>
           
           <View style={styles.cardActions}>
             <TouchableOpacity 
@@ -104,7 +96,10 @@ const AdminCourseList = () => {
             >
               <Text style={styles.actionIconPrimary}>✏️</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => handleDelete(item.id, item.title)}
+            >
               <Text style={styles.actionIconDanger}>🗑️</Text>
             </TouchableOpacity>
           </View>
@@ -112,6 +107,7 @@ const AdminCourseList = () => {
       </View>
     );
   };
+
 
   return (
     <View style={styles.container}>
