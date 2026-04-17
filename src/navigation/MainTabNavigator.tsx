@@ -3,7 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
 import Dashboard from '../screens/Dashboard';
 import Account from '../screens/AccountScreen';
-import { CoursesScreen, PlansScreen } from '../screens/Placeholders';
+import AdminCourseStack from './AdminCourseStack';
+import { PlansScreen } from '../screens/Placeholders';
 import { MainTabParamList } from './types';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
 import { AppHeader } from '../components/AppHeader';
@@ -47,8 +48,9 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Courses"
-        component={CoursesScreen}
+        component={AdminCourseStack}
         options={{
+          headerShown: false,
           tabBarLabel: 'Courses',
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>
