@@ -11,10 +11,15 @@ export type AdminCourseStackParamList = {
   AdminCourseDetails: { courseId?: string };
 };
 
+export type AdminTrainingPlanStackParamList = {
+  AdminTrainingPlanList: undefined;
+  AdminTrainingPlanDetails: { planId?: string };
+};
+
 export type MainTabParamList = {
   Dashboard: undefined;
   Courses: NavigatorScreenParams<AdminCourseStackParamList> | undefined;
-  Plans: undefined;
+  Plans: NavigatorScreenParams<AdminTrainingPlanStackParamList> | undefined;
   Account: undefined;
 };
 
@@ -22,4 +27,3 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
 };
-

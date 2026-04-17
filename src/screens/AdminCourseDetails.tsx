@@ -319,7 +319,7 @@ const AdminCourseDetails = () => {
         })}
 
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 90 }} />
       </ScrollView>
 
       <View style={styles.footer}>
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.md,
+    paddingBottom: SPACING.xs,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.surfaceContainer,
   },
@@ -394,19 +394,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   formGroup: {
-    marginTop: SPACING.lg,
+    marginTop: SPACING.md,
   },
   label: {
     fontSize: 12,
     color: COLORS.secondary,
-    marginBottom: 8,
+    marginBottom: 4,
     fontWeight: '500',
   },
   input: {
     backgroundColor: '#eceef0', // surfaceContainer
     borderRadius: ROUNDNESS.lg,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 10,
     fontSize: 15,
     color: COLORS.onSurface,
   },
@@ -415,8 +415,8 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   thumbnailUpload: {
-    marginTop: SPACING.lg,
-    height: 180,
+    marginTop: SPACING.md,
+    height: 140,
     backgroundColor: '#6c7185', // subtle placeholder tone mimicking design
     borderRadius: ROUNDNESS.xl,
     justifyContent: 'center',
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eceef0',
     borderRadius: ROUNDNESS.lg,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -482,15 +482,15 @@ const styles = StyleSheet.create({
   },
   priceInput: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 10,
     fontSize: 15,
     color: COLORS.onSurface,
   },
   visibilityCard: {
     backgroundColor: '#ffffff',
     borderRadius: ROUNDNESS.xl,
-    padding: SPACING.md,
-    marginTop: SPACING.xl,
+    padding: 12,
+    marginTop: SPACING.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -523,8 +523,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: SPACING.xxl,
-    marginBottom: SPACING.md,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.sm,
   },
   sectionTitle: {
     fontSize: 20,
@@ -545,8 +545,8 @@ const styles = StyleSheet.create({
   lessonCard: {
     backgroundColor: '#ffffff',
     borderRadius: ROUNDNESS.xl,
-    padding: 16,
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
@@ -627,9 +627,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    paddingBottom: SPACING.xxl,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 10,
+    paddingBottom: 10,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: COLORS.surfaceContainer,

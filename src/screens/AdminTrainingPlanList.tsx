@@ -1,104 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AdminCourseStackParamList } from '../navigation/types';
+import { AdminTrainingPlanStackParamList } from '../navigation/types';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { fetchCoursesRequest, deleteCourseRequest, Course } from '../store/slices/courseSlice';
+import { fetchTrainingPlansRequest, deleteTrainingPlanRequest, TrainingPlan } from '../store/slices/trainingPlanSlice';
 
-type NavigationProp = NativeStackNavigationProp<AdminCourseStackParamList, 'AdminCourseList'>;
+type NavigationProp = NativeStackNavigationProp<AdminTrainingPlanStackParamList, 'AdminTrainingPlanList'>;
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width / 2 - SPACING.md * 1.5;
 
-const AdminCourseList = () => {
+export const AdminTrainingPlanList = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const dispatch = useDispatch();
-  const { courses, loading } = useSelector((state: RootState) => state.courses);
+  const { trainingPlans, loading } = useSelector((state: RootState) => state.trainingPlans);
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filter, setFilter] = useState<'all' | 'public' | 'private'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    dispatch(fetchCoursesRequest());
+    dispatch(fetchTrainingPlansRequest());
   }, [dispatch]);
 
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
-      'Delete Course',
+      'Delete Training Plan',
       `Are you sure you want to delete "${title}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Delete', 
           style: 'destructive', 
-          onPress: () => dispatch(deleteCourseRequest(id)) 
+          onPress: () => dispatch(deleteTrainingPlanRequest(id)) 
         },
       ]
     );
   };
 
-  const filteredCourses = courses.filter(c => {
-    if (filter === 'public' && c.visibility !== 'public') return false;
-    if (filter === 'private' && c.visibility !== 'private') return false;
+  const filteredPlans = trainingPlans.filter(c => {
     if (searchQuery.length > 0) {
       const query = searchQuery.toLowerCase();
-      const matchTitle = c.title.toLowerCase().includes(query);
-      const matchInstructor = c.instructor?.toLowerCase().includes(query);
-      if (!matchTitle && !matchInstructor) return false;
+      const matchTitle = c.name.toLowerCase().includes(query);
+      const matchDesc = c.description.toLowerCase().includes(query);
+      if (!matchTitle && !matchDesc) return false;
     }
     return true;
   });
 
-  const renderCourseCard = ({ item }: { item: Course }) => {
+  const renderPlanCard = ({ item }: { item: TrainingPlan }) => {
     const isGrid = viewMode === 'grid';
-    const isPublic = item.visibility !== 'private';
-    const learnerCount = item.enrolledUsers?.length || 0;
+    const courseCount = item.courseIds?.length || 0;
 
     return (
       <View style={[styles.cardContainer, isGrid ? styles.cardGrid : styles.cardList]}>
         <View style={[styles.imageContainer, isGrid ? { height: 120 } : { height: 160 }]}>
-          {item.thumbnail ? (
-            <Image source={{ uri: item.thumbnail }} style={styles.coverImage} />
+          {item.image ? (
+            <Image source={{ uri: item.image }} style={styles.coverImage} />
           ) : (
              <View style={[styles.coverImage, { backgroundColor: COLORS.surfaceContainerHigh, justifyContent: 'center', alignItems: 'center' }]}>
                 <Text style={{ fontSize: 40 }}>📚</Text>
              </View>
           )}
-          <View style={[styles.badge, isPublic ? styles.badgePublic : styles.badgePrivate]}>
-            <Text style={[styles.badgeText, isPublic ? styles.badgeTextPublic : styles.badgeTextPrivate]}>
-              {isPublic ? 'PUBLIC' : 'PRIVATE'}
+          <View style={[styles.badge, styles.badgePublic]}>
+            <Text style={[styles.badgeText, styles.badgeTextPublic]}>
+              {courseCount} COURSES
             </Text>
           </View>
         </View>
         
         <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
           
-          <View style={styles.instructorRow}>
-            <View style={[styles.avatarMini, { backgroundColor: COLORS.primaryContainer, justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{ color: '#fff', fontSize: 10 }}>{item.instructor?.charAt(0) || '?'}</Text>
-            </View>
-            <Text style={styles.instructorName} numberOfLines={1}>{item.instructor || 'Unknown'}</Text>
-          </View>
-          
-          <Text style={styles.learnersText}>👤 {learnerCount.toLocaleString()} learners</Text>
+          <Text style={styles.learnersText} numberOfLines={2}>{item.description}</Text>
           
           <View style={styles.cardActions}>
             <TouchableOpacity 
               style={styles.actionButton} 
-              onPress={() => navigation.navigate('AdminCourseDetails', { courseId: item.id })}
+              onPress={() => navigation.navigate('AdminTrainingPlanDetails', { planId: item.id })}
             >
               <Text style={styles.actionIconPrimary}>✏️</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.actionButton}
-              onPress={() => handleDelete(item.id, item.title)}
+              onPress={() => handleDelete(item.id, item.name)}
             >
               <Text style={styles.actionIconDanger}>🗑️</Text>
             </TouchableOpacity>
@@ -108,15 +97,14 @@ const AdminCourseList = () => {
     );
   };
 
-
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
-        <Text style={TYPOGRAPHY.headline}>Manage Courses</Text>
+        <Text style={TYPOGRAPHY.headline}>Manage Plans</Text>
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => navigation.navigate('AdminCourseDetails', {})}
+          onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
         >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
@@ -127,14 +115,14 @@ const AdminCourseList = () => {
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput 
           style={styles.searchInput}
-          placeholder="Search courses, instructors..."
+          placeholder="Search training plans..."
           placeholderTextColor={COLORS.outline}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
       </View>
 
-      {/* Filters & View Toggles */}
+      {/* View Toggles */}
       <View style={styles.controlsRow}>
         <View style={styles.viewToggles}>
           <TouchableOpacity 
@@ -150,39 +138,28 @@ const AdminCourseList = () => {
             <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>≡ List</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.filtersWrapper}>
-          <TouchableOpacity 
-            style={[styles.filterChip, filter === 'all' && styles.filterChipActive]}
-            onPress={() => setFilter('all')}
-          >
-            <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.filterChip, filter === 'public' && styles.filterChipActive]}
-            onPress={() => setFilter('public')}
-          >
-            <Text style={[styles.filterText, filter === 'public' && styles.filterTextActive]}>Public</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.filterChip, filter === 'private' && styles.filterChipActive]}
-            onPress={() => setFilter('private')}
-          >
-            <Text style={[styles.filterText, filter === 'private' && styles.filterTextActive]}>Private</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.itemCountText}>Showing {filteredPlans.length}</Text>
       </View>
 
-      <FlatList
-        key={viewMode}
-        data={filteredCourses}
-        keyExtractor={item => item.id}
-        numColumns={viewMode === 'grid' ? 2 : 1}
-        renderItem={renderCourseCard}
-        contentContainerStyle={styles.listContent}
-        columnWrapperStyle={viewMode === 'grid' ? styles.gridColumnWrapper : undefined}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          key={viewMode}
+          data={filteredPlans}
+          keyExtractor={item => item.id}
+          numColumns={viewMode === 'grid' ? 2 : 1}
+          renderItem={renderPlanCard}
+          contentContainerStyle={styles.listContent}
+          columnWrapperStyle={viewMode === 'grid' ? styles.gridColumnWrapper : undefined}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+             <View style={{ alignItems: 'center', marginTop: 40 }}>
+                <Text style={{ color: COLORS.outline }}>No training plans found.</Text>
+             </View>
+          }
+        />
+      )}
     </View>
   );
 };
@@ -273,26 +250,10 @@ const styles = StyleSheet.create({
   toggleTextActive: {
     color: COLORS.primary,
   },
-  filtersWrapper: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: ROUNDNESS.full,
-    backgroundColor: 'transparent',
-  },
-  filterChipActive: {
-    backgroundColor: COLORS.primary,
-  },
-  filterText: {
+  itemCountText: {
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.outline,
-  },
-  filterTextActive: {
-    color: COLORS.onPrimary,
   },
   listContent: {
     padding: SPACING.md,
@@ -338,9 +299,6 @@ const styles = StyleSheet.create({
   badgePublic: {
     backgroundColor: '#d1fae5',
   },
-  badgePrivate: {
-    backgroundColor: '#fef3c7',
-  },
   badgeText: {
     fontSize: 10,
     fontWeight: '800',
@@ -349,9 +307,6 @@ const styles = StyleSheet.create({
   badgeTextPublic: {
     color: '#065f46',
   },
-  badgeTextPrivate: {
-    color: '#92400e',
-  },
   cardContent: {
     padding: 12,
   },
@@ -359,21 +314,6 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.cardTitle,
     marginBottom: 4,
     minHeight: 32,
-  },
-  instructorRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  avatarMini: {
-    width: 20,
-    height: 20,
-    borderRadius: ROUNDNESS.full,
-    marginRight: 6,
-  },
-  instructorName: {
-    ...TYPOGRAPHY.label,
-    flex: 1,
   },
   learnersText: {
     fontSize: 12,
@@ -399,4 +339,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AdminCourseList;

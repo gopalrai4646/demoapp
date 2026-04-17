@@ -240,13 +240,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: SPACING.lg,
-    paddingBottom: 40,
+    padding: SPACING.md,
+    paddingBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   iconBox: {
     width: 32,
@@ -270,8 +270,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8fafc',
     borderRadius: 16,
-    padding: SPACING.md,
-    marginBottom: SPACING.xl,
+    padding: 12,
+    marginBottom: SPACING.md,
   },
   photoCircle: {
     width: 80,
@@ -301,13 +301,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   inputGroup: {
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
     color: '#334155',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   input: {
     height: 52,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SPACING.xl,
+    marginTop: SPACING.lg,
   },
   saveButtonText: {
     fontSize: 16,
