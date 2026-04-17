@@ -83,7 +83,9 @@ function* handleLogin(action: ReturnType<typeof loginRequest>): any {
     
     const userRef = firestore().collection('users').doc(user.uid);
     const userDoc: any = yield call([userRef, 'get'] as any);
-    if (!userDoc.exists) {
+    const userExists = typeof userDoc.exists === 'function' ? userDoc.exists() : userDoc.exists;
+    
+    if (!userExists) {
       yield call([auth(), auth().signOut]);
       throw new Error('Your account has been deleted by an administrator.');
     }
@@ -227,11 +229,12 @@ function* handleGoogleLogin(): any {
     // Sync with Firestore
     const userRef = firestore().collection('users').doc(user.uid);
     const userDoc: any = yield call([userRef, 'get'] as any);
+    const userExists = typeof userDoc.exists === 'function' ? userDoc.exists() : userDoc.exists;
     
     let role: 'student' | 'admin' = 'student';
     let userData: any = {};
 
-    if (!userDoc.exists) {
+    if (!userExists) {
       // Register new user
       userData = {
         uid: user.uid,
@@ -395,8 +398,9 @@ function* handleImpersonateUser(action: ReturnType<typeof impersonateUserRequest
   try {
     const targetUid = action.payload;
     const userDoc: any = yield call([firestore().collection('users').doc(targetUid), firestore().collection('users').doc(targetUid).get]);
+    const userExists = typeof userDoc.exists === 'function' ? userDoc.exists() : userDoc.exists;
     
-    if (!userDoc.exists) {
+    if (!userExists) {
       throw new Error('User not found in Firestore.');
     }
  
