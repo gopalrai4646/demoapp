@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,47 +6,141 @@ import {
   View,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { StatCard } from '../components/StatCard';
 import { CourseCard } from '../components/CourseCard';
-import { useSelector } from 'react-redux';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { fetchCoursesRequest } from '../store/slices/courseSlice';
+import { enrollCourseRequest } from '../store/slices/authSlice';
 import { RootState } from '../store';
-import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { UserCourseStackParamList } from '../navigation/types';
+
+type NavigationProp = NativeStackNavigationProp<UserCourseStackParamList, 'UserCourses'>;
 
 const Dashboard: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation<NavigationProp>();
+  const { user, role } = useAppSelector((state: RootState) => state.auth);
+  const { courses, loading } = useAppSelector((state: RootState) => state.courses);
+  const { progress } = useAppSelector((state: RootState) => state.progress);
+  
   const firstName = user?.displayName?.split(' ')[0] || 'User';
+  const isAdmin = role === 'admin';
+
+  useEffect(() => {
+    dispatch(fetchCoursesRequest());
+  }, [dispatch]);
+
+  const stats = useMemo(() => {
+    const enrolledIds = user?.enrolledCourses || [];
+    const inProgress = enrolledIds.filter(id => {
+      const p = progress[id];
+      if (!p) return false;
+      const watchedCount = Object.keys(p.watchedDurations || {}).length;
+      const course = courses.find(c => c.id === id);
+      const isCompleted = p.completedVideos?.length === (course?.videos?.length || 0);
+      return watchedCount > 0 && !isCompleted;
+    }).length;
+
+    const completed = enrolledIds.filter(id => {
+      const p = progress[id];
+      const course = courses.find(c => c.id === id);
+      if (!p || !course || !course.videos) return false;
+      return p.completedVideos?.length === course.videos.length;
+    }).length;
+
+    return {
+      enrolled: enrolledIds.length,
+      inProgress,
+      completed
+    };
+  }, [user?.enrolledCourses, progress, courses]);
+
+  const discoverCourses = useMemo(() => {
+    return courses
+      .filter(c => !user?.enrolledCourses?.includes(c.id))
+      .slice(0, 5);
+  }, [courses, user?.enrolledCourses]);
+
+  const handleEnroll = useCallback((course: any) => {
+    const isFree = course.price === 0;
+    
+    Alert.alert(
+      isFree ? 'Enroll for Free?' : 'Enroll in Course',
+      isFree 
+        ? `Would you like to enroll in "${course.title}" and start learning now?`
+        : `This course costs ₹${course.price}. Proceed to enrollment?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Enroll Now', 
+          onPress: () => {
+            dispatch(enrollCourseRequest(course.id));
+            // Small delay to allow Firestore to update (or just navigate, the screen will catch up)
+            setTimeout(() => {
+              navigation.navigate('CoursePlayer', { courseId: course.id });
+            }, 500);
+          } 
+        }
+      ]
+    );
+  }, [dispatch, navigation]);
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Welcome Section (below global nav) */}
+        {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <Text style={TYPOGRAPHY.headline}>Welcome back, {firstName}! 👋</Text>
           <Text style={TYPOGRAPHY.subHeadline}>
-            Here's what's happening with your learning today.
+            {isAdmin 
+              ? "Here's an overview of your platform's activity."
+              : "Here's what's happening with your learning today."}
           </Text>
         </View>
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
-          <StatCard label="Courses in Progress" value="4" />
-          <StatCard label="Saved Courses" value="2" />
-          <StatCard label="Learning Hours" value="12" />
+          <StatCard label="Enrolled" value={stats.enrolled.toString()} />
+          <StatCard label="In Progress" value={stats.inProgress.toString()} />
+          <StatCard label="Completed" value={stats.completed.toString()} />
         </View>
 
         {/* Discover Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={TYPOGRAPHY.cardTitle}>Discover Courses</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>View All</Text>
-          </TouchableOpacity>
-        </View>
+        {!isAdmin && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={TYPOGRAPHY.cardTitle}>Discover Courses</Text>
+              <TouchableOpacity>
+                <Text style={styles.viewAll}>View All</Text>
+              </TouchableOpacity>
+            </View>
 
-        <CourseCard title="Python coding basics" count="4 video" />
-        <CourseCard title="Advanced UI patterns" count="6 video" />
-        <CourseCard title="Data structures 101" count="3 video" />
+            {loading && courses.length === 0 ? (
+              <ActivityIndicator color={COLORS.primary} style={{ marginVertical: 20 }} />
+            ) : discoverCourses.length > 0 ? (
+              discoverCourses.map(course => (
+                <CourseCard 
+                  key={course.id}
+                  title={course.title}
+                  count={`${course.videos?.length || 0} lessons`}
+                  image={course.thumbnail}
+                  price={course.price}
+                  onPress={() => handleEnroll(course)}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyDiscover}>
+                <Text style={TYPOGRAPHY.body}>No new courses to discover right now.</Text>
+              </View>
+            )}
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -136,6 +230,16 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: COLORS.primary,
     fontWeight: '700',
+  },
+  emptyDiscover: {
+    padding: SPACING.xl,
+    backgroundColor: COLORS.surfaceContainerLow,
+    borderRadius: ROUNDNESS.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: COLORS.outlineVariant,
   },
 });
 

@@ -9,8 +9,12 @@ import {
   StatusBar,
   Dimensions,
   ActivityIndicator,
+  Platform,
+  TouchableWithoutFeedback,
+  Animated,
 } from 'react-native';
-import Video, { OnProgressData } from 'react-native-video';
+import Video, { OnProgressData, ResizeMode } from 'react-native-video';
+import Slider from '@react-native-community/slider';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
@@ -21,7 +25,10 @@ import {
   ChevronLeft, 
   Info, 
   BookOpen,
-  Award
+  Award,
+  Pause,
+  Maximize,
+  Minimize
 } from 'lucide-react-native';
 import { fetchProgressRequest, updateProgressRequest } from '../store/slices/progressSlice';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
@@ -43,10 +50,84 @@ const CoursePlayerScreen = () => {
   const [activeVideoId, setActiveVideoId] = useState(initialVideoId || 'video_0');
   const [activeTab, setActiveTab] = useState<'lessons' | 'about'>('lessons');
   const [isReady, setIsReady] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [isLoadStarted, setIsLoadStarted] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
+
+  // Custom Player State
+  const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  // Reset player state when switching to a different video
+  useEffect(() => {
+    setVideoError(null);
+    setIsReady(false);
+    setIsBuffering(false);
+    setIsLoadStarted(false);
+    setPaused(false);
+    setCurrentTime(0);
+    setDuration(0);
+  }, [activeVideoId]);
   
   const videoRef = useRef<any>(null);
   const lastSyncRef = useRef<number>(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const controlsTimeoutRef = useRef<any>(null);
+  const lastTapRef = useRef<number>(0);
+
+  const hideControls = useCallback(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setShowControls(false));
+  }, [fadeAnim]);
+
+  const resetControlsTimeout = useCallback(() => {
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    setShowControls(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+    
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (!paused && !isBuffering) hideControls();
+    }, 3000);
+  }, [fadeAnim, paused, isBuffering, hideControls]);
+
+  const handleDoubleTap = (e: any) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    const { locationX } = e.nativeEvent;
+    const screenWidth = Dimensions.get('window').width;
+
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // It's a double tap
+      if (locationX < screenWidth / 2) {
+        // Left side - Seek back
+        videoRef.current?.seek(Math.max(0, currentTime - 10));
+      } else {
+        // Right side - Seek forward
+        videoRef.current?.seek(Math.min(duration, currentTime + 10));
+      }
+      resetControlsTimeout();
+    } else {
+      lastTapRef.current = now;
+      resetControlsTimeout();
+    }
+  };
+
+  useEffect(() => {
+    resetControlsTimeout();
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, [paused, isBuffering, resetControlsTimeout]);
 
   const course = useMemo(() => courses.find(c => c.id === courseId), [courses, courseId]);
   const isEnrolled = useMemo(() => user?.enrolledCourses?.includes(courseId), [user, courseId]);
@@ -106,10 +187,30 @@ const CoursePlayerScreen = () => {
       };
     }
 
-    const source =
-      fixedUrl.toLowerCase().includes('.m3u8')
-        ? { uri: fixedUrl, type: 'm3u8' as const }
-        : { uri: fixedUrl };
+    // Detect video type and optimize Cloudinary URLs for Android
+    const lowerUrl = fixedUrl.toLowerCase();
+    let type: string | undefined;
+    let finalUrl = fixedUrl;
+
+    if (lowerUrl.includes('.m3u8')) {
+      type = 'm3u8';
+    } else if (lowerUrl.includes('.mp4') || lowerUrl.includes('/video/upload/')) {
+      type = 'mp4';
+      // If Cloudinary URL, force H264 codec and 720p for maximum hardware compatibility
+      if (lowerUrl.includes('cloudinary.com') && lowerUrl.includes('/video/upload/')) {
+        const parts = fixedUrl.split('/video/upload/');
+        if (parts.length === 2 && !parts[1].includes('vc_')) { // Don't override if already has transformations
+          finalUrl = `${parts[0]}/video/upload/f_mp4,vc_h264,w_1280,q_auto/${parts[1]}`;
+        }
+      }
+    } else if (lowerUrl.includes('.mov')) {
+      type = 'mov';
+    } else if (lowerUrl.includes('.webm')) {
+      type = 'webm';
+    }
+
+    const source: any = { uri: finalUrl };
+    if (type) source.type = type;
 
     return { source, unsupportedReason: null };
   }, [activeVideo?.url]);
@@ -138,28 +239,39 @@ const CoursePlayerScreen = () => {
   }, [courseProgress, videoList]);
 
   const handleVideoProgress = (data: OnProgressData) => {
+    setCurrentTime(data.currentTime);
+    if (data.seekableDuration > 0) setDuration(data.seekableDuration);
+
     if (!user?.uid || !activeVideoId) return;
 
-    const currentTime = Math.round(data.currentTime);
-    const duration = Math.round(data.playableDuration);
+    const currentTimeSync = Math.round(data.currentTime);
+    const durationSync = Math.round(data.playableDuration || data.seekableDuration);
     const now = Date.now();
 
     // Sync progress every 3 seconds or if near end
-    if (now - lastSyncRef.current > 3000 || (duration > 0 && currentTime >= duration - 2)) {
+    if (now - lastSyncRef.current > 3000 || (durationSync > 0 && currentTimeSync >= durationSync - 2)) {
       lastSyncRef.current = now;
-      const isCompleted = duration > 0 && currentTime >= duration - 2;
+      const isCompleted = durationSync > 0 && currentTimeSync >= durationSync - 2;
       
       dispatch(updateProgressRequest({
         userId: user.uid,
         courseId,
         videoId: activeVideoId,
-        watchedDuration: currentTime,
+        watchedDuration: currentTimeSync,
         isCompleted
       }));
     }
   };
 
-  const handleVideoLoad = () => {
+  const formatTime = (timeInSeconds: number) => {
+    if (!timeInSeconds || isNaN(timeInSeconds)) return '0:00';
+    const m = Math.floor(timeInSeconds / 60);
+    const s = Math.floor(timeInSeconds % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const handleVideoLoad = (data: any) => {
+    if (data?.duration) setDuration(data.duration);
     const savedTime = courseProgress?.watchedDurations?.[activeVideoId];
     if (savedTime && savedTime > 0 && !courseProgress?.completedVideos?.includes(activeVideoId)) {
       videoRef.current?.seek(savedTime);
@@ -205,48 +317,119 @@ const CoursePlayerScreen = () => {
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       
       {/* Video Player Section */}
-      <View style={styles.playerContainer}>
-        {normalizedVideo.source ? (
-          <View style={styles.videoPlayer}>
-            <Video
-              key={normalizedVideo.source.uri} // Forces player reset on source change
-              ref={videoRef}
-              source={normalizedVideo.source}
-              style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
-              resizeMode="contain"
-              controls
-              paused={false}
-              onProgress={handleVideoProgress}
-              onLoad={handleVideoLoad}
-              onError={(e) => {
-                console.log('[CoursePlayer] Video Error:', e);
-                setVideoError('Unable to play this video. Please verify the uploaded video format and URL.');
-              }}
-            />
-            {videoError ? (
-              <View style={styles.videoErrorOverlay} pointerEvents="none">
-                <Text style={styles.videoErrorText}>{videoError}</Text>
-              </View>
-            ) : null}
-          </View>
-        ) : (
-          <View style={styles.videoPlaceholder}>
-            <ActivityIndicator color="#fff" />
-            <Text style={styles.placeholderText}>
-              {!course ? 'Loading Course...' : 'Lesson unavailable'}
-            </Text>
-            <Text style={[styles.debugText, { textAlign: 'center', marginHorizontal: 20 }]}>
-              {normalizedVideo.unsupportedReason || 'Check lesson video source URL.'}
-            </Text>
-          </View>
-        )}
-        <TouchableOpacity 
-          style={styles.floatingBackButton} 
-          onPress={() => navigation.goBack()}
-        >
-          <ChevronLeft color="#fff" size={24} />
-        </TouchableOpacity>
-      </View>
+      <TouchableWithoutFeedback onPress={handleDoubleTap}>
+        <View style={[styles.playerContainer, isFullscreen && styles.fullscreenContainer]}>
+          {normalizedVideo.source ? (
+            <View style={styles.videoWrapper}>
+              <Video
+                ref={videoRef}
+                source={normalizedVideo.source}
+                style={StyleSheet.absoluteFill}
+                resizeMode={ResizeMode.CONTAIN}
+                paused={paused}
+                playInBackground={false}
+                playWhenInactive={false}
+                ignoreSilentSwitch="ignore"
+                useTextureView={false} // SurfaceView is better for custom overlays if background is transparent
+                onLoadStart={() => {
+                  setIsLoadStarted(true);
+                  setIsBuffering(true);
+                }}
+                onReadyForDisplay={() => {
+                  setIsBuffering(false);
+                  setPaused(false);
+                }}
+                onBuffer={({ isBuffering: buffering }: any) => {
+                  setIsBuffering(buffering);
+                }}
+                onProgress={handleVideoProgress}
+                onLoad={(data: any) => {
+                  handleVideoLoad(data);
+                  setIsBuffering(false);
+                }}
+                onError={(e: any) => {
+                  console.log('[CoursePlayer] VIDEO ERROR:', JSON.stringify(e));
+                  setVideoError(`Unable to play this video.`);
+                  setIsBuffering(false);
+                }}
+              />
+
+              {/* YouTube-like Controls Overlay */}
+              {showControls && (
+                <Animated.View style={[styles.controlsOverlay, { opacity: fadeAnim }]}>
+                  {/* Top Bar: Back Button */}
+                  <View style={styles.topControls}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+                      <ChevronLeft color="#fff" size={28} />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Center: Play/Pause/Buffer */}
+                  <View style={styles.centerControls} pointerEvents="box-none">
+                    {isBuffering ? (
+                      <ActivityIndicator size="large" color="#FF0000" />
+                    ) : (
+                      <TouchableOpacity 
+                        style={styles.playPauseButton}
+                        onPress={() => {
+                          setPaused(!paused);
+                          resetControlsTimeout();
+                        }}
+                      >
+                        {paused ? (
+                          <Play color="#fff" size={32} fill="#fff" />
+                        ) : (
+                          <Pause color="#fff" size={32} fill="#fff" />
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Bottom Bar: Slider & Time */}
+                  <View style={styles.bottomControls}>
+                    <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
+                    <Slider
+                      style={styles.slider}
+                      minimumValue={0}
+                      maximumValue={duration > 0 ? duration : 100}
+                      value={currentTime}
+                      minimumTrackTintColor="#FF0000"
+                      maximumTrackTintColor="rgba(255,255,255,0.4)"
+                      thumbTintColor="#FF0000"
+                      onSlidingStart={() => {
+                        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+                      }}
+                      onSlidingComplete={(val) => {
+                        videoRef.current?.seek(val);
+                        resetControlsTimeout();
+                      }}
+                    />
+                    <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                  </View>
+                </Animated.View>
+              )}
+
+              {/* Error Overlay */}
+              {videoError ? (
+                <View style={styles.errorOverlay}>
+                  <Info color="#ffb4ab" size={32} />
+                  <Text style={styles.videoErrorText}>{videoError}</Text>
+                </View>
+              ) : null}
+            </View>
+          ) : (
+            <View style={styles.videoPlaceholder}>
+              <ActivityIndicator color="#fff" />
+              <Text style={styles.placeholderText}>
+                {!course ? 'Loading Course...' : 'Lesson unavailable'}
+              </Text>
+              <Text style={[styles.debugText, { textAlign: 'center', marginHorizontal: 20 }]}>
+                {normalizedVideo.unsupportedReason || 'No video URL found for this lesson.'}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
 
       <ScrollView stickyHeaderIndices={[2]} showsVerticalScrollIndicator={false}>
         {/* Course Info */}
@@ -359,17 +542,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playerContainer: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    backgroundColor: '#000',
-  },
-  videoPlayer: {
+  fullscreenContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
-    bottom: 0,
     right: 0,
+    bottom: 0,
+    zIndex: 9999,
+    elevation: 9999,
+    backgroundColor: '#000',
+  },
+  playerContainer: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: 'transparent',
+    minHeight: 200,
+  },
+  videoWrapper: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  controlsOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  topControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 40 : 10,
+    paddingHorizontal: 10,
+  },
+  centerControls: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
+  iconButton: {
+    padding: 8,
+  },
+  playPauseButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    minWidth: 40,
+    textAlign: 'center',
+  },
+  slider: {
+    flex: 1,
+    marginHorizontal: 10,
+    height: 40,
+  },
+  errorOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  videoPlayer: {
+    flex: 1,
   },
   videoPlaceholder: {
     flex: 1,
@@ -398,6 +647,18 @@ const styles = StyleSheet.create({
   videoErrorText: {
     color: '#ffb4ab',
     fontSize: 12,
+  },
+  bufferingOverlay: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  bufferingText: {
+    color: '#fff',
+    fontSize: 13,
+    marginTop: 10,
+    fontWeight: '600',
   },
   floatingBackButton: {
     position: 'absolute',

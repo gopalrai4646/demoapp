@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import Dashboard from '../screens/Dashboard';
+import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import Account from '../screens/AccountScreen';
 import AdminCourseStack from './AdminCourseStack';
 import { AdminTrainingPlanStack } from './AdminTrainingPlanStack';
@@ -51,7 +52,7 @@ const MainTabNavigator = () => {
     >
       <Tab.Screen
         name="Dashboard"
-        component={Dashboard}
+        component={isAdmin ? AdminDashboardScreen : Dashboard}
         options={{
           tabBarLabel: isAdmin ? 'Reports' : 'Dashboard',
           tabBarIcon: ({ color, size }) => (
