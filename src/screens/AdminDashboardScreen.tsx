@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  Modal,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useNavigation } from '@react-navigation/native';
@@ -27,7 +28,7 @@ import {
   ChevronRight,
   TrendingUp,
 } from 'lucide-react-native';
-import Svg, { Path, Rect, Circle as SvgCircle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Path, Rect, Circle as SvgCircle, Defs, LinearGradient, Stop, G, Text as SvgText } from 'react-native-svg';
 import firestore from '@react-native-firebase/firestore';
 
 const { width } = Dimensions.get('window');
@@ -44,6 +45,7 @@ const AdminDashboardScreen = () => {
   const [allProgress, setAllProgress] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(true);
   const [dauTimeframe, setDauTimeframe] = useState<'week' | 'month'>('week');
+  const [activeInsight, setActiveInsight] = useState<'courses' | 'plans' | null>(null);
 
   useEffect(() => {
     dispatch(fetchUsersRequest());
@@ -212,8 +214,106 @@ const AdminDashboardScreen = () => {
     </View>
   );
 
-  const AnalyticsCard = ({ title, value, subtext, icon: Icon, color, bg, miniChart }: any) => (
-    <View style={styles.card}>
+  const renderInsightModal = () => {
+    if (!activeInsight) return null;
+    
+    const isCourses = activeInsight === 'courses';
+    const data = isCourses 
+      ? [...courses]
+          .sort((a, b) => (b.enrolledUsers?.length || 0) - (a.enrolledUsers?.length || 0))
+          .slice(0, 5)
+          .map(c => ({ label: c.title, value: c.enrolledUsers?.length || 0 }))
+      : [...trainingPlans]
+          .sort((a, b) => {
+             const countA = users.filter(u => u.assignedTrainingPlans?.includes(a.id)).length;
+             const countB = users.filter(u => u.assignedTrainingPlans?.includes(b.id)).length;
+             return countB - countA;
+          })
+          .slice(0, 5)
+          .map(tp => ({ 
+            label: tp.name, 
+            value: users.filter(u => u.assignedTrainingPlans?.includes(tp.id)).length 
+          }));
+
+    const maxVal = Math.max(...data.map(d => d.value), 1);
+
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={!!activeInsight}
+        onRequestClose={() => setActiveInsight(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{isCourses ? 'Top 5 Courses' : 'Top 5 Training Plans'}</Text>
+              <TouchableOpacity onPress={() => setActiveInsight(null)} style={styles.closeModalBtn}>
+                <Text style={styles.closeModalText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <Text style={styles.chartSub}>Enrollment Distribution</Text>
+              <View style={styles.modalChartWrapper}>
+                <Svg height="220" width={width - 80}>
+                  {data.map((item, index) => {
+                    const barWidth = ((width - 100) / data.length) - 10;
+                    const barHeight = (item.value / maxVal) * 140;
+                    const x = index * (barWidth + 10);
+                    
+                    return (
+                      <G key={index}>
+                        <Rect 
+                          x={x} 
+                          y={160 - barHeight} 
+                          width={barWidth} 
+                          height={barHeight} 
+                          fill={isCourses ? '#0ea5e9' : '#8b5cf6'} 
+                          rx={6} 
+                        />
+                        <SvgText
+                          x={x + barWidth / 2}
+                          y={180}
+                          fontSize="9"
+                          fill="#64748b"
+                          textAnchor="middle"
+                          fontWeight="700"
+                        >
+                          {item.label.length > 10 ? item.label.substring(0, 8) + '..' : item.label}
+                        </SvgText>
+                        <SvgText
+                          x={x + barWidth / 2}
+                          y={160 - barHeight - 8}
+                          fontSize="11"
+                          fill={isCourses ? '#0ea5e9' : '#8b5cf6'} 
+                          textAnchor="middle"
+                          fontWeight="900"
+                        >
+                          {item.value}
+                        </SvgText>
+                      </G>
+                    );
+                  })}
+                </Svg>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.dismissBtn} onPress={() => setActiveInsight(null)}>
+              <Text style={styles.dismissBtnText}>Close Analysis</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  const AnalyticsCard = ({ title, value, subtext, icon: Icon, color, bg, miniChart, onPress }: any) => (
+    <TouchableOpacity 
+      style={styles.card} 
+      activeOpacity={onPress ? 0.7 : 1}
+      onPress={onPress}
+    >
       <View style={[styles.iconContainer, { backgroundColor: bg }]}>
         <Icon size={20} color={color} />
       </View>
@@ -221,7 +321,7 @@ const AdminDashboardScreen = () => {
       <Text style={styles.cardValue}>{value}</Text>
       {miniChart && renderMiniChart(color)}
       <Text style={styles.cardSubtext}>{subtext}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderDAUChart = () => {
@@ -440,6 +540,7 @@ const AdminDashboardScreen = () => {
           icon={Users} 
           color="#4f46e5" 
           bg="#eef2ff" 
+          onPress={() => navigation.navigate('Users')}
         />
         <AnalyticsCard 
           title="TOTAL COURSES" 
@@ -448,6 +549,7 @@ const AdminDashboardScreen = () => {
           icon={BookOpen} 
           color="#10b981" 
           bg="#ecfdf5" 
+          onPress={() => navigation.navigate('Courses')}
         />
         <AnalyticsCard 
           title="TOTAL TRAINING PLANS" 
@@ -456,6 +558,7 @@ const AdminDashboardScreen = () => {
           icon={Award} 
           color="#f59e0b" 
           bg="#fffbeb" 
+          onPress={() => navigation.navigate('Plans')}
         />
         <AnalyticsCard 
           title="TOTAL REVENUE" 
@@ -473,6 +576,7 @@ const AdminDashboardScreen = () => {
           color="#8b5cf6" 
           bg="#f5f3ff" 
           miniChart 
+          onPress={() => setActiveInsight('plans')}
         />
         <AnalyticsCard 
           title="TOP COURSES" 
@@ -482,6 +586,7 @@ const AdminDashboardScreen = () => {
           color="#0ea5e9" 
           bg="#f0f9ff" 
           miniChart 
+          onPress={() => setActiveInsight('courses')}
         />
       </View>
 
@@ -489,6 +594,7 @@ const AdminDashboardScreen = () => {
       {renderPopularity()}
       {renderAttentionNeeded()}
       {renderStalledLearners()}
+      {renderInsightModal()}
     </ScrollView>
   );
 };
@@ -791,6 +897,68 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#64748b',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  closeModalBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeModalText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '700',
+  },
+  modalBody: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  modalChartWrapper: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  dismissBtn: {
+    backgroundColor: '#f1f5f9',
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  dismissBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#475569',
   },
 });
 
