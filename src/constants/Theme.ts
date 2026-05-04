@@ -15,6 +15,7 @@ export const COLORS = {
   onPrimary: '#ffffff',
   outline: '#777587',
   outlineVariant: '#c7c4d8',
+  error: '#ef4444',
 };
 
 export const SPACING = {

@@ -7,11 +7,20 @@ import Dashboard from '../screens/Dashboard';
 import Account from '../screens/AccountScreen';
 import AdminCourseStack from './AdminCourseStack';
 import { AdminTrainingPlanStack } from './AdminTrainingPlanStack';
-import UserCoursesScreen from '../screens/UserCoursesScreen';
+import UserCourseStack from './UserCourseStack';
 import { PlansScreen } from '../screens/Placeholders';
+import AdminUsersScreen from '../screens/AdminUsersScreen';
 import { MainTabParamList } from './types';
-import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
+import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { AppHeader } from '../components/AppHeader';
+import { 
+  BarChart2, 
+  BookOpen, 
+  LayoutDashboard, 
+  Settings, 
+  Users, 
+  GraduationCap 
+} from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -44,25 +53,23 @@ const MainTabNavigator = () => {
         name="Dashboard"
         component={Dashboard}
         options={{
-          tabBarLabel: 'Dashboard',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarLabel: isAdmin ? 'Reports' : 'Dashboard',
+          tabBarIcon: ({ color, size }) => (
             <View style={styles.iconContainer}>
-              {focused && <View style={styles.activeIndicator} />}
-              <Text style={{ color, fontSize: 20 }}>🏠</Text>
+              {isAdmin ? <BarChart2 size={size} color={color} /> : <LayoutDashboard size={size} color={color} />}
             </View>
           ),
         }}
       />
       <Tab.Screen
         name="Courses"
-        component={isAdmin ? AdminCourseStack : UserCoursesScreen}
+        component={isAdmin ? AdminCourseStack : UserCourseStack}
         options={{
-          headerShown: !isAdmin, // Show header for user screen, hide for admin stack (since it has its own)
+          headerShown: false,
           tabBarLabel: 'Courses',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <View style={styles.iconContainer}>
-              {focused && <View style={styles.activeIndicator} />}
-              <Text style={{ color, fontSize: 20 }}>📚</Text>
+              <BookOpen size={size} color={color} />
             </View>
           ),
         }}
@@ -81,15 +88,28 @@ const MainTabNavigator = () => {
           ),
         }}
       />
+      {isAdmin && (
+        <Tab.Screen
+          name="Users"
+          component={AdminUsersScreen}
+          options={{
+            tabBarLabel: 'Users',
+            tabBarIcon: ({ color, size }) => (
+              <View style={styles.iconContainer}>
+                <Users size={size} color={color} />
+              </View>
+            ),
+          }}
+        />
+      )}
       <Tab.Screen
         name="Account"
         component={Account}
         options={{
-          tabBarLabel: 'Account',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarLabel: isAdmin ? 'Settings' : 'Account',
+          tabBarIcon: ({ color, size }) => (
             <View style={styles.iconContainer}>
-              {focused && <View style={styles.activeIndicator} />}
-              <Text style={{ color, fontSize: 20 }}>👤</Text>
+              {isAdmin ? <Settings size={size} color={color} /> : <GraduationCap size={size} color={color} />}
             </View>
           ),
         }}

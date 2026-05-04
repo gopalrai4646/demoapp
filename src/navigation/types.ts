@@ -16,10 +16,16 @@ export type AdminTrainingPlanStackParamList = {
   AdminTrainingPlanDetails: { planId?: string };
 };
 
+export type UserCourseStackParamList = {
+  UserCourses: undefined;
+  CoursePlayer: { courseId: string; initialVideoId?: string };
+};
+
 export type MainTabParamList = {
   Dashboard: undefined;
-  Courses: NavigatorScreenParams<AdminCourseStackParamList> | undefined;
+  Courses: NavigatorScreenParams<AdminCourseStackParamList | UserCourseStackParamList> | undefined;
   Plans: NavigatorScreenParams<AdminTrainingPlanStackParamList> | undefined;
+  Users: undefined;
   Account: undefined;
 };
 

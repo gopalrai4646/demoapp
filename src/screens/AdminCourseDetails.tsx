@@ -8,6 +8,7 @@ import { RootState } from '../store';
 import { createCourseRequest, updateCourseRequest, Course, VideoItem } from '../store/slices/courseSlice';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import { AdminCourseStackParamList } from '../navigation/types';
 
 type AdminCourseDetailsRouteProp = RouteProp<AdminCourseStackParamList, 'AdminCourseDetails'>;
 
