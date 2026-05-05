@@ -1,0 +1,212 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { selectAssignedPlans } from '../store/selectors';
+import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
+import { ArrowRight, BookOpen } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import { fetchTrainingPlansRequest } from '../store/slices/trainingPlanSlice';
+
+const { width } = Dimensions.get('window');
+
+const UserTrainingPlanScreen = () => {
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation<any>();
+  const trainingPlans = useAppSelector(selectAssignedPlans);
+  const loading = useAppSelector(state => state.trainingPlans.loading);
+
+  React.useEffect(() => {
+    dispatch(fetchTrainingPlansRequest());
+  }, [dispatch]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Training Plans</Text>
+        <Text style={styles.subtitle}>
+          View your assigned learning paths curated by administrators.
+        </Text>
+      </View>
+
+      {trainingPlans.length > 0 ? (
+        trainingPlans.map((plan) => (
+          <TouchableOpacity 
+            key={plan.id} 
+            style={styles.card}
+            onPress={() => {
+              navigation.navigate('UserTrainingPlanDetails', { planId: plan.id });
+            }}
+          >
+            <View style={styles.imageContainer}>
+              <Image 
+                source={{ uri: plan.image || 'https://via.placeholder.com/400x200' }} 
+                style={styles.image}
+                resizeMode="cover"
+              />
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{plan.courseIds?.length || 0} Courses</Text>
+              </View>
+            </View>
+
+            <View style={styles.infoContainer}>
+              <Text style={styles.planName}>{plan.name}</Text>
+              <Text style={styles.description} numberOfLines={3}>
+                {plan.description}
+              </Text>
+              
+              <View style={styles.footer}>
+                <TouchableOpacity 
+                  style={styles.viewLink}
+                  onPress={() => {
+                    navigation.navigate('UserTrainingPlanDetails', { planId: plan.id });
+                  }}
+                >
+                  <Text style={styles.viewLinkText}>view plan</Text>
+                  <ArrowRight size={16} color="#4f46e5" style={styles.arrowIcon} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <View style={styles.emptyContainer}>
+          <BookOpen size={48} color={COLORS.onSurfaceVariant} opacity={0.5} />
+          <Text style={styles.emptyText}>No training plans assigned yet.</Text>
+        </View>
+      )}
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  content: {
+    padding: SPACING.lg,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    marginBottom: SPACING.xl,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#0f172a',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#64748b',
+    lineHeight: 24,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    marginBottom: SPACING.xl,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 180,
+    position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  badge: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  infoContainer: {
+    padding: 24,
+  },
+  planName: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#0f172a',
+    marginBottom: 12,
+  },
+  description: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    paddingTop: 16,
+  },
+  viewLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewLinkText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4f46e5',
+    marginRight: 6,
+  },
+  arrowIcon: {
+    marginTop: 0,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 100,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: COLORS.onSurfaceVariant,
+    fontWeight: '600',
+  },
+});
+
+export default UserTrainingPlanScreen;

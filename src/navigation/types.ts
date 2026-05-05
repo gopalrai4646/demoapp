@@ -21,10 +21,15 @@ export type UserCourseStackParamList = {
   CoursePlayer: { courseId: string; initialVideoId?: string };
 };
 
+export type UserTrainingPlanStackParamList = {
+  UserTrainingPlanList: undefined;
+  UserTrainingPlanDetails: { planId: string };
+};
+
 export type MainTabParamList = {
   Dashboard: undefined;
-  Courses: NavigatorScreenParams<AdminCourseStackParamList | UserCourseStackParamList> | undefined;
-  Plans: NavigatorScreenParams<AdminTrainingPlanStackParamList> | undefined;
+  Courses: NavigatorScreenParams<AdminCourseStackParamList & UserCourseStackParamList> | undefined;
+  Plans: NavigatorScreenParams<AdminTrainingPlanStackParamList & UserTrainingPlanStackParamList> | undefined;
   Users: undefined;
   Account: undefined;
 };

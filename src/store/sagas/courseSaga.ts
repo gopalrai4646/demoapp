@@ -67,7 +67,7 @@ function* handleUpdateCourse(action: ReturnType<typeof updateCourseRequest>): an
   try {
     const { id, ...updates } = action.payload;
     const courseRef = firestore().collection('courses').doc(id);
-    yield call([courseRef, courseRef.update], updates);
+    yield call([courseRef, 'update'] as any, updates);
     yield put(updateCourseSuccess({ ...action.payload } as Course));
   } catch (error: any) {
     yield put(fetchCoursesFailure(error.message));

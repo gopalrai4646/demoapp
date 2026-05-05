@@ -9,6 +9,7 @@ import Account from '../screens/AccountScreen';
 import AdminCourseStack from './AdminCourseStack';
 import { AdminTrainingPlanStack } from './AdminTrainingPlanStack';
 import UserCourseStack from './UserCourseStack';
+import UserTrainingPlanStack from './UserTrainingPlanStack';
 import { PlansScreen } from '../screens/Placeholders';
 import AdminUsersScreen from '../screens/AdminUsersScreen';
 import { MainTabParamList } from './types';
@@ -77,9 +78,9 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Plans"
-        component={isAdmin ? AdminTrainingPlanStack : PlansScreen}
+        component={isAdmin ? AdminTrainingPlanStack : UserTrainingPlanStack}
         options={{
-          headerShown: !isAdmin, // Show header for user screen, hide for admin stack (since it has its own Header built internally if needed or we use AppHeader) Wait, in AdminCourseStack we hid the stack headers and depended on AppHeader. Oh wait, my AppHeader is globally set on the Tab!
+          headerShown: false,
           tabBarLabel: 'Plans',
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>

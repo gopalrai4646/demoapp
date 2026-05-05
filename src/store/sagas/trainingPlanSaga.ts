@@ -65,7 +65,7 @@ function* handleUpdateTrainingPlan(action: ReturnType<typeof updateTrainingPlanR
   try {
     const { id, ...updates } = action.payload;
     const planRef = firestore().collection('trainingPlans').doc(id);
-    yield call([planRef, planRef.update], updates);
+    yield call([planRef, 'update'] as any, updates);
     yield put(updateTrainingPlanSuccess({ ...action.payload } as TrainingPlan));
   } catch (error: any) {
     yield put(fetchTrainingPlansFailure(error.message));
