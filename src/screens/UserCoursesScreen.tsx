@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
     marginBottom: SPACING.lg,
   },
@@ -261,7 +260,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surfaceContainer,
-    marginHorizontal: SPACING.lg,
     paddingHorizontal: SPACING.md,
     borderRadius: ROUNDNESS.xl,
     height: 48,
@@ -279,7 +277,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   tabsContainer: {
-    paddingHorizontal: SPACING.lg,
   },
   tabPill: {
     flexDirection: 'row',

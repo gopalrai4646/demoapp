@@ -8,6 +8,18 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { fetchCoursesRequest, deleteCourseRequest, Course } from '../store/slices/courseSlice';
+import { 
+  Plus, 
+  Search, 
+  LayoutGrid, 
+  List, 
+  BookOpen, 
+  Users, 
+  Pencil, 
+  Trash2,
+  ShieldCheck,
+  ShieldOff
+} from 'lucide-react-native';
 
 type NavigationProp = NativeStackNavigationProp<AdminCourseStackParamList, 'AdminCourseList'>;
 
@@ -67,10 +79,11 @@ const AdminCourseList = () => {
             <Image source={{ uri: item.thumbnail }} style={styles.coverImage} />
           ) : (
              <View style={[styles.coverImage, { backgroundColor: COLORS.surfaceContainerHigh, justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{ fontSize: 40 }}>📚</Text>
+                <BookOpen size={40} color={COLORS.outlineVariant} />
              </View>
           )}
           <View style={[styles.badge, isPublic ? styles.badgePublic : styles.badgePrivate]}>
+            {isPublic ? <ShieldCheck size={10} color="#065f46" /> : <ShieldOff size={10} color="#92400e" />}
             <Text style={[styles.badgeText, isPublic ? styles.badgeTextPublic : styles.badgeTextPrivate]}>
               {isPublic ? 'PUBLIC' : 'PRIVATE'}
             </Text>
@@ -87,20 +100,23 @@ const AdminCourseList = () => {
             <Text style={styles.instructorName} numberOfLines={1}>{item.instructor || 'Unknown'}</Text>
           </View>
           
-          <Text style={styles.learnersText}>👤 {learnerCount.toLocaleString()} learners</Text>
+          <View style={styles.statsRow}>
+            <Users size={12} color={COLORS.outline} />
+            <Text style={styles.learnersText}>{learnerCount.toLocaleString()} learners</Text>
+          </View>
           
           <View style={styles.cardActions}>
             <TouchableOpacity 
               style={styles.actionButton} 
               onPress={() => navigation.navigate('AdminCourseDetails', { courseId: item.id })}
             >
-              <Text style={styles.actionIconPrimary}>✏️</Text>
+              <Pencil size={18} color={COLORS.primary} />
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.actionButton}
               onPress={() => handleDelete(item.id, item.title)}
             >
-              <Text style={styles.actionIconDanger}>🗑️</Text>
+              <Trash2 size={18} color={COLORS.error} />
             </TouchableOpacity>
           </View>
         </View>
@@ -118,13 +134,13 @@ const AdminCourseList = () => {
           style={styles.addButton}
           onPress={() => navigation.navigate('AdminCourseDetails', {})}
         >
-          <Text style={styles.addButtonText}>+</Text>
+          <Plus size={24} color={COLORS.onPrimary} />
         </TouchableOpacity>
       </View>
 
       {/* Search */}
       <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
         <TextInput 
           style={styles.searchInput}
           placeholder="Search courses, instructors..."
@@ -141,13 +157,13 @@ const AdminCourseList = () => {
             style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]}
             onPress={() => setViewMode('grid')}
           >
-            <Text style={[styles.toggleText, viewMode === 'grid' && styles.toggleTextActive]}>⊞ Grid</Text>
+            <LayoutGrid size={16} color={viewMode === 'grid' ? COLORS.primary : COLORS.outline} />
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
             onPress={() => setViewMode('list')}
           >
-            <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>≡ List</Text>
+            <List size={16} color={viewMode === 'list' ? COLORS.primary : COLORS.outline} />
           </TouchableOpacity>
         </View>
 
@@ -334,6 +350,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: ROUNDNESS.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   badgePublic: {
     backgroundColor: '#d1fae5',
@@ -375,10 +394,15 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.label,
     flex: 1,
   },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 10,
+  },
   learnersText: {
     fontSize: 12,
     color: COLORS.outline,
-    marginBottom: 10,
   },
   cardActions: {
     flexDirection: 'row',

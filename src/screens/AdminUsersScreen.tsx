@@ -222,7 +222,7 @@ const AdminUsersScreen = () => {
       <FlatList
         ListHeaderComponent={
           <>
-            <View style={[styles.header, { paddingTop: insets.top + SPACING.lg }]}>
+            <View style={[styles.header, { paddingTop: SPACING.xl }]}>
               <Text style={styles.title}>User Management</Text>
               <Text style={styles.subtitle}>Control and oversee your community</Text>
             </View>

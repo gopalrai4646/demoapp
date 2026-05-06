@@ -9,6 +9,18 @@ import { createCourseRequest, updateCourseRequest, Course, VideoItem } from '../
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { AdminCourseStackParamList } from '../navigation/types';
+import { 
+  X, 
+  Camera, 
+  Eye, 
+  CheckCircle2, 
+  PlayCircle, 
+  ChevronUp, 
+  ChevronDown,
+  Plus,
+  Trash2,
+  MoreVertical
+} from 'lucide-react-native';
 
 type AdminCourseDetailsRouteProp = RouteProp<AdminCourseStackParamList, 'AdminCourseDetails'>;
 
@@ -148,7 +160,7 @@ const AdminCourseDetails = () => {
   const renderHeader = () => (
     <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-        <Text style={styles.closeIcon}>✕</Text>
+        <X size={20} color={COLORS.primary} />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>Course Manager</Text>
       <View style={styles.profileContainer}>
@@ -196,7 +208,7 @@ const AdminCourseDetails = () => {
           ) : (
             <View style={styles.thumbnailPlaceholder}>
               <View style={styles.camIconWrapper}>
-                <Text style={styles.camIcon}>📸</Text>
+                <Camera size={24} color={COLORS.primary} />
               </View>
               <Text style={styles.thumbUploadText}>{isEditing ? 'Change Thumbnail' : 'Upload Thumbnail'}</Text>
             </View>
@@ -248,7 +260,7 @@ const AdminCourseDetails = () => {
 
         <View style={styles.visibilityCard}>
           <View style={styles.visibilityInfo}>
-            <Text style={styles.eyeIcon}>👁️</Text>
+            <Eye size={20} color={COLORS.primary} style={{ marginRight: 12 }} />
             <View>
               <Text style={styles.visibilityTitle}>Public Visibility</Text>
               <Text style={styles.visibilityDesc}>Make this course discoverable in catalog</Text>
@@ -276,8 +288,8 @@ const AdminCourseDetails = () => {
           return (
             <View key={idx.toString()} style={styles.lessonCard}>
               <View style={styles.dragHandles}>
-                <Text style={styles.handleIcon}>▴</Text>
-                <Text style={styles.handleIcon}>▾</Text>
+                <ChevronUp size={14} color={COLORS.outlineVariant} />
+                <ChevronDown size={14} color={COLORS.outlineVariant} />
               </View>
               <TouchableOpacity 
                 style={[styles.lessonIconWrapper, hasUrl && { backgroundColor: COLORS.primaryContainer }]}
@@ -287,7 +299,7 @@ const AdminCourseDetails = () => {
                 {isUploading ? (
                   <ActivityIndicator size="small" color={COLORS.primary} />
                 ) : (
-                  <Text style={styles.lessonIcon}>{hasUrl ? '✅' : '🎬'}</Text>
+                  hasUrl ? <CheckCircle2 size={18} color={COLORS.onPrimary} /> : <PlayCircle size={18} color={COLORS.outline} />
                 )}
               </TouchableOpacity>
               <View style={styles.lessonInfo}>
@@ -313,7 +325,7 @@ const AdminCourseDetails = () => {
                 </View>
               </View>
               <TouchableOpacity style={styles.deleteLessonBtn} onPress={() => handleDeleteLesson(idx)}>
-                <Text style={styles.deleteLessonIcon}>✕</Text>
+                <Trash2 size={18} color={COLORS.error} />
               </TouchableOpacity>
             </View>
           );

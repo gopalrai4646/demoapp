@@ -9,6 +9,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { fetchTrainingPlansRequest, deleteTrainingPlanRequest, TrainingPlan } from '../store/slices/trainingPlanSlice';
 import { AppHeader } from '../components/AppHeader';
+import { 
+  Plus, 
+  Search, 
+  LayoutGrid, 
+  List, 
+  ClipboardList, 
+  Pencil, 
+  Trash2,
+  Layers
+} from 'lucide-react-native';
 
 type NavigationProp = NativeStackNavigationProp<AdminTrainingPlanStackParamList, 'AdminTrainingPlanList'>;
 
@@ -64,10 +74,11 @@ export const AdminTrainingPlanList = () => {
             <Image source={{ uri: item.image }} style={styles.coverImage} />
           ) : (
              <View style={[styles.coverImage, { backgroundColor: COLORS.surfaceContainerHigh, justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{ fontSize: 40 }}>📚</Text>
+                <ClipboardList size={40} color={COLORS.outlineVariant} />
              </View>
           )}
           <View style={[styles.badge, styles.badgePublic]}>
+            <Layers size={10} color="#065f46" />
             <Text style={[styles.badgeText, styles.badgeTextPublic]}>
               {courseCount} COURSES
             </Text>
@@ -84,13 +95,13 @@ export const AdminTrainingPlanList = () => {
               style={styles.actionButton} 
               onPress={() => navigation.navigate('AdminTrainingPlanDetails', { planId: item.id })}
             >
-              <Text style={styles.actionIconPrimary}>✏️</Text>
+              <Pencil size={18} color={COLORS.primary} />
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.actionButton}
               onPress={() => handleDelete(item.id, item.name)}
             >
-              <Text style={styles.actionIconDanger}>🗑️</Text>
+              <Trash2 size={18} color={COLORS.error} />
             </TouchableOpacity>
           </View>
         </View>
@@ -111,12 +122,12 @@ export const AdminTrainingPlanList = () => {
                   style={styles.addButton}
                   onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
                 >
-                  <Text style={styles.addButtonText}>+</Text>
+                  <Plus size={24} color={COLORS.onPrimary} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.searchContainer}>
-                <Text style={styles.searchIcon}>🔍</Text>
+                <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
                 <TextInput 
                   style={styles.searchInput}
                   placeholder="Search training plans..."
@@ -132,13 +143,13 @@ export const AdminTrainingPlanList = () => {
                     style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]}
                     onPress={() => setViewMode('grid')}
                   >
-                    <Text style={[styles.toggleText, viewMode === 'grid' && styles.toggleTextActive]}>⊞ Grid</Text>
+                    <LayoutGrid size={16} color={viewMode === 'grid' ? COLORS.primary : COLORS.outline} />
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
                     onPress={() => setViewMode('list')}
                   >
-                    <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>≡ List</Text>
+                    <List size={16} color={viewMode === 'list' ? COLORS.primary : COLORS.outline} />
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.itemCountText}>Showing {filteredPlans.length}</Text>
@@ -295,6 +306,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: ROUNDNESS.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   badgePublic: {
     backgroundColor: '#d1fae5',
@@ -329,13 +343,6 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     paddingHorizontal: 8,
-  },
-  actionIconPrimary: {
-    fontSize: 16,
-    color: COLORS.primary,
-  },
-  actionIconDanger: {
-    fontSize: 16,
   },
 });
 
