@@ -21,7 +21,8 @@ import {
   LayoutDashboard, 
   Settings, 
   Users, 
-  GraduationCap 
+  GraduationCap,
+  ClipboardList
 } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -75,6 +76,14 @@ const MainTabNavigator = () => {
             </View>
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Courses', {
+              screen: isAdmin ? 'AdminCourseList' : 'UserCourses',
+            });
+          },
+        })}
       />
       <Tab.Screen
         name="Plans"
@@ -82,13 +91,21 @@ const MainTabNavigator = () => {
         options={{
           headerShown: false,
           tabBarLabel: 'Plans',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
               {focused && <View style={styles.activeIndicator} />}
-              <Text style={{ color, fontSize: 20 }}>📝</Text>
+              <ClipboardList size={size} color={color} />
             </View>
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Plans', {
+              screen: isAdmin ? 'AdminTrainingPlanList' : 'UserTrainingPlanList',
+            });
+          },
+        })}
       />
       {isAdmin && (
         <Tab.Screen

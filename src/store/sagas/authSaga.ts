@@ -373,19 +373,22 @@ function* handleSaveCourse(action: ReturnType<typeof saveCourseRequest>): any {
     const courseId = action.payload;
     const state: any = yield select();
     const targetUid = state.auth.user?.uid;
+    
     if (!targetUid) {
       yield put(authFailure('User context not found.'));
       return;
     }
 
+    const currentSavedCourses = state.auth.user?.savedCourses || [];
+    const isSaved = currentSavedCourses.includes(courseId);
+    
     const userRef = firestore().collection('users').doc(targetUid);
-    const userDoc: any = yield call([userRef, userRef.get]);
-    const savedCourses = userDoc.exists ? userDoc.data().savedCourses || [] : [];
     
-    const isSaved = savedCourses.includes(courseId);
-    
+    // Atomic update: no need to 'get' first
     yield call([userRef, userRef.set], {
-      savedCourses: isSaved ? firestore.FieldValue.arrayRemove(courseId) : firestore.FieldValue.arrayUnion(courseId)
+      savedCourses: isSaved 
+        ? firestore.FieldValue.arrayRemove(courseId) 
+        : firestore.FieldValue.arrayUnion(courseId)
     }, { merge: true });
     
     yield put(saveCourseSuccess(courseId));

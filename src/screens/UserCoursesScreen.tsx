@@ -40,7 +40,7 @@ const UserCoursesScreen = () => {
   const getCourseProgress = (course: any) => {
     const p = progress[course.id];
     if (!p || !course.videos?.length) return 0;
-    
+
     let totalDuration = 0;
     let totalWatched = 0;
 
@@ -66,7 +66,7 @@ const UserCoursesScreen = () => {
   const filteredCourses = useMemo(() => {
     // 1. Get enrolled courses
     let filtered = courses.filter(c => user?.enrolledCourses?.includes(c.id));
-    
+
     // 2. Tab filter
     if (activeTab === 'in-progress') {
       filtered = filtered.filter(c => {
@@ -80,8 +80,8 @@ const UserCoursesScreen = () => {
     // 3. Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(c => 
-        c.title.toLowerCase().includes(q) || 
+      filtered = filtered.filter(c =>
+        c.title.toLowerCase().includes(q) ||
         c.instructor.toLowerCase().includes(q)
       );
     }
@@ -102,7 +102,7 @@ const UserCoursesScreen = () => {
     const isCompleted = pct >= 100;
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('CoursePlayer', { courseId: item.id })}
       >
@@ -114,9 +114,9 @@ const UserCoursesScreen = () => {
               <BookOpen size={48} color={COLORS.outlineVariant} />
             </View>
           )}
-          
+
           <View style={[
-            styles.statusBadge, 
+            styles.statusBadge,
             { backgroundColor: isCompleted ? '#e8f5e9' : '#ffffff' }
           ]}>
             {isCompleted ? (
@@ -145,7 +145,7 @@ const UserCoursesScreen = () => {
 
           <View style={styles.progressBarContainer}>
             <View style={[
-              styles.progressBarFill, 
+              styles.progressBarFill,
               { width: `${pct}%`, backgroundColor: isCompleted ? '#4caf50' : COLORS.primary }
             ]} />
           </View>
@@ -157,7 +157,7 @@ const UserCoursesScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      
+
       <View style={styles.header}>
         <Text style={styles.title}>My Courses</Text>
         <Text style={styles.subtitle}>Track your learning progress</Text>
@@ -222,8 +222,8 @@ const UserCoursesScreen = () => {
             <BookOpen size={64} color={COLORS.outlineVariant} />
             <Text style={styles.emptyTitle}>No courses found</Text>
             <Text style={styles.emptySubtitle}>
-              {activeTab === 'all' 
-                ? "You haven't enrolled in any courses yet." 
+              {activeTab === 'all'
+                ? "You haven't enrolled in any courses yet."
                 : `You don't have any courses marked as ${activeTab}.`}
             </Text>
           </View>

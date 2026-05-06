@@ -13,9 +13,9 @@ import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
 import { fetchTrainingPlansRequest } from '../store/slices/trainingPlanSlice';
 import { fetchUsersRequest } from '../store/slices/userSlice';
-import { saveCourseRequest } from '../store/slices/authSlice';
+import { saveCourseRequest, enrollCourseRequest } from '../store/slices/authSlice';
 import { RootState } from '../store';
-import { BookOpen, Search } from 'lucide-react-native';
+import { BookOpen, Search, GraduationCap } from 'lucide-react-native';
 import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -111,7 +111,10 @@ const Dashboard: React.FC = () => {
           <Text style={styles.heroSub}>Here's what's happening with{'\n'}your learning today.</Text>
           
           {continueLearning.length > 0 && (
-            <TouchableOpacity style={styles.heroCard}>
+            <TouchableOpacity 
+              style={styles.heroCard}
+              onPress={() => navigation.navigate('Courses', { screen: 'CoursePlayer', params: { courseId: continueLearning[0].id } })}
+            >
               <View style={styles.heroCardLeft}>
                 <ProgressRing percentage={continueLearning[0].progressPercent} size={50} strokeWidth={4} color="#6366f1" bgColor="rgba(255,255,255,0.1)" />
               </View>
@@ -383,7 +386,15 @@ const Dashboard: React.FC = () => {
                        <Text style={styles.freeBadgeText}>{course.price === 0 ? 'FREE' : `$${course.price}`}</Text>
                      </View>
                    </View>
-                   <Text style={[styles.continueInstructor, { marginTop: 4 }]}>{course.instructor}</Text>
+                   <Text style={[styles.continueInstructor, { marginTop: 4, marginBottom: 16 }]}>{course.instructor}</Text>
+                   
+                   <TouchableOpacity 
+                     style={[styles.viewCourseBtn, { backgroundColor: '#4f46e5' }]} 
+                     onPress={() => dispatch(enrollCourseRequest(course.id))}
+                   >
+                     <GraduationCap size={18} color="#fff" />
+                     <Text style={styles.viewCourseBtnText}>Enroll Now</Text>
+                   </TouchableOpacity>
                  </View>
                </TouchableOpacity>
             </View>
@@ -400,9 +411,9 @@ const Dashboard: React.FC = () => {
         <Text style={styles.sectionTitle}>Saved Courses</Text>
       </View>
       {savedCoursesList.length > 0 ? (
-        <View style={{ paddingHorizontal: 16 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
           {savedCoursesList.map((course: any) => (
-            <View key={course.id} style={[styles.myCourseCard, { width: '100%', marginBottom: 16 }]}>
+            <View key={course.id} style={styles.myCourseCard}>
                <View style={styles.myCourseHeader}>
                  <View style={styles.videoBadge}>
                    <Video size={14} color="#fff" />
@@ -448,7 +459,7 @@ const Dashboard: React.FC = () => {
                </TouchableOpacity>
             </View>
           ))}
-        </View>
+        </ScrollView>
       ) : (
         <View style={[styles.emptyStateCard, { marginHorizontal: 16 }]}>
           <Heart size={24} color="#cbd5e1" />

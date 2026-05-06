@@ -111,16 +111,9 @@ const authSlice = createSlice({
     saveCourseRequest: (state, _action: PayloadAction<string>) => {
       // Optional: use a separate loading state if needed
     },
-    saveCourseSuccess: (state, action: PayloadAction<string>) => {
-      if (state.user) {
-        if (!state.user.savedCourses) state.user.savedCourses = [];
-        const index = state.user.savedCourses.indexOf(action.payload);
-        if (index === -1) {
-          state.user.savedCourses.push(action.payload);
-        } else {
-          state.user.savedCourses.splice(index, 1); // Toggle save
-        }
-      }
+    saveCourseSuccess: (state, _action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = null;
     },
     updateUserData: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | null }>) => {
       // Merges incoming Firestore data into the existing auth state ONLY if UIDs match
