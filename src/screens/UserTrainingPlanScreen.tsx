@@ -12,8 +12,10 @@ import {
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectAssignedPlans } from '../store/selectors';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowRight, BookOpen } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { AppHeader } from '../components/AppHeader';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { fetchTrainingPlansRequest } from '../store/slices/trainingPlanSlice';
@@ -22,6 +24,7 @@ const { width } = Dimensions.get('window');
 
 const UserTrainingPlanScreen = () => {
   const dispatch = useAppDispatch();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const trainingPlans = useAppSelector(selectAssignedPlans);
   const loading = useAppSelector(state => state.trainingPlans.loading);
@@ -39,7 +42,7 @@ const UserTrainingPlanScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.md }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Training Plans</Text>
         <Text style={styles.subtitle}>
@@ -100,7 +103,7 @@ const UserTrainingPlanScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.background,
   },
   content: {
     padding: SPACING.lg,

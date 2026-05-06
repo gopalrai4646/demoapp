@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateProfileRequest, updatePasswordRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
+import { AppHeader } from '../components/AppHeader';
 
 const Account = () => {
   const insets = useSafeAreaInsets();
@@ -105,7 +106,7 @@ const Account = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + SPACING.md }]}
           showsVerticalScrollIndicator={false}
         >
             {/* Profile Information Header */}
@@ -234,7 +235,7 @@ const Account = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
   },
   safeArea: {
     flex: 1,

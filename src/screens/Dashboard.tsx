@@ -22,6 +22,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { MainTabParamList, UserCourseStackParamList } from '../navigation/types';
 import Svg, { Circle as SvgCircle, Defs, LinearGradient, Stop, Rect, Text as SvgText, G } from 'react-native-svg';
 import { ArrowRight, Heart, Video, Play, Clock } from 'lucide-react-native';
+import { AppHeader } from '../components/AppHeader';
 import { 
   selectEnrolledCoursesWithProgress, 
   selectDashboardStats, 
@@ -92,6 +93,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <AppHeader />
       
       {/* 1. Hero Banner */}
       <View style={styles.heroContainer}>
@@ -261,10 +263,15 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* 5. Assigned Training Plans */}
-      <Text style={[styles.sectionTitle, { marginLeft: 20, marginTop: 24, marginBottom: 16 }]}>Assigned Training Plans</Text>
+      <View style={[styles.sectionHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 16 }]}>
+        <Text style={styles.sectionTitle}>Assigned Training Plans</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Plans')}>
+          <Text style={styles.viewAllBtn}>View All</Text>
+        </TouchableOpacity>
+      </View>
       {assignedPlans.length > 0 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
-          {assignedPlans.map(plan => (
+          {assignedPlans.slice(0, 4).map(plan => (
             <TouchableOpacity key={plan.id} style={styles.planCard} onPress={() => navigation.navigate('Plans')}>
                <View style={styles.planImageContainer}>
                  <Image source={{uri: plan.image}} style={styles.planImage} />
@@ -298,7 +305,7 @@ const Dashboard: React.FC = () => {
       </View>
       {enrolledCourses.length > 0 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
-          {enrolledCourses.map((course: any) => (
+          {enrolledCourses.slice(0, 4).map((course: any) => (
             <View key={course.id} style={styles.myCourseCard}>
                <View style={styles.myCourseHeader}>
                  <View style={styles.videoBadge}>
@@ -412,53 +419,69 @@ const Dashboard: React.FC = () => {
       </View>
       {savedCoursesList.length > 0 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
-          {savedCoursesList.map((course: any) => (
-            <View key={course.id} style={styles.myCourseCard}>
-               <View style={styles.myCourseHeader}>
-                 <View style={styles.videoBadge}>
-                   <Video size={14} color="#fff" />
-                   <Text style={styles.videoBadgeText}>{course.videos?.length || 0} videos</Text>
-                 </View>
-                 <TouchableOpacity 
-                   onPress={() => dispatch(saveCourseRequest(course.id))}
-                   style={styles.heartBtn}
-                 >
-                   <Heart size={20} color="#f43f5e" fill="#f43f5e" />
-                 </TouchableOpacity>
-               </View>
-               
-               <TouchableOpacity 
-                 activeOpacity={0.9}
-                 onPress={() => navigation.navigate('Courses', { screen: 'CoursePlayer', params: { courseId: course.id } })}
-               >
-                 <View style={styles.myCourseThumbnail}>
-                   <Image source={{uri: course.thumbnail}} style={styles.myCourseImage} />
-                 </View>
+          {savedCoursesList.map((course: any) => {
+            const isEnrolled = user?.enrolledCourses?.includes(course.id);
+            
+            return (
+              <View key={course.id} style={styles.myCourseCard}>
+                <View style={styles.myCourseHeader}>
+                  <View style={styles.videoBadge}>
+                    <Video size={14} color="#fff" />
+                    <Text style={styles.videoBadgeText}>{course.videos?.length || 0} videos</Text>
+                  </View>
+                  <TouchableOpacity 
+                    onPress={() => dispatch(saveCourseRequest(course.id))}
+                    style={styles.heartBtn}
+                  >
+                    <Heart size={20} color="#f43f5e" fill="#f43f5e" />
+                  </TouchableOpacity>
+                </View>
+                
+                <TouchableOpacity 
+                  activeOpacity={0.9}
+                  onPress={() => navigation.navigate('Courses', { screen: 'CoursePlayer', params: { courseId: course.id } })}
+                >
+                  <View style={styles.myCourseThumbnail}>
+                    <Image source={{uri: course.thumbnail}} style={styles.myCourseImage} />
+                  </View>
 
-                 <View style={styles.myCourseInfo}>
-                   <View style={styles.myCourseTitleRow}>
-                     <Text style={styles.myCourseTitle} numberOfLines={1}>{course.title} <Text style={styles.myCourseInstructor}>• {course.instructor}</Text></Text>
-                     <View style={styles.freeBadge}>
-                       <Text style={styles.freeBadgeText}>{course.price === 0 ? 'FREE' : `$${course.price}`}</Text>
-                     </View>
-                   </View>
-                   
-                   <View style={styles.myCourseProgressRow}>
-                     <Text style={styles.progressLabel}>YOUR PROGRESS</Text>
-                     <Text style={styles.progressPercent}>{course.progressPercent}%</Text>
-                   </View>
-                   <View style={styles.progressBarTrackFull}>
-                     <View style={[styles.progressBarFillFull, { width: `${course.progressPercent}%` }]} />
-                   </View>
+                  <View style={styles.myCourseInfo}>
+                    <View style={styles.myCourseTitleRow}>
+                      <Text style={styles.myCourseTitle} numberOfLines={1}>{course.title} <Text style={styles.myCourseInstructor}>• {course.instructor}</Text></Text>
+                      <View style={styles.freeBadge}>
+                        <Text style={styles.freeBadgeText}>{course.price === 0 ? 'FREE' : `$${course.price}`}</Text>
+                      </View>
+                    </View>
+                    
+                    {isEnrolled ? (
+                      <>
+                        <View style={styles.myCourseProgressRow}>
+                          <Text style={styles.progressLabel}>YOUR PROGRESS</Text>
+                          <Text style={styles.progressPercent}>{course.progressPercent}%</Text>
+                        </View>
+                        <View style={styles.progressBarTrackFull}>
+                          <View style={[styles.progressBarFillFull, { width: `${course.progressPercent}%` }]} />
+                        </View>
 
-                   <View style={styles.viewCourseBtn}>
-                     <Play size={16} color="#fff" fill="#fff" />
-                     <Text style={styles.viewCourseBtnText}>View Course</Text>
-                   </View>
-                 </View>
-               </TouchableOpacity>
-            </View>
-          ))}
+                        <View style={styles.viewCourseBtn}>
+                          <Play size={16} color="#fff" fill="#fff" />
+                          <Text style={styles.viewCourseBtnText}>View Course</Text>
+                        </View>
+                      </>
+                    ) : (
+                      <TouchableOpacity 
+                        style={[styles.viewCourseBtn, { backgroundColor: '#4f46e5', marginTop: 12 }]} 
+                        onPress={() => dispatch(enrollCourseRequest(course.id))}
+                      >
+                        <GraduationCap size={18} color="#fff" />
+                        <Text style={styles.viewCourseBtnText}>Enroll Now</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </ScrollView>
       ) : (
         <View style={[styles.emptyStateCard, { marginHorizontal: 16 }]}>
@@ -474,7 +497,7 @@ const Dashboard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.background,
   },
   content: {
     paddingBottom: 40,

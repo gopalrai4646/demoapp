@@ -15,6 +15,7 @@ import { fetchUsersRequest } from '../store/slices/userSlice';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
 import { fetchTrainingPlansRequest } from '../store/slices/trainingPlanSlice';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
+import { AppHeader } from '../components/AppHeader';
 import { 
   Users, 
   BookOpen, 
@@ -515,6 +516,7 @@ const AdminDashboardScreen = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <AppHeader />
       <View style={styles.header}>
         <Svg height="140" width={width - 32} style={styles.headerSvg}>
           <Defs>
@@ -602,7 +604,7 @@ const AdminDashboardScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.background,
   },
   content: {
     padding: SPACING.md,

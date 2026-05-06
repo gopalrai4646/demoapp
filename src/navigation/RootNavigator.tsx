@@ -11,11 +11,7 @@ const RootNavigator = () => {
   // If we wanted to show a splash screen while loading the initial session,
   // we could do it here. For now, we'll just show the AuthStack if no user.
   
-  return (
-    <NavigationContainer>
-      {user ? <MainTabNavigator /> : <AuthStack />}
-    </NavigationContainer>
-  );
+  return user ? <MainTabNavigator /> : <AuthStack />;
 };
 
 export default RootNavigator;

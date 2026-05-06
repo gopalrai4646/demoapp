@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Image, TouchableOpacity, Text, Modal, Pressable } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, Text, Modal, Pressable, Platform } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
@@ -32,7 +32,7 @@ export const AppHeader = () => {
 
   return (
     <>
-      <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + 4 }]}>
         <View style={styles.content}>
           {/* Left: Logo Only */}
           <View style={styles.logoContainer}>
@@ -103,14 +103,7 @@ export const AppHeader = () => {
 
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: '#fff',
-      borderBottomWidth: 1,
-      borderBottomColor: '#e8e8ef',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.04,
-      shadowRadius: 8,
-      elevation: 3,
+      backgroundColor: 'transparent',
       zIndex: 10,
     },
     content: {
@@ -119,17 +112,17 @@ export const AppHeader = () => {
       alignItems: 'center',
       paddingLeft: 0,
       paddingRight: SPACING.md,
-      paddingBottom: 12,
-      height: 60,
+      paddingBottom: 4,
+      height: 50,
     },
     logoContainer: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     logoIcon: {
-      height: 44,
-      width: 150,
-      marginLeft: -25,
+      height: 36,
+      width: 130,
+      marginLeft: -20,
     },
     profileContainer: {
       width: 38,

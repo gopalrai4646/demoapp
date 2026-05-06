@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { fetchTrainingPlansRequest, deleteTrainingPlanRequest, TrainingPlan } from '../store/slices/trainingPlanSlice';
+import { AppHeader } from '../components/AppHeader';
 
 type NavigationProp = NativeStackNavigationProp<AdminTrainingPlanStackParamList, 'AdminTrainingPlanList'>;
 
@@ -96,55 +97,54 @@ export const AdminTrainingPlanList = () => {
       </View>
     );
   };
-
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
-        <Text style={TYPOGRAPHY.headline}>Manage Plans</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput 
-          style={styles.searchInput}
-          placeholder="Search training plans..."
-          placeholderTextColor={COLORS.outline}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {/* View Toggles */}
-      <View style={styles.controlsRow}>
-        <View style={styles.viewToggles}>
-          <TouchableOpacity 
-            style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]}
-            onPress={() => setViewMode('grid')}
-          >
-            <Text style={[styles.toggleText, viewMode === 'grid' && styles.toggleTextActive]}>⊞ Grid</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
-            onPress={() => setViewMode('list')}
-          >
-            <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>≡ List</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.itemCountText}>Showing {filteredPlans.length}</Text>
-      </View>
-
       {loading ? (
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
       ) : (
         <FlatList
+          ListHeaderComponent={
+            <>
+              <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
+                <Text style={TYPOGRAPHY.headline}>Manage Plans</Text>
+                <TouchableOpacity 
+                  style={styles.addButton}
+                  onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
+                >
+                  <Text style={styles.addButtonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.searchContainer}>
+                <Text style={styles.searchIcon}>🔍</Text>
+                <TextInput 
+                  style={styles.searchInput}
+                  placeholder="Search training plans..."
+                  placeholderTextColor={COLORS.outline}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+
+              <View style={styles.controlsRow}>
+                <View style={styles.viewToggles}>
+                  <TouchableOpacity 
+                    style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]}
+                    onPress={() => setViewMode('grid')}
+                  >
+                    <Text style={[styles.toggleText, viewMode === 'grid' && styles.toggleTextActive]}>⊞ Grid</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
+                    onPress={() => setViewMode('list')}
+                  >
+                    <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>≡ List</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.itemCountText}>Showing {filteredPlans.length}</Text>
+              </View>
+            </>
+          }
           key={viewMode}
           data={filteredPlans}
           keyExtractor={item => item.id}

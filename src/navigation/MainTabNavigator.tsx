@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -30,20 +31,20 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator = () => {
   const { role } = useSelector((state: RootState) => state.auth);
   const isAdmin = role === 'admin';
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: true,
-        header: () => <AppHeader />,
+        headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.onSurfaceVariant,
         tabBarStyle: {
           borderTopWidth: 1,
           borderTopColor: COLORS.outlineVariant,
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          height: 64,
-          paddingBottom: 8,
+          height: 64 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
@@ -57,8 +58,9 @@ const MainTabNavigator = () => {
         component={isAdmin ? AdminDashboardScreen : Dashboard}
         options={{
           tabBarLabel: isAdmin ? 'Reports' : 'Dashboard',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
+              {focused && <View style={styles.activeIndicator} />}
               {isAdmin ? <BarChart2 size={size} color={color} /> : <LayoutDashboard size={size} color={color} />}
             </View>
           ),
@@ -70,8 +72,9 @@ const MainTabNavigator = () => {
         options={{
           headerShown: false,
           tabBarLabel: 'Courses',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
+              {focused && <View style={styles.activeIndicator} />}
               <BookOpen size={size} color={color} />
             </View>
           ),
@@ -113,8 +116,9 @@ const MainTabNavigator = () => {
           component={AdminUsersScreen}
           options={{
             tabBarLabel: 'Users',
-            tabBarIcon: ({ color, size }) => (
+            tabBarIcon: ({ color, size, focused }) => (
               <View style={styles.iconContainer}>
+                {focused && <View style={styles.activeIndicator} />}
                 <Users size={size} color={color} />
               </View>
             ),
@@ -126,8 +130,9 @@ const MainTabNavigator = () => {
         component={Account}
         options={{
           tabBarLabel: isAdmin ? 'Settings' : 'Account',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
+              {focused && <View style={styles.activeIndicator} />}
               {isAdmin ? <Settings size={size} color={color} /> : <GraduationCap size={size} color={color} />}
             </View>
           ),

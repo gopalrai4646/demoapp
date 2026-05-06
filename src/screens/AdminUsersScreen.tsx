@@ -29,6 +29,7 @@ import {
   UserPlus,
   Circle
 } from 'lucide-react-native';
+import { AppHeader } from '../components/AppHeader';
 
 const AdminUsersScreen = () => {
   const dispatch = useAppDispatch();
@@ -218,41 +219,42 @@ const AdminUsersScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>User Management</Text>
-        <Text style={styles.subtitle}>Control and oversee your community</Text>
-      </View>
-
-      <View style={styles.toolbar}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={COLORS.onSurfaceVariant} style={styles.searchIcon} />
-          <TextInput
-            placeholder="Search name or email..."
-            style={styles.searchInput}
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            placeholderTextColor={COLORS.onSurfaceVariant}
-          />
-        </View>
-        <View style={styles.viewModeToggle}>
-          <TouchableOpacity 
-            style={[styles.toggleTab, viewMode === 'grid' && styles.activeToggleTab]} 
-            onPress={() => setViewMode('grid')}
-          >
-            <LayoutGrid size={20} color={viewMode === 'grid' ? COLORS.primary : COLORS.onSurfaceVariant} />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.toggleTab, viewMode === 'list' && styles.activeToggleTab]} 
-            onPress={() => setViewMode('list')}
-          >
-            <List size={20} color={viewMode === 'list' ? COLORS.primary : COLORS.onSurfaceVariant} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {renderFilterChips()}
-
       <FlatList
+        ListHeaderComponent={
+          <>
+            <View style={[styles.header, { paddingTop: insets.top + SPACING.lg }]}>
+              <Text style={styles.title}>User Management</Text>
+              <Text style={styles.subtitle}>Control and oversee your community</Text>
+            </View>
+            <View style={styles.toolbar}>
+              <View style={styles.searchBar}>
+                <Search size={20} color={COLORS.onSurfaceVariant} style={styles.searchIcon} />
+                <TextInput
+                  placeholder="Search name or email..."
+                  style={styles.searchInput}
+                  value={searchTerm}
+                  onChangeText={setSearchTerm}
+                  placeholderTextColor={COLORS.onSurfaceVariant}
+                />
+              </View>
+              <View style={styles.viewModeToggle}>
+                <TouchableOpacity 
+                  style={[styles.toggleTab, viewMode === 'grid' && styles.activeToggleTab]} 
+                  onPress={() => setViewMode('grid')}
+                >
+                  <LayoutGrid size={20} color={viewMode === 'grid' ? COLORS.primary : COLORS.onSurfaceVariant} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.toggleTab, viewMode === 'list' && styles.activeToggleTab]} 
+                  onPress={() => setViewMode('list')}
+                >
+                  <List size={20} color={viewMode === 'list' ? COLORS.primary : COLORS.onSurfaceVariant} />
+                </TouchableOpacity>
+              </View>
+            </View>
+            {renderFilterChips()}
+          </>
+        }
         data={filteredUsers}
         renderItem={renderUserItem}
         keyExtractor={item => item.id}

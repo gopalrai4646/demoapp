@@ -14,6 +14,8 @@ import {
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { Search, BookOpen, CheckCircle2, RotateCw, PauseCircle } from 'lucide-react-native';
+import { fetchProgressRequest } from '../store/slices/progressSlice';
+import { AppHeader } from '../components/AppHeader';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -158,60 +160,63 @@ const UserCoursesScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>My Courses</Text>
-        <Text style={styles.subtitle}>Track your learning progress</Text>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <Search size={18} color={COLORS.secondary} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search your courses..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor={COLORS.outline}
-        />
-      </View>
-
-      <View style={styles.tabWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer}>
-          {[
-            { id: 'all', label: 'All', count: counts.all },
-            { id: 'in-progress', label: 'In Progress', count: counts.inProgress },
-            { id: 'completed', label: 'Completed', count: counts.completed },
-          ].map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[
-                styles.tabPill,
-                activeTab === tab.id && styles.activeTabPill
-              ]}
-              onPress={() => setActiveTab(tab.id as TabFilter)}
-            >
-              <Text style={[
-                styles.tabLabel,
-                activeTab === tab.id && styles.activeTabLabel
-              ]}>
-                {tab.label}
-              </Text>
-              <View style={[
-                styles.countBadge,
-                activeTab === tab.id ? styles.activeCountBadge : styles.inactiveCountBadge
-              ]}>
-                <Text style={[
-                  styles.countText,
-                  activeTab === tab.id && styles.activeCountText
-                ]}>
-                  {tab.count}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
       <FlatList
+        ListHeaderComponent={
+          <>
+            <View style={[styles.header, { paddingTop: SPACING.xl }]}>
+              <Text style={styles.title}>My Courses</Text>
+              <Text style={styles.subtitle}>Track your learning progress</Text>
+            </View>
+
+            <View style={styles.searchContainer}>
+              <Search size={18} color={COLORS.secondary} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search your courses..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholderTextColor={COLORS.outline}
+              />
+            </View>
+
+            <View style={styles.tabWrapper}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer}>
+                {[
+                  { id: 'all', label: 'All', count: counts.all },
+                  { id: 'in-progress', label: 'In Progress', count: counts.inProgress },
+                  { id: 'completed', label: 'Completed', count: counts.completed },
+                ].map((tab) => (
+                  <TouchableOpacity
+                    key={tab.id}
+                    style={[
+                      styles.tabPill,
+                      activeTab === tab.id && styles.activeTabPill
+                    ]}
+                    onPress={() => setActiveTab(tab.id as TabFilter)}
+                  >
+                    <Text style={[
+                      styles.tabLabel,
+                      activeTab === tab.id && styles.activeTabLabel
+                    ]}>
+                      {tab.label}
+                    </Text>
+                    <View style={[
+                      styles.countBadge,
+                      activeTab === tab.id ? styles.activeCountBadge : styles.inactiveCountBadge
+                    ]}>
+                      <Text style={[
+                        styles.countText,
+                        activeTab === tab.id && styles.activeCountText
+                      ]}>
+                        {tab.count}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </>
+        }
         data={filteredCourses}
         renderItem={renderCourseCard}
         keyExtractor={(item) => item.id}
