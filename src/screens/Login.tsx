@@ -21,6 +21,14 @@ import { BRANDING, MENTORA_LOGO } from '../constants/Branding';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
+import { 
+  ArrowLeft, 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  ArrowRight 
+} from 'lucide-react-native';
 
 const Login = () => {
   const insets = useSafeAreaInsets();
@@ -78,8 +86,12 @@ const Login = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} activeOpacity={0.7}>
-          <Text style={styles.backIcon}>←</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          activeOpacity={0.7}
+          onPress={() => navigation.goBack()}
+        >
+          <ArrowLeft size={24} color={COLORS.onSurfaceVariant} />
         </TouchableOpacity>
 
         {/* Brand Identity */}
@@ -104,7 +116,7 @@ const Login = () => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>EMAIL ADDRESS</Text>
             <View style={styles.inputWrapper}>
-              <Text style={styles.inputIcon}>✉</Text>
+              <Mail size={20} color={COLORS.outline} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="name@example.com"
@@ -121,7 +133,7 @@ const Login = () => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>PASSWORD</Text>
             <View style={styles.inputWrapper}>
-              <Text style={styles.inputIcon}>🔒</Text>
+              <Lock size={20} color={COLORS.outline} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { paddingRight: 50 }]}
                 placeholder="••••••••"
@@ -134,7 +146,11 @@ const Login = () => {
                 style={styles.visibilityButton}
                 onPress={() => setShowPassword(!showPassword)}
               >
-                <Text style={styles.visibilityIcon}>{showPassword ? '👁' : '👁‍🗨'}</Text>
+                {showPassword ? (
+                  <EyeOff size={20} color={COLORS.outline} />
+                ) : (
+                  <Eye size={20} color={COLORS.outline} />
+                )}
               </TouchableOpacity>
             </View>
             <TouchableOpacity 
@@ -162,7 +178,7 @@ const Login = () => {
             ) : (
               <View style={styles.signInButtonContent}>
                 <Text style={styles.signInText}>Sign In</Text>
-                <Text style={styles.arrowIcon}>→</Text>
+                <ArrowRight size={20} color={COLORS.onPrimary} />
               </View>
             )}
           </TouchableOpacity>
@@ -238,10 +254,6 @@ const styles = StyleSheet.create({
     padding: SPACING.sm,
     marginBottom: SPACING.md,
   },
-  backIcon: {
-    fontSize: 24,
-    color: COLORS.onSurfaceVariant,
-  },
   header: {
     alignItems: 'center',
     marginBottom: SPACING.lg,
@@ -307,10 +319,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
   },
-  visibilityIcon: {
-    fontSize: 18,
-    color: COLORS.outline,
-  },
   forgotButton: {
     alignSelf: 'flex-end',
     marginTop: SPACING.sm,
@@ -349,10 +357,6 @@ const styles = StyleSheet.create({
     color: COLORS.onPrimary,
     fontSize: 18,
     fontWeight: '700',
-  },
-  arrowIcon: {
-    color: COLORS.onPrimary,
-    fontSize: 20,
   },
   dividerContainer: {
     flexDirection: 'row',

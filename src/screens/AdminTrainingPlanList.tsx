@@ -9,13 +9,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { fetchTrainingPlansRequest, deleteTrainingPlanRequest, TrainingPlan } from '../store/slices/trainingPlanSlice';
 import { AppHeader } from '../components/AppHeader';
-import { 
-  Plus, 
-  Search, 
-  LayoutGrid, 
-  List, 
-  ClipboardList, 
-  Pencil, 
+import {
+  Plus,
+  Search,
+  LayoutGrid,
+  List,
+  ClipboardList,
+  Pencil,
   Trash2,
   Layers
 } from 'lucide-react-native';
@@ -44,10 +44,10 @@ export const AdminTrainingPlanList = () => {
       `Are you sure you want to delete "${title}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive', 
-          onPress: () => dispatch(deleteTrainingPlanRequest(id)) 
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => dispatch(deleteTrainingPlanRequest(id))
         },
       ]
     );
@@ -73,9 +73,9 @@ export const AdminTrainingPlanList = () => {
           {item.image ? (
             <Image source={{ uri: item.image }} style={styles.coverImage} />
           ) : (
-             <View style={[styles.coverImage, { backgroundColor: COLORS.surfaceContainerHigh, justifyContent: 'center', alignItems: 'center' }]}>
-                <ClipboardList size={40} color={COLORS.outlineVariant} />
-             </View>
+            <View style={[styles.coverImage, { backgroundColor: COLORS.surfaceContainerHigh, justifyContent: 'center', alignItems: 'center' }]}>
+              <ClipboardList size={40} color={COLORS.outlineVariant} />
+            </View>
           )}
           <View style={[styles.badge, styles.badgePublic]}>
             <Layers size={10} color="#065f46" />
@@ -84,20 +84,20 @@ export const AdminTrainingPlanList = () => {
             </Text>
           </View>
         </View>
-        
+
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
-          
+
           <Text style={styles.learnersText} numberOfLines={2}>{item.description}</Text>
-          
+
           <View style={styles.cardActions}>
-            <TouchableOpacity 
-              style={styles.actionButton} 
+            <TouchableOpacity
+              style={styles.actionButton}
               onPress={() => navigation.navigate('AdminTrainingPlanDetails', { planId: item.id })}
             >
               <Pencil size={18} color={COLORS.primary} />
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => handleDelete(item.id, item.name)}
             >
@@ -119,7 +119,7 @@ export const AdminTrainingPlanList = () => {
             <>
               <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
                 <Text style={TYPOGRAPHY.headline}>Manage Plans</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.addButton}
                   onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
                 >
@@ -129,7 +129,7 @@ export const AdminTrainingPlanList = () => {
 
               <View style={styles.searchContainer}>
                 <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
-                <TextInput 
+                <TextInput
                   style={styles.searchInput}
                   placeholder="Search training plans..."
                   placeholderTextColor={COLORS.outline}
@@ -140,13 +140,13 @@ export const AdminTrainingPlanList = () => {
 
               <View style={styles.controlsRow}>
                 <View style={styles.viewToggles}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]}
                     onPress={() => setViewMode('grid')}
                   >
                     <LayoutGrid size={16} color={viewMode === 'grid' ? COLORS.primary : COLORS.outline} />
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
                     onPress={() => setViewMode('list')}
                   >
@@ -166,9 +166,9 @@ export const AdminTrainingPlanList = () => {
           columnWrapperStyle={viewMode === 'grid' ? styles.gridColumnWrapper : undefined}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-             <View style={{ alignItems: 'center', marginTop: 40 }}>
-                <Text style={{ color: COLORS.outline }}>No training plans found.</Text>
-             </View>
+            <View style={{ alignItems: 'center', marginTop: 40 }}>
+              <Text style={{ color: COLORS.outline }}>No training plans found.</Text>
+            </View>
           }
         />
       )}

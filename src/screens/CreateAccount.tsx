@@ -23,6 +23,16 @@ import { BRANDING, MENTORA_LOGO } from '../constants/Branding';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
+import { 
+  User, 
+  ShieldCheck, 
+  Camera, 
+  UserCircle, 
+  Mail, 
+  Phone, 
+  Lock,
+  ArrowLeft
+} from 'lucide-react-native';
 
 const CreateAccount = () => {
   const insets = useSafeAreaInsets();
@@ -113,6 +123,15 @@ const CreateAccount = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Back Button */}
+        <TouchableOpacity 
+          style={styles.backButton} 
+          activeOpacity={0.7}
+          onPress={() => navigation.goBack()}
+        >
+          <ArrowLeft size={24} color={COLORS.onSurfaceVariant} />
+        </TouchableOpacity>
+
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image
@@ -137,14 +156,17 @@ const CreateAccount = () => {
               onPress={() => setRole('User')}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.segmentText,
-                  role === 'User' && styles.segmentTextActive,
-                ]}
-              >
-                👤 User
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <User size={16} color={role === 'User' ? COLORS.primary : COLORS.onSurfaceVariant} style={{ marginRight: 8 }} />
+                <Text
+                  style={[
+                    styles.segmentText,
+                    role === 'User' && styles.segmentTextActive,
+                  ]}
+                >
+                  User
+                </Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -154,14 +176,17 @@ const CreateAccount = () => {
               onPress={() => setRole('Admin')}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.segmentText,
-                  role === 'Admin' && styles.segmentTextActive,
-                ]}
-              >
-                🛠 Admin
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ShieldCheck size={16} color={role === 'Admin' ? COLORS.primary : COLORS.onSurfaceVariant} style={{ marginRight: 8 }} />
+                <Text
+                  style={[
+                    styles.segmentText,
+                    role === 'Admin' && styles.segmentTextActive,
+                  ]}
+                >
+                  Admin
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -178,7 +203,7 @@ const CreateAccount = () => {
               ) : photoURL ? (
                 <Image source={{ uri: photoURL }} style={styles.photoPreview} />
               ) : (
-                <Text style={styles.cameraIcon}>📷</Text>
+                <Camera size={24} color={COLORS.onSurfaceVariant} />
               )}
             </TouchableOpacity>
             <Text style={styles.photoLabel}>
@@ -187,45 +212,65 @@ const CreateAccount = () => {
           </View>
 
           {/* Inputs */}
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="John Doe"
-            placeholderTextColor={COLORS.outline}
-            value={name}
-            onChangeText={(val) => handleInputChange(setName, val)}
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Full Name</Text>
+            <View style={styles.inputWrapper}>
+              <UserCircle size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="John Doe"
+                placeholderTextColor={COLORS.outline}
+                value={name}
+                onChangeText={(val) => handleInputChange(setName, val)}
+              />
+            </View>
+          </View>
 
-          <Text style={styles.label}>Email Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="name@example.com"
-            placeholderTextColor={COLORS.outline}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={(val) => handleInputChange(setEmail, val)}
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email Address</Text>
+            <View style={styles.inputWrapper}>
+              <Mail size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="name@example.com"
+                placeholderTextColor={COLORS.outline}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={(val) => handleInputChange(setEmail, val)}
+              />
+            </View>
+          </View>
 
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="+1 234 567 890"
-            placeholderTextColor={COLORS.outline}
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={(val) => handleInputChange(setPhone, val)}
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone Number</Text>
+            <View style={styles.inputWrapper}>
+              <Phone size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="+1 234 567 890"
+                placeholderTextColor={COLORS.outline}
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={(val) => handleInputChange(setPhone, val)}
+              />
+            </View>
+          </View>
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor={COLORS.outline}
-            secureTextEntry
-            value={password}
-            onChangeText={(val) => handleInputChange(setPassword, val)}
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.inputWrapper}>
+              <Lock size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor={COLORS.outline}
+                secureTextEntry
+                value={password}
+                onChangeText={(val) => handleInputChange(setPassword, val)}
+              />
+            </View>
+          </View>
 
           {/* Error Message */}
           {error ? (
@@ -380,14 +425,30 @@ const styles = StyleSheet.create({
   photoLabel: {
     ...TYPOGRAPHY.label,
   },
-  input: {
-    borderWidth: 0,
+  inputGroup: {
+    marginBottom: SPACING.md,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceContainerHighest,
     borderRadius: ROUNDNESS.full,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: Platform.OS === 'ios' ? SPACING.md : SPACING.sm,
-    fontSize: 14,
+    height: 56,
+  },
+  inputIcon: {
+    marginRight: SPACING.sm,
+  },
+  input: {
+    flex: 1,
+    height: '100%',
     color: COLORS.onSurface,
-    backgroundColor: COLORS.surfaceContainerHighest,
+    fontSize: 14,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    padding: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   errorText: {
     color: '#ff4444', 
