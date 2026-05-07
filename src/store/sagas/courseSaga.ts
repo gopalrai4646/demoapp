@@ -1,4 +1,4 @@
-import { call, put, takeLatest, all, take } from 'redux-saga/effects';
+import { call, put, takeLatest, all, take, fork, cancel } from 'redux-saga/effects';
 import firestore from '@react-native-firebase/firestore';
 import { eventChannel } from 'redux-saga';
 import { extractPublicIdFromUrl } from '../../utils/cloudinary-utils';
@@ -15,6 +15,7 @@ import {
   deleteCourseSuccess,
   Course
 } from '../slices/courseSlice';
+import { logoutSuccess } from '../slices/authSlice';
 
 function createCoursesChannel() {
   return eventChannel(emit => {
@@ -26,7 +27,9 @@ function createCoursesChannel() {
       });
       emit(courses);
     }, (error) => {
-      console.error("Courses listener error:", error);
+      if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
+        console.error("Courses listener error:", error);
+      }
     });
   });
 }
@@ -39,10 +42,26 @@ function* handleFetchCourses(): any {
       yield put(fetchCoursesSuccess(courses));
     }
   } catch (error: any) {
-    yield put(fetchCoursesFailure(error.message));
+    if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
+      yield put(fetchCoursesFailure(error.message));
+    }
   } finally {
     channel.close();
   }
+}
+
+let fetchCoursesTask: any = null;
+
+function* watchFetchCourses(): any {
+  while (true) {
+    yield take(fetchCoursesRequest.type);
+    if (fetchCoursesTask) yield cancel(fetchCoursesTask);
+    fetchCoursesTask = yield fork(handleFetchCourses);
+  }
+}
+
+function* handleLogout(): any {
+  if (fetchCoursesTask) yield cancel(fetchCoursesTask);
 }
 
 function* handleCreateCourse(action: ReturnType<typeof createCourseRequest>): any {
@@ -182,13 +201,12 @@ function* handleDeleteCourse(action: ReturnType<typeof deleteCourseRequest>): an
   }
 }
 
-export function* watchCourses() {
-  yield takeLatest(fetchCoursesRequest.type, handleFetchCourses);
-  yield takeLatest(createCourseRequest.type, handleCreateCourse);
-  yield takeLatest(updateCourseRequest.type, handleUpdateCourse);
-  yield takeLatest(deleteCourseRequest.type, handleDeleteCourse);
-}
-
 export function* courseSaga() {
-  yield all([watchCourses()]);
+  yield all([
+    fork(watchFetchCourses),
+    takeLatest(logoutSuccess.type, handleLogout),
+    takeLatest(createCourseRequest.type, handleCreateCourse),
+    takeLatest(updateCourseRequest.type, handleUpdateCourse),
+    takeLatest(deleteCourseRequest.type, handleDeleteCourse),
+  ]);
 }

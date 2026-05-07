@@ -1,18 +1,13 @@
-import { call, put, takeLatest, all, take } from 'redux-saga/effects';
+import { call, put, takeLatest, take, fork, cancel, all } from 'redux-saga/effects';
 import firestore from '@react-native-firebase/firestore';
 import { eventChannel } from 'redux-saga';
-import {
-  fetchTrainingPlansRequest,
-  fetchTrainingPlansSuccess,
+import { 
+  fetchTrainingPlansRequest, 
+  fetchTrainingPlansSuccess, 
   fetchTrainingPlansFailure,
-  createTrainingPlanRequest,
-  createTrainingPlanSuccess,
-  updateTrainingPlanRequest,
-  updateTrainingPlanSuccess,
-  deleteTrainingPlanRequest,
-  deleteTrainingPlanSuccess,
-  TrainingPlan,
+  TrainingPlan
 } from '../slices/trainingPlanSlice';
+import { logoutSuccess } from '../slices/authSlice';
 
 function createTrainingPlansChannel() {
   return eventChannel(emit => {
@@ -24,7 +19,9 @@ function createTrainingPlansChannel() {
       });
       emit(plans);
     }, (error) => {
-      console.error("Training plans listener error:", error);
+      if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
+        console.error("Training plans listener error:", error);
+      }
     });
   });
 }
@@ -37,76 +34,31 @@ function* handleFetchTrainingPlans(): any {
       yield put(fetchTrainingPlansSuccess(plans));
     }
   } catch (error: any) {
-    yield put(fetchTrainingPlansFailure(error.message));
+    if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
+      yield put(fetchTrainingPlansFailure(error.message));
+    }
   } finally {
     channel.close();
   }
 }
 
-function* handleCreateTrainingPlan(action: ReturnType<typeof createTrainingPlanRequest>): any {
-  try {
-    const planData = {
-      ...action.payload,
-      createdAt: firestore.FieldValue.serverTimestamp(),
-    };
-    const collectionRef = firestore().collection('trainingPlans');
-    const docRef = yield call([collectionRef, collectionRef.add], planData);
-    yield put(createTrainingPlanSuccess({
-      id: docRef.id,
-      ...action.payload,
-      createdAt: new Date().toISOString(),
-    }));
-  } catch (error: any) {
-    yield put(fetchTrainingPlansFailure(error.message));
+let fetchPlansTask: any = null;
+
+function* watchFetchPlans(): any {
+  while (true) {
+    yield take(fetchTrainingPlansRequest.type);
+    if (fetchPlansTask) yield cancel(fetchPlansTask);
+    fetchPlansTask = yield fork(handleFetchTrainingPlans);
   }
 }
 
-function* handleUpdateTrainingPlan(action: ReturnType<typeof updateTrainingPlanRequest>): any {
-  try {
-    const { id, ...updates } = action.payload;
-    const planRef = firestore().collection('trainingPlans').doc(id);
-    yield call([planRef, 'update'] as any, updates);
-    yield put(updateTrainingPlanSuccess({ ...action.payload } as TrainingPlan));
-  } catch (error: any) {
-    yield put(fetchTrainingPlansFailure(error.message));
-  }
-}
-
-function* handleDeleteTrainingPlan(action: ReturnType<typeof deleteTrainingPlanRequest>): any {
-  try {
-    const id = action.payload;
-    
-    const planRef = firestore().collection('trainingPlans').doc(id);
-    yield call([planRef, planRef.delete]);
-
-    const usersRef = firestore().collection('users');
-    const q = usersRef.where('assignedTrainingPlans', 'array-contains', id);
-    const querySnapshot = yield call([q, q.get]);
-    
-    if (!querySnapshot.empty) {
-      const batch = firestore().batch();
-      querySnapshot.forEach((userDoc: any) => {
-        batch.update(userDoc.ref, {
-          assignedTrainingPlans: firestore.FieldValue.arrayRemove(id)
-        });
-      });
-      yield call([batch, batch.commit]);
-      console.log(`Cleaned up deleted training plan ${id} from ${querySnapshot.size} users.`);
-    }
-
-    yield put(deleteTrainingPlanSuccess(id));
-  } catch (error: any) {
-    yield put(fetchTrainingPlansFailure(error.message));
-  }
-}
-
-export function* watchTrainingPlans() {
-  yield takeLatest(fetchTrainingPlansRequest.type, handleFetchTrainingPlans);
-  yield takeLatest(createTrainingPlanRequest.type, handleCreateTrainingPlan);
-  yield takeLatest(updateTrainingPlanRequest.type, handleUpdateTrainingPlan);
-  yield takeLatest(deleteTrainingPlanRequest.type, handleDeleteTrainingPlan);
+function* handleLogout(): any {
+  if (fetchPlansTask) yield cancel(fetchPlansTask);
 }
 
 export function* trainingPlanSaga() {
-  yield all([watchTrainingPlans()]);
+  yield all([
+    fork(watchFetchPlans),
+    takeLatest(logoutSuccess.type, handleLogout),
+  ]);
 }

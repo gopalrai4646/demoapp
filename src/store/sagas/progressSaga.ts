@@ -29,7 +29,9 @@ function createProgressChannel(userId: string) {
       });
       emit(progressList);
     }, (error) => {
-      console.error("Progress listener error:", error);
+      if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
+        console.error("Progress listener error:", error);
+      }
     });
   });
 }

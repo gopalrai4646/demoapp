@@ -30,6 +30,7 @@ import {
   Circle
 } from 'lucide-react-native';
 import { AppHeader } from '../components/AppHeader';
+import AdminUserDetailsModal from '../components/admin/AdminUserDetailsModal';
 
 const AdminUsersScreen = () => {
   const dispatch = useAppDispatch();
@@ -39,6 +40,8 @@ const AdminUsersScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchUsersRequest());
@@ -130,7 +133,14 @@ const AdminUsersScreen = () => {
   const renderUserItem = ({ item }: { item: any }) => {
     if (viewMode === 'list') {
       return (
-        <View style={styles.listCard}>
+        <TouchableOpacity 
+          style={styles.listCard}
+          activeOpacity={0.7}
+          onPress={() => {
+            setSelectedUser(item);
+            setModalVisible(true);
+          }}
+        >
           <View style={styles.avatarContainer}>
             {item.photoURL ? (
               <Image source={{ uri: item.photoURL }} style={styles.avatar} />
@@ -155,12 +165,19 @@ const AdminUsersScreen = () => {
               <Trash2 size={20} color={COLORS.error} />
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       );
     }
 
     return (
-      <View style={styles.gridCard}>
+      <TouchableOpacity 
+        style={styles.gridCard}
+        activeOpacity={0.9}
+        onPress={() => {
+          setSelectedUser(item);
+          setModalVisible(true);
+        }}
+      >
         <View style={styles.gridHeader}>
           <View style={styles.avatarLargeContainer}>
             {item.photoURL ? (
@@ -199,7 +216,7 @@ const AdminUsersScreen = () => {
             <Trash2 size={18} color={COLORS.error} />
           </TouchableOpacity>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -272,6 +289,15 @@ const AdminUsersScreen = () => {
       <TouchableOpacity style={styles.fab}>
         <UserPlus size={24} color="#fff" />
       </TouchableOpacity>
+
+      <AdminUserDetailsModal
+        visible={modalVisible}
+        user={selectedUser}
+        onClose={() => {
+          setModalVisible(false);
+          setSelectedUser(null);
+        }}
+      />
     </View>
   );
 };

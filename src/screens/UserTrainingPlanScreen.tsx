@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectAssignedPlans } from '../store/selectors';
@@ -42,7 +43,9 @@ const UserTrainingPlanScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.md }]}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.md }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Training Plans</Text>
         <Text style={styles.subtitle}>
@@ -96,7 +99,8 @@ const UserTrainingPlanScreen = () => {
           <Text style={styles.emptyText}>No training plans assigned yet.</Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 

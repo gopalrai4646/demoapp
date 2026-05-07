@@ -33,16 +33,17 @@ export const navigationRef = createNavigationContainerRef();
 
 function App() {
   const [currentRoute, setCurrentRoute] = useState<string>();
+  const isSpecialScreen = currentRoute === 'CoursePlayer' || currentRoute === 'UserTrainingPlanDetails';
 
   return (
     <Provider store={store}>
       <SafeAreaProvider>
         <StatusBar
-          barStyle={currentRoute === 'CoursePlayer' ? 'light-content' : 'dark-content'}
+          barStyle={isSpecialScreen ? 'light-content' : 'dark-content'}
           backgroundColor="transparent"
           translucent={true}
         />
-        {currentRoute !== 'CoursePlayer' && <StatusBarBackground />}
+        {!isSpecialScreen && <StatusBarBackground />}
         <NavigationContainer
           ref={navigationRef}
           onReady={() => {

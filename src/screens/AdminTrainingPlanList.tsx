@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert, ActivityIndicator, StatusBar } from 'react-native';
 import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -110,6 +110,7 @@ export const AdminTrainingPlanList = () => {
   };
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       {loading ? (
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
       ) : (

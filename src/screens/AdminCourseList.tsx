@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert, StatusBar } from 'react-native';
 import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -127,6 +127,7 @@ const AdminCourseList = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
         <Text style={TYPOGRAPHY.headline}>Manage Courses</Text>

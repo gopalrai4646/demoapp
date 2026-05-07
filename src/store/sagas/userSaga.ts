@@ -1,19 +1,19 @@
-import { call, put, takeLatest, all, take } from 'redux-saga/effects';
+import { call, put, takeLatest, take, fork, cancel, all } from 'redux-saga/effects';
 import firestore from '@react-native-firebase/firestore';
 import { eventChannel } from 'redux-saga';
-import { ENV } from '../../config/env';
-import {
-  fetchUsersRequest,
-  fetchUsersSuccess,
+import { 
+  fetchUsersRequest, 
+  fetchUsersSuccess, 
   fetchUsersFailure,
-  User,
   deleteUserRequest,
   deleteUserSuccess,
   assignTrainingPlanRequest,
   assignTrainingPlanSuccess,
   unassignTrainingPlanRequest,
   unassignTrainingPlanSuccess,
+  User
 } from '../slices/userSlice';
+import { logoutSuccess } from '../slices/authSlice';
 
 function createUsersChannel() {
   return eventChannel(emit => {
@@ -22,15 +22,26 @@ function createUsersChannel() {
       const users: User[] = [];
       snapshot.forEach((doc: any) => {
         const data = doc.data();
+        // Convert Firestore Timestamp to ISO string so Redux can serialize it
+        let createdAt = data.createdAt;
+        if (createdAt && typeof createdAt.toDate === 'function') {
+          createdAt = createdAt.toDate().toISOString();
+        } else if (createdAt && createdAt.seconds) {
+          createdAt = new Date(createdAt.seconds * 1000).toISOString();
+        }
         users.push({ 
           id: doc.id, 
           ...data,
           name: data.displayName || data.name || '',
+          createdAt,
         } as User);
       });
       emit(users);
     }, (error) => {
-      console.error("Users listener error:", error);
+      // Gracefully handle permission errors (often occurs during logout)
+      if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
+        console.error("Users listener error:", error);
+      }
     });
   });
 }
@@ -43,40 +54,37 @@ function* handleFetchUsers(): any {
       yield put(fetchUsersSuccess(users));
     }
   } catch (error: any) {
-    yield put(fetchUsersFailure(error.message));
+    if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
+      yield put(fetchUsersFailure(error.message));
+    }
   } finally {
     channel.close();
   }
 }
 
+let fetchUsersTask: any = null;
+
+function* watchFetchUsers(): any {
+  while (true) {
+    yield take(fetchUsersRequest.type);
+    if (fetchUsersTask) yield cancel(fetchUsersTask);
+    fetchUsersTask = yield fork(handleFetchUsers);
+  }
+}
+
+function* handleLogout(): any {
+  if (fetchUsersTask) yield cancel(fetchUsersTask);
+}
+
 function* handleDeleteUser(action: ReturnType<typeof deleteUserRequest>): any {
   try {
     const userId = action.payload;
-
-    const userDocRef = firestore().collection('users').doc(userId);
-    const userDoc: any = yield call([userDocRef, 'get']);
-    let userEmail = '';
-    if (userDoc.exists) {
-      userEmail = userDoc.data().email?.toLowerCase();
-    }
-
-    const authResponse = yield call(fetch, `${ENV.API_URL}/api/admin/users/delete`, {
-      method: 'POST',
-      body: JSON.stringify({ uid: userId }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    if (!authResponse.ok) {
-      const errorData = yield call([authResponse, authResponse.json]);
-      throw new Error(errorData.error || 'Failed to delete user from Authentication');
-    }
-
+    // Note: This only deletes from Firestore. 
+    // To delete from Firebase Auth, a cloud function or admin API is needed.
     const userRef = firestore().collection('users').doc(userId);
     yield call([userRef, 'delete'] as any);
-
     yield put(deleteUserSuccess(userId));
   } catch (error: any) {
-    console.error('Saga: Error deleting user', error.message);
     yield put(fetchUsersFailure(error.message));
   }
 }
@@ -109,13 +117,12 @@ function* handleUnassignTrainingPlan(action: ReturnType<typeof unassignTrainingP
   }
 }
 
-export function* watchUsers() {
-  yield takeLatest(fetchUsersRequest.type, handleFetchUsers);
-  yield takeLatest(deleteUserRequest.type, handleDeleteUser);
-  yield takeLatest(assignTrainingPlanRequest.type, handleAssignTrainingPlan);
-  yield takeLatest(unassignTrainingPlanRequest.type, handleUnassignTrainingPlan);
-}
-
 export function* userSaga() {
-  yield all([watchUsers()]);
+  yield all([
+    fork(watchFetchUsers),
+    takeLatest(logoutSuccess.type, handleLogout),
+    takeLatest(deleteUserRequest.type, handleDeleteUser),
+    takeLatest(assignTrainingPlanRequest.type, handleAssignTrainingPlan),
+    takeLatest(unassignTrainingPlanRequest.type, handleUnassignTrainingPlan),
+  ]);
 }
