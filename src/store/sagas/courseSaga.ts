@@ -26,7 +26,7 @@ function createCoursesChannel() {
         courses.push({ id: doc.id, ...doc.data() });
       });
       emit(courses);
-    }, (error) => {
+    }, (error: any) => {
       if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
         console.error("Courses listener error:", error);
       }

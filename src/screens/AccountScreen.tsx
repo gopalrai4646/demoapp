@@ -16,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { updateProfileRequest, updatePasswordRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
@@ -24,6 +25,7 @@ import { AppHeader } from '../components/AppHeader';
 const Account = () => {
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { user, loading, error } = useSelector((state: RootState) => state.auth);
 
   const [name, setName] = useState(user?.displayName || '');
@@ -114,7 +116,7 @@ const Account = () => {
               <View style={styles.iconBox}>
                 <Text style={styles.iconText}>👤</Text>
               </View>
-              <Text style={styles.sectionTitle}>Profile Information</Text>
+              <Text style={styles.sectionTitle}>{t('account.profileInfo')}</Text>
             </View>
 
             {/* Profile Photo Card */}
@@ -136,26 +138,26 @@ const Account = () => {
                 )}
               </TouchableOpacity>
               <View style={styles.photoInfo}>
-                <Text style={styles.photoTitle}>Profile Photo</Text>
+                <Text style={styles.photoTitle}>{t('account.profilePhoto')}</Text>
                 <Text style={styles.photoSubtitle}>
-                  Click to update your avatar. PNG or JPG supported.
+                  {t('account.photoSubtitle')}
                 </Text>
               </View>
             </View>
 
             {/* Inputs */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Full Name</Text>
+              <Text style={styles.label}>{t('account.fullName')}</Text>
               <TextInput
                 style={styles.input}
                 value={name}
                 onChangeText={setName}
-                placeholder="Full Name"
+                placeholder={t('account.fullName')}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Phone Number</Text>
+              <Text style={styles.label}>{t('account.phone')}</Text>
               <View style={styles.phoneInputContainer}>
                 <Text style={styles.phoneIcon}>📞</Text>
                 <TextInput
@@ -169,13 +171,13 @@ const Account = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Address</Text>
+              <Text style={styles.label}>{t('account.email')}</Text>
               <TextInput
                 style={[styles.input, styles.disabledInput]}
                 value={user?.email || ''}
                 editable={false}
               />
-              <Text style={styles.hint}>Email cannot be changed for security reasons.</Text>
+              <Text style={styles.hint}>{t('account.emailHint')}</Text>
             </View>
 
             {/* Change Password Header */}
@@ -183,27 +185,27 @@ const Account = () => {
               <View style={styles.iconBox}>
                 <Text style={styles.iconText}>📋</Text>
               </View>
-              <Text style={styles.sectionTitle}>Change Password</Text>
+              <Text style={styles.sectionTitle}>{t('account.changePassword')}</Text>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>New Password</Text>
+              <Text style={styles.label}>{t('account.newPassword')}</Text>
               <TextInput
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Leave blank to keep current"
+                placeholder={t('account.newPasswordPlaceholder')}
                 secureTextEntry
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirm New Password</Text>
+              <Text style={styles.label}>{t('account.confirmPassword')}</Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={t('account.confirmPasswordPlaceholder')}
                 secureTextEntry
               />
             </View>
@@ -223,7 +225,7 @@ const Account = () => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.saveButtonText}>Save Changes</Text>
+                <Text style={styles.saveButtonText}>{t('account.saveChanges')}</Text>
               )}
             </TouchableOpacity>
           </ScrollView>

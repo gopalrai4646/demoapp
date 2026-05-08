@@ -7,6 +7,7 @@ import { AdminTrainingPlanStackParamList } from '../navigation/types';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { useTranslation } from 'react-i18next';
 import { fetchTrainingPlansRequest, deleteTrainingPlanRequest, TrainingPlan } from '../store/slices/trainingPlanSlice';
 import { AppHeader } from '../components/AppHeader';
 import {
@@ -29,6 +30,7 @@ export const AdminTrainingPlanList = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { trainingPlans, loading } = useSelector((state: RootState) => state.trainingPlans);
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -40,12 +42,12 @@ export const AdminTrainingPlanList = () => {
 
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
-      'Delete Training Plan',
-      `Are you sure you want to delete "${title}"?`,
+      t('adminPlans.deleteTitle'),
+      t('adminPlans.deleteConfirm', { title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('adminPlans.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('adminPlans.delete'),
           style: 'destructive',
           onPress: () => dispatch(deleteTrainingPlanRequest(id))
         },
@@ -80,7 +82,7 @@ export const AdminTrainingPlanList = () => {
           <View style={[styles.badge, styles.badgePublic]}>
             <Layers size={10} color="#065f46" />
             <Text style={[styles.badgeText, styles.badgeTextPublic]}>
-              {courseCount} COURSES
+              {t('adminPlans.coursesBadge', { count: courseCount })}
             </Text>
           </View>
         </View>
@@ -118,7 +120,7 @@ export const AdminTrainingPlanList = () => {
           ListHeaderComponent={
             <>
               <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
-                <Text style={TYPOGRAPHY.headline}>Manage Plans</Text>
+                <Text style={TYPOGRAPHY.headline}>{t('adminPlans.managePlans')}</Text>
                 <TouchableOpacity
                   style={styles.addButton}
                   onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
@@ -131,7 +133,7 @@ export const AdminTrainingPlanList = () => {
                 <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Search training plans..."
+                  placeholder={t('adminPlans.searchPlaceholder')}
                   placeholderTextColor={COLORS.outline}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
@@ -153,7 +155,7 @@ export const AdminTrainingPlanList = () => {
                     <List size={16} color={viewMode === 'list' ? COLORS.primary : COLORS.outline} />
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.itemCountText}>Showing {filteredPlans.length}</Text>
+                <Text style={styles.itemCountText}>{t('adminPlans.showingCount', { count: filteredPlans.length })}</Text>
               </View>
             </>
           }
@@ -167,7 +169,7 @@ export const AdminTrainingPlanList = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 40 }}>
-              <Text style={{ color: COLORS.outline }}>No training plans found.</Text>
+              <Text style={{ color: COLORS.outline }}>{t('adminPlans.noPlans')}</Text>
             </View>
           }
         />

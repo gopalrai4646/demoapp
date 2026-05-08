@@ -37,7 +37,7 @@ function createUsersChannel() {
         } as User);
       });
       emit(users);
-    }, (error) => {
+    }, (error: any) => {
       // Gracefully handle permission errors (often occurs during logout)
       if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
         console.error("Users listener error:", error);

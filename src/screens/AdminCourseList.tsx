@@ -7,6 +7,7 @@ import { AdminCourseStackParamList } from '../navigation/types';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { useTranslation } from 'react-i18next';
 import { fetchCoursesRequest, deleteCourseRequest, Course } from '../store/slices/courseSlice';
 import { 
   Plus, 
@@ -30,6 +31,7 @@ const AdminCourseList = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { courses, loading } = useSelector((state: RootState) => state.courses);
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -42,12 +44,12 @@ const AdminCourseList = () => {
 
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
-      'Delete Course',
-      `Are you sure you want to delete "${title}"?`,
+      t('adminCourses.deleteTitle'),
+      t('adminCourses.deleteConfirm', { title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('adminCourses.cancel'), style: 'cancel' },
         { 
-          text: 'Delete', 
+          text: t('adminCourses.delete'), 
           style: 'destructive', 
           onPress: () => dispatch(deleteCourseRequest(id)) 
         },
@@ -85,7 +87,7 @@ const AdminCourseList = () => {
           <View style={[styles.badge, isPublic ? styles.badgePublic : styles.badgePrivate]}>
             {isPublic ? <ShieldCheck size={10} color="#065f46" /> : <ShieldOff size={10} color="#92400e" />}
             <Text style={[styles.badgeText, isPublic ? styles.badgeTextPublic : styles.badgeTextPrivate]}>
-              {isPublic ? 'PUBLIC' : 'PRIVATE'}
+              {isPublic ? t('adminCourses.publicBadge') : t('adminCourses.privateBadge')}
             </Text>
           </View>
         </View>
@@ -97,12 +99,12 @@ const AdminCourseList = () => {
             <View style={[styles.avatarMini, { backgroundColor: COLORS.primaryContainer, justifyContent: 'center', alignItems: 'center' }]}>
                 <Text style={{ color: '#fff', fontSize: 10 }}>{item.instructor?.charAt(0) || '?'}</Text>
             </View>
-            <Text style={styles.instructorName} numberOfLines={1}>{item.instructor || 'Unknown'}</Text>
+            <Text style={styles.instructorName} numberOfLines={1}>{item.instructor || t('adminCourses.unknown')}</Text>
           </View>
           
           <View style={styles.statsRow}>
             <Users size={12} color={COLORS.outline} />
-            <Text style={styles.learnersText}>{learnerCount.toLocaleString()} learners</Text>
+            <Text style={styles.learnersText}>{t('adminCourses.learnersCount', { count: learnerCount.toLocaleString() })}</Text>
           </View>
           
           <View style={styles.cardActions}>
@@ -130,7 +132,7 @@ const AdminCourseList = () => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
-        <Text style={TYPOGRAPHY.headline}>Manage Courses</Text>
+        <Text style={TYPOGRAPHY.headline}>{t('adminCourses.manageCourses')}</Text>
         <TouchableOpacity 
           style={styles.addButton}
           onPress={() => navigation.navigate('AdminCourseDetails', {})}
@@ -144,7 +146,7 @@ const AdminCourseList = () => {
         <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
         <TextInput 
           style={styles.searchInput}
-          placeholder="Search courses, instructors..."
+          placeholder={t('adminCourses.searchPlaceholder')}
           placeholderTextColor={COLORS.outline}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -173,19 +175,19 @@ const AdminCourseList = () => {
             style={[styles.filterChip, filter === 'all' && styles.filterChipActive]}
             onPress={() => setFilter('all')}
           >
-            <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>All</Text>
+            <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>{t('adminCourses.all')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.filterChip, filter === 'public' && styles.filterChipActive]}
             onPress={() => setFilter('public')}
           >
-            <Text style={[styles.filterText, filter === 'public' && styles.filterTextActive]}>Public</Text>
+            <Text style={[styles.filterText, filter === 'public' && styles.filterTextActive]}>{t('adminCourses.public')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.filterChip, filter === 'private' && styles.filterChipActive]}
             onPress={() => setFilter('private')}
           >
-            <Text style={[styles.filterText, filter === 'private' && styles.filterTextActive]}>Private</Text>
+            <Text style={[styles.filterText, filter === 'private' && styles.filterTextActive]}>{t('adminCourses.private')}</Text>
           </TouchableOpacity>
         </View>
       </View>

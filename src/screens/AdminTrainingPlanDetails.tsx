@@ -11,6 +11,7 @@ import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import { useTranslation } from 'react-i18next';
 
 type NavigationProp = NativeStackNavigationProp<AdminTrainingPlanStackParamList, 'AdminTrainingPlanDetails'>;
 
@@ -19,6 +20,7 @@ export const AdminTrainingPlanDetails = () => {
   const route = useRoute<any>();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   
   const planId = route.params?.planId;
   const isEditing = !!planId;
@@ -66,7 +68,7 @@ export const AdminTrainingPlanDetails = () => {
       setImageUri(url);
     } catch (error: any) {
       console.error('Image upload failed', error);
-      Alert.alert('Upload Failed', error.message || 'There was an error uploading the image.');
+      Alert.alert(t('adminTrainingPlanDetails.uploadFailed'), error.message || t('adminTrainingPlanDetails.uploadError'));
     } finally {
       setIsUploading(false);
     }
@@ -74,15 +76,15 @@ export const AdminTrainingPlanDetails = () => {
 
   const handleSave = () => {
     if (!name.trim() || !description.trim()) {
-      Alert.alert('Validation Error', 'Training Plan Name and Description are required.');
+      Alert.alert(t('adminTrainingPlanDetails.validationError'), t('adminTrainingPlanDetails.nameDescRequired'));
       return;
     }
     if (selectedCourseIds.length === 0) {
-      Alert.alert('Validation Error', 'Please select at least one course for the curriculum.');
+      Alert.alert(t('adminTrainingPlanDetails.validationError'), t('adminTrainingPlanDetails.courseRequired'));
       return;
     }
     if (isUploading) {
-      Alert.alert('Please Wait', 'Cover image is still uploading...');
+      Alert.alert(t('adminTrainingPlanDetails.pleaseWait'), t('adminTrainingPlanDetails.uploading'));
       return;
     }
 
@@ -115,7 +117,7 @@ export const AdminTrainingPlanDetails = () => {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
         <Text style={styles.closeIcon}>✕</Text>
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Plan Manager</Text>
+      <Text style={styles.headerTitle}>{t('adminTrainingPlanDetails.planManager')}</Text>
       <View style={styles.profileContainer}>
         {user?.photoURL ? (
           <Image source={{ uri: user.photoURL }} style={styles.profileImage} />
@@ -131,14 +133,14 @@ export const AdminTrainingPlanDetails = () => {
       {renderHeader()}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {isEditing && <Text style={styles.modeOverline}>EDITING MODE</Text>}
-        <Text style={TYPOGRAPHY.headline}>{isEditing ? 'Plan Details' : 'Create New Plan'}</Text>
+        {isEditing && <Text style={styles.modeOverline}>{t('adminTrainingPlanDetails.editingMode')}</Text>}
+        <Text style={TYPOGRAPHY.headline}>{isEditing ? t('adminTrainingPlanDetails.planDetails') : t('adminTrainingPlanDetails.createNewPlan')}</Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Training Plan Name</Text>
+          <Text style={styles.label}>{t('adminTrainingPlanDetails.planName')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter plan name"
+            placeholder={t('adminTrainingPlanDetails.enterPlanName')}
             placeholderTextColor={COLORS.outline}
             value={name}
             onChangeText={setName}
@@ -160,16 +162,16 @@ export const AdminTrainingPlanDetails = () => {
               <View style={styles.camIconWrapper}>
                 <Text style={styles.camIcon}>📸</Text>
               </View>
-              <Text style={styles.thumbUploadText}>{isEditing ? 'Change Cover Image' : 'Upload Cover Image'}</Text>
+              <Text style={styles.thumbUploadText}>{isEditing ? t('adminTrainingPlanDetails.changeCover') : t('adminTrainingPlanDetails.uploadCover')}</Text>
             </View>
           )}
         </TouchableOpacity>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Description</Text>
+          <Text style={styles.label}>{t('adminTrainingPlanDetails.description')}</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Enter full description"
+            placeholder={t('adminTrainingPlanDetails.enterDescription')}
             placeholderTextColor={COLORS.outline}
             multiline
             numberOfLines={4}
@@ -183,8 +185,8 @@ export const AdminTrainingPlanDetails = () => {
           <View style={styles.visibilityInfo}>
             <Text style={styles.eyeIcon}>👁️</Text>
             <View>
-              <Text style={styles.visibilityTitle}>Public Visibility</Text>
-              <Text style={styles.visibilityDesc}>Make this plan discoverable in catalog</Text>
+              <Text style={styles.visibilityTitle}>{t('adminTrainingPlanDetails.publicVisibility')}</Text>
+              <Text style={styles.visibilityDesc}>{t('adminTrainingPlanDetails.publicVisibilityDesc')}</Text>
             </View>
           </View>
           <Switch 
@@ -196,9 +198,9 @@ export const AdminTrainingPlanDetails = () => {
         </View>
 
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Curriculum</Text>
+          <Text style={styles.sectionTitle}>{t('adminTrainingPlanDetails.curriculum')}</Text>
           <TouchableOpacity style={styles.addCourseBtn} onPress={() => setShowCourseModal(true)}>
-            <Text style={styles.addCourseText}>+ Add Course</Text>
+            <Text style={styles.addCourseText}>{t('adminTrainingPlanDetails.addCourse')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -229,7 +231,7 @@ export const AdminTrainingPlanDetails = () => {
 
         {curriculumCourses.length === 0 && (
           <View style={{ alignItems: 'center', marginVertical: SPACING.xl }}>
-             <Text style={{ color: COLORS.outline }}>No courses added yet.</Text>
+             <Text style={{ color: COLORS.outline }}>{t('adminTrainingPlanDetails.noCoursesAdded')}</Text>
           </View>
         )}
 
@@ -246,7 +248,7 @@ export const AdminTrainingPlanDetails = () => {
           {loading ? (
             <ActivityIndicator color={COLORS.onPrimary} />
           ) : (
-            <Text style={styles.saveCourseText}>{isEditing ? 'Update Plan' : 'Create Plan'}</Text>
+            <Text style={styles.saveCourseText}>{isEditing ? t('adminTrainingPlanDetails.updatePlan') : t('adminTrainingPlanDetails.createPlan')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -258,7 +260,7 @@ export const AdminTrainingPlanDetails = () => {
               <TouchableOpacity onPress={() => setShowCourseModal(false)} style={styles.closeBtn}>
                 <Text style={styles.closeIcon}>✕</Text>
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Select Courses</Text>
+              <Text style={styles.headerTitle}>{t('adminTrainingPlanDetails.selectCourses')}</Text>
               <View style={{ width: 32 }} />
             </View>
             
@@ -266,7 +268,7 @@ export const AdminTrainingPlanDetails = () => {
               <Text style={styles.searchIcon}>🔍</Text>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search courses..."
+                placeholder={t('adminTrainingPlanDetails.searchCourses')}
                 placeholderTextColor={COLORS.outline}
                 value={courseSearch}
                 onChangeText={setCourseSearch}
@@ -290,20 +292,20 @@ export const AdminTrainingPlanDetails = () => {
                     style={styles.modalAddBtn}
                     onPress={() => setSelectedCourseIds([...selectedCourseIds, item.id])}
                   >
-                    <Text style={styles.actionIconPrimary}>+ Add</Text>
+                    <Text style={styles.actionIconPrimary}>{t('adminTrainingPlanDetails.add')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
               ListEmptyComponent={
                  <View style={{ alignItems: 'center', marginTop: 40 }}>
-                    <Text style={{ color: COLORS.outline }}>No matching courses found.</Text>
+                    <Text style={{ color: COLORS.outline }}>{t('adminTrainingPlanDetails.noMatchingCourses')}</Text>
                  </View>
               }
             />
             
             <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, SPACING.md) }]}>
                <TouchableOpacity style={styles.saveCourseBtn} onPress={() => setShowCourseModal(false)}>
-                 <Text style={styles.saveCourseText}>Done</Text>
+                 <Text style={styles.saveCourseText}>{t('adminTrainingPlanDetails.done')}</Text>
                </TouchableOpacity>
             </View>
         </View>

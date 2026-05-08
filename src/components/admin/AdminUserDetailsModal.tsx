@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   X,
   ClipboardList,
@@ -37,6 +38,7 @@ interface Props {
 
 const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
 
   // ─── Redux selectors (read from Firestore via real-time onSnapshot listeners) ───
   const { trainingPlans } = useAppSelector(state => state.trainingPlans);
@@ -99,12 +101,12 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
   // ─── WRITE: Unassign a training plan ───
   const handleUnassignPlan = (planId: string, planName: string) => {
     Alert.alert(
-      'Remove Training Plan',
-      `Remove "${planName}" from ${user.name || 'this user'}?`,
+      t('adminUserDetails.removePlanTitle'),
+      t('adminUserDetails.removePlanConfirm', { planName, userName: user.name || t('adminUserDetails.thisUser') }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('adminUserDetails.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('adminUserDetails.remove'),
           style: 'destructive',
           onPress: () =>
             dispatch(
@@ -138,7 +140,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
 
         <View style={styles.modalContainer}>
           <View style={styles.header}>
-            <Text style={styles.title}>User Details</Text>
+            <Text style={styles.title}>{t('adminUserDetails.title')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <X size={20} color="#94a3b8" />
             </TouchableOpacity>
@@ -161,7 +163,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
               )}
               <View style={styles.profileInfo}>
                 <Text style={styles.name} numberOfLines={1}>
-                  {user.name || 'No Name'}
+                  {user.name || t('adminUserDetails.noName')}
                 </Text>
                 <Text style={styles.email} numberOfLines={1}>
                   {user.email}
@@ -193,7 +195,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                     <View style={styles.metaItem}>
                       <Calendar size={12} color="#94a3b8" />
                       <Text style={styles.metaText}>
-                        Joined: {formatDate(user.createdAt)}
+                        {t('adminUserDetails.joined', { date: formatDate(user.createdAt) })}
                       </Text>
                     </View>
                   )}
@@ -207,7 +209,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                 <View style={styles.cardTitleRow}>
                   <ClipboardList size={16} color="#64748b" />
                   <Text style={styles.cardTitle}>
-                    Assigned Training Plans ({user.assignedTrainingPlans?.length || 0})
+                    {t('adminUserDetails.assignedPlans', { count: user.assignedTrainingPlans?.length || 0 })}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -216,7 +218,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                     setIsAssigning(!isAssigning);
                     setShowPlanList(false);
                   }}>
-                  <Text style={styles.assignBtnText}>{isAssigning ? 'Cancel' : 'Assign Plan'}</Text>
+                  <Text style={styles.assignBtnText}>{isAssigning ? t('adminUserDetails.cancel') : t('adminUserDetails.assignPlan')}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -227,7 +229,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                     onPress={() => setShowPlanList(!showPlanList)}
                   >
                     <Text style={[styles.pickerText, !selectedPlanId && { color: '#94a3b8' }]}>
-                      {selectedPlanId ? getPlanName(selectedPlanId) : 'Select a training plan...'}
+                      {selectedPlanId ? getPlanName(selectedPlanId) : t('adminUserDetails.selectPlan')}
                     </Text>
                     <ChevronDown size={16} color="#94a3b8" />
                   </TouchableOpacity>
@@ -248,7 +250,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                           </TouchableOpacity>
                         ))
                       ) : (
-                        <Text style={styles.noPlansText}>No more plans available</Text>
+                        <Text style={styles.noPlansText}>{t('adminUserDetails.noMorePlans')}</Text>
                       )}
                     </View>
                   )}
@@ -260,7 +262,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                     ]}
                     onPress={handleAssignPlan}
                     disabled={!selectedPlanId}>
-                    <Text style={styles.assignConfirmBtnText}>Confirm Assignment</Text>
+                    <Text style={styles.assignConfirmBtnText}>{t('adminUserDetails.confirmAssignment')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -284,7 +286,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No training plans assigned.</Text>
+                  <Text style={styles.emptyStateText}>{t('adminUserDetails.noAssignedPlans')}</Text>
                 </View>
               )}
             </View>
@@ -294,7 +296,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
               <View style={styles.cardHeader}>
                 <View style={styles.cardTitleRow}>
                   <BookOpen size={16} color="#64748b" />
-                  <Text style={styles.cardTitle}>Enrolled Courses ({user.enrolledCourses?.length || 0})</Text>
+                  <Text style={styles.cardTitle}>{t('adminUserDetails.enrolledCourses', { count: user.enrolledCourses?.length || 0 })}</Text>
                 </View>
               </View>
 
@@ -309,7 +311,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No enrolled courses.</Text>
+                  <Text style={styles.emptyStateText}>{t('adminUserDetails.noEnrolledCourses')}</Text>
                 </View>
               )}
             </View>
@@ -319,7 +321,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
               <View style={styles.cardHeader}>
                 <View style={styles.cardTitleRow}>
                   <Heart size={16} color="#e11d48" fill="#e11d48" />
-                  <Text style={styles.cardTitle}>Saved Courses ({user.savedCourses?.length || 0})</Text>
+                  <Text style={styles.cardTitle}>{t('adminUserDetails.savedCourses', { count: user.savedCourses?.length || 0 })}</Text>
                 </View>
               </View>
 
@@ -334,7 +336,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No saved courses.</Text>
+                  <Text style={styles.emptyStateText}>{t('adminUserDetails.noSavedCourses')}</Text>
                 </View>
               )}
             </View>
@@ -347,7 +349,10 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 23, 42, 0.4)' },
+  backdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+  },
   modalContainer: {
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 32,
@@ -375,7 +380,7 @@ const styles = StyleSheet.create({
   metaText: { fontSize: 12, color: '#64748b' },
   card: { backgroundColor: '#f8fafc', borderRadius: 24, padding: SPACING.md, marginBottom: SPACING.lg },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.md },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
   cardTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a' },
   assignBtn: { backgroundColor: '#eef2ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   assignBtnText: { fontSize: 12, fontWeight: '700', color: '#4f46e5' },

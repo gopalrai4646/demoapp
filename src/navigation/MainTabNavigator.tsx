@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { RootState } from '../store';
 import Dashboard from '../screens/Dashboard';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
@@ -32,6 +33,7 @@ const MainTabNavigator = () => {
   const { role } = useSelector((state: RootState) => state.auth);
   const isAdmin = role === 'admin';
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -57,7 +59,7 @@ const MainTabNavigator = () => {
         name="Dashboard"
         component={isAdmin ? AdminDashboardScreen : Dashboard}
         options={{
-          tabBarLabel: isAdmin ? 'Reports' : 'Dashboard',
+          tabBarLabel: isAdmin ? t('tabs.reports') : t('tabs.dashboard'),
           tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
               {focused && <View style={styles.activeIndicator} />}
@@ -71,7 +73,7 @@ const MainTabNavigator = () => {
         component={isAdmin ? AdminCourseStack : UserCourseStack}
         options={{
           headerShown: false,
-          tabBarLabel: 'Courses',
+          tabBarLabel: t('tabs.courses'),
           tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
               {focused && <View style={styles.activeIndicator} />}
@@ -93,7 +95,7 @@ const MainTabNavigator = () => {
         component={isAdmin ? AdminTrainingPlanStack : UserTrainingPlanStack}
         options={{
           headerShown: false,
-          tabBarLabel: 'Plans',
+          tabBarLabel: t('tabs.plans'),
           tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
               {focused && <View style={styles.activeIndicator} />}
@@ -115,7 +117,7 @@ const MainTabNavigator = () => {
           name="Users"
           component={AdminUsersScreen}
           options={{
-            tabBarLabel: 'Users',
+            tabBarLabel: t('tabs.users'),
             tabBarIcon: ({ color, size, focused }) => (
               <View style={styles.iconContainer}>
                 {focused && <View style={styles.activeIndicator} />}
@@ -129,7 +131,7 @@ const MainTabNavigator = () => {
         name="Account"
         component={Account}
         options={{
-          tabBarLabel: isAdmin ? 'Settings' : 'Account',
+          tabBarLabel: isAdmin ? t('tabs.settings') : t('tabs.account'),
           tabBarIcon: ({ color, size, focused }) => (
             <View style={styles.iconContainer}>
               {focused && <View style={styles.activeIndicator} />}

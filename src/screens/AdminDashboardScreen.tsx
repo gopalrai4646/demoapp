@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { fetchUsersRequest } from '../store/slices/userSlice';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
 import { fetchTrainingPlansRequest } from '../store/slices/trainingPlanSlice';
@@ -42,6 +43,7 @@ const AdminDashboardScreen = () => {
   const { courses } = useAppSelector(state => state.courses);
   const { trainingPlans } = useAppSelector(state => state.trainingPlans);
   const { user } = useAppSelector(state => state.auth);
+  const { t } = useTranslation();
 
   const [allProgress, setAllProgress] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(true);
@@ -248,14 +250,14 @@ const AdminDashboardScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{isCourses ? 'Top 5 Courses' : 'Top 5 Training Plans'}</Text>
+              <Text style={styles.modalTitle}>{isCourses ? t('adminDashboard.top5Courses') : t('adminDashboard.top5Plans')}</Text>
               <TouchableOpacity onPress={() => setActiveInsight(null)} style={styles.closeModalBtn}>
                 <Text style={styles.closeModalText}>✕</Text>
               </TouchableOpacity>
             </View>
             
             <View style={styles.modalBody}>
-              <Text style={styles.chartSub}>Enrollment Distribution</Text>
+              <Text style={styles.chartSub}>{t('adminDashboard.enrollmentDist')}</Text>
               <View style={styles.modalChartWrapper}>
                 <Svg height="220" width={width - 80}>
                   {data.map((item, index) => {
@@ -301,7 +303,7 @@ const AdminDashboardScreen = () => {
             </View>
 
             <TouchableOpacity style={styles.dismissBtn} onPress={() => setActiveInsight(null)}>
-              <Text style={styles.dismissBtnText}>Close Analysis</Text>
+              <Text style={styles.dismissBtnText}>{t('adminDashboard.closeAnalysis')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -346,21 +348,21 @@ const AdminDashboardScreen = () => {
       <View style={styles.chartCard}>
         <View style={styles.chartHeader}>
           <View style={{ flex: 1, paddingRight: 8 }}>
-            <Text style={styles.chartTitle}>Daily Active Users (DAU)</Text>
-            <Text style={styles.chartSub}>Weekly engagement performance</Text>
+            <Text style={styles.chartTitle}>{t('adminDashboard.dau')}</Text>
+            <Text style={styles.chartSub}>{t('adminDashboard.dauSub')}</Text>
           </View>
           <View style={styles.toggleContainer}>
             <TouchableOpacity 
               style={[styles.toggleBtn, dauTimeframe === 'week' && styles.toggleBtnActive]}
               onPress={() => setDauTimeframe('week')}
             >
-              <Text style={[styles.toggleText, dauTimeframe === 'week' && styles.toggleTextActive]}>Week</Text>
+              <Text style={[styles.toggleText, dauTimeframe === 'week' && styles.toggleTextActive]}>{t('adminDashboard.week')}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.toggleBtn, dauTimeframe === 'month' && styles.toggleBtnActive]}
               onPress={() => setDauTimeframe('month')}
             >
-              <Text style={[styles.toggleText, dauTimeframe === 'month' && styles.toggleTextActive]}>Month</Text>
+              <Text style={[styles.toggleText, dauTimeframe === 'month' && styles.toggleTextActive]}>{t('adminDashboard.month')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -402,9 +404,9 @@ const AdminDashboardScreen = () => {
 
   const renderPopularity = () => (
     <View style={styles.chartCard}>
-      <Text style={styles.chartTitle}>Popularity Heatmap</Text>
+      <Text style={styles.chartTitle}>{t('adminDashboard.popularity')}</Text>
       {reportStats.popularity.length === 0 ? (
-        <Text style={[styles.chartSub, { marginTop: 12 }]}>No active enrollments yet.</Text>
+        <Text style={[styles.chartSub, { marginTop: 12 }]}>{t('adminDashboard.noActiveEnrollments')}</Text>
       ) : (
         reportStats.popularity.map((item, index) => {
           const colors = ['#4f46e5', '#10b981', '#f59e0b', '#8b5cf6'];
@@ -413,7 +415,7 @@ const AdminDashboardScreen = () => {
             <View key={item.id} style={styles.heatmapRow}>
               <View style={styles.heatmapInfo}>
                 <Text style={styles.heatmapName}>{item.title}</Text>
-                <Text style={styles.heatmapPercent}>{item.percent}% <Text style={styles.assignedLabel}>Assigned</Text></Text>
+                <Text style={styles.heatmapPercent}>{item.percent}% <Text style={styles.assignedLabel}>{t('adminDashboard.assigned')}</Text></Text>
               </View>
               <View style={styles.progressTrack}>
                 <View style={[styles.progressBar, { width: `${item.percent}%`, backgroundColor: color }]} />
@@ -431,13 +433,13 @@ const AdminDashboardScreen = () => {
         <View style={styles.attentionIconContainer}>
           <AlertTriangle size={20} color="#ef4444" />
         </View>
-        <View>
-          <Text style={styles.chartTitle}>Attention Needed</Text>
-          <Text style={styles.chartSub}>Courses with ratings below 3.5</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.chartTitle}>{t('adminDashboard.attentionNeeded')}</Text>
+          <Text style={styles.chartSub}>{t('adminDashboard.attentionSub')}</Text>
         </View>
       </View>
       {reportStats.attentionNeeded.length === 0 ? (
-        <Text style={[styles.chartSub, {textAlign: 'center', marginVertical: 20}]}>All courses are performing well.</Text>
+        <Text style={[styles.chartSub, {textAlign: 'center', marginVertical: 20}]}>{t('adminDashboard.allPerformingWell')}</Text>
       ) : (
         reportStats.attentionNeeded.map(item => (
           <TouchableOpacity 
@@ -453,10 +455,10 @@ const AdminDashboardScreen = () => {
             </View>
             <View style={styles.attentionInfo}>
               <Text style={styles.attentionName}>{item.title}</Text>
-              <Text style={styles.attentionRating}>{item.avg.toFixed(1)} stars <Text style={styles.reviewLabel}>• {item.reviews} reviews</Text></Text>
+              <Text style={styles.attentionRating}>{item.avg.toFixed(1)} {t('adminDashboard.stars')} <Text style={styles.reviewLabel}>• {item.reviews} {t('adminDashboard.reviews')}</Text></Text>
             </View>
             <View>
-              <Text style={styles.reviseBtn}>Revise</Text>
+              <Text style={styles.reviseBtn}>{t('adminDashboard.revise')}</Text>
             </View>
           </TouchableOpacity>
         ))
@@ -475,9 +477,9 @@ const AdminDashboardScreen = () => {
           <View style={styles.stalledIconContainer}>
             <Hourglass size={20} color="#f59e0b" />
           </View>
-          <View>
-            <Text style={styles.chartTitle}>Stalled Learners</Text>
-            <Text style={styles.chartSub}>Inactive for 7+ days</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.chartTitle}>{t('adminDashboard.stalledLearners')}</Text>
+            <Text style={styles.chartSub}>{t('adminDashboard.stalledSub')}</Text>
           </View>
         </View>
         
@@ -495,7 +497,7 @@ const AdminDashboardScreen = () => {
             />
             <View style={styles.donutLabel}>
               <Text style={styles.donutPercent}>{percent}%</Text>
-              <Text style={styles.donutCohort}>COHORT AVERAGE</Text>
+              <Text style={styles.donutCohort}>{t('adminDashboard.cohortAverage')}</Text>
             </View>
           </Svg>
         </View>
@@ -503,11 +505,11 @@ const AdminDashboardScreen = () => {
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#c2410c' }]} />
-            <Text style={styles.legendText}>Stalled ({stalled})</Text>
+            <Text style={styles.legendText}>{t('adminDashboard.stalled')} ({stalled})</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#e2e8f0' }]} />
-            <Text style={styles.legendText}>Active ({active})</Text>
+            <Text style={styles.legendText}>{t('adminDashboard.active')} ({active})</Text>
           </View>
         </View>
       </View>
@@ -529,51 +531,51 @@ const AdminDashboardScreen = () => {
         </Svg>
         <View style={styles.headerContent}>
           <Text style={styles.welcomeText}>
-            Welcome back, {user?.displayName?.split(' ')[0] || 'Admin'}. Here is how your platform is performing today.
+            {t('adminDashboard.welcome', { name: user?.displayName?.split(' ')[0] || 'Admin' })}
           </Text>
         </View>
       </View>
 
       <View style={styles.statsGrid}>
         <AnalyticsCard 
-          title="TOTAL USERS" 
+          title={t('adminDashboard.totalUsers')}
           value={stats.totalUsers} 
-          subtext="From starting time" 
+          subtext={t('adminDashboard.totalUsersSub')}
           icon={Users} 
           color="#4f46e5" 
           bg="#eef2ff" 
           onPress={() => navigation.navigate('Users')}
         />
         <AnalyticsCard 
-          title="TOTAL COURSES" 
+          title={t('adminDashboard.totalCourses')}
           value={stats.totalCourses} 
-          subtext="Active learning modules" 
+          subtext={t('adminDashboard.totalCoursesSub')}
           icon={BookOpen} 
           color="#10b981" 
           bg="#ecfdf5" 
           onPress={() => navigation.navigate('Courses')}
         />
         <AnalyticsCard 
-          title="TOTAL TRAINING PLANS" 
+          title={t('adminDashboard.totalPlans')}
           value={stats.totalPlans} 
-          subtext="Curated paths" 
+          subtext={t('adminDashboard.totalPlansSub')}
           icon={Award} 
           color="#f59e0b" 
           bg="#fffbeb" 
           onPress={() => navigation.navigate('Plans')}
         />
         <AnalyticsCard 
-          title="TOTAL REVENUE" 
+          title={t('adminDashboard.totalRevenue')}
           value={`$${stats.totalRevenue.toLocaleString()}`} 
-          subtext="Lifetime platform income" 
+          subtext={t('adminDashboard.totalRevenueSub')}
           icon={DollarSign} 
           color="#ef4444" 
           bg="#fef2f2" 
         />
         <AnalyticsCard 
-          title="TOP TRAINING PLANS" 
+          title={t('adminDashboard.topPlans')}
           value={stats.topPlan} 
-          subtext="Most assigned path" 
+          subtext={t('adminDashboard.topPlansSub')}
           icon={GraduationCap} 
           color="#8b5cf6" 
           bg="#f5f3ff" 
@@ -581,9 +583,9 @@ const AdminDashboardScreen = () => {
           onPress={() => setActiveInsight('plans')}
         />
         <AnalyticsCard 
-          title="TOP COURSES" 
+          title={t('adminDashboard.topCourses')}
           value={stats.topCourse} 
-          subtext="Highest enrollment" 
+          subtext={t('adminDashboard.topCoursesSub')}
           icon={BarChart2} 
           color="#0ea5e9" 
           bg="#f0f9ff" 
@@ -867,17 +869,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '900',
     color: '#1e293b',
+    textAlign: 'center',
   },
   donutSubText: {
     fontSize: 12,
     color: '#94a3b8',
     fontWeight: '600',
+    textAlign: 'center',
   },
   donutCohort: {
     fontSize: 8,
     color: '#94a3b8',
     fontWeight: '800',
     marginTop: 4,
+    textAlign: 'center',
+    maxWidth: 90,
   },
   legendContainer: {
     flexDirection: 'row',

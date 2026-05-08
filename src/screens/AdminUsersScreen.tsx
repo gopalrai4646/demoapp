@@ -11,6 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchUsersRequest, deleteUserRequest } from '../store/slices/userSlice';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
@@ -34,6 +35,7 @@ import AdminUserDetailsModal from '../components/admin/AdminUserDetailsModal';
 
 const AdminUsersScreen = () => {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const { users, loading, error } = useAppSelector(state => state.users);
   const { courses } = useAppSelector(state => state.courses);
   
@@ -61,12 +63,12 @@ const AdminUsersScreen = () => {
 
   const handleDelete = (userId: string, userName: string) => {
     Alert.alert(
-      'Delete User',
-      `Are you sure you want to delete ${userName}? This action cannot be undone.`,
+      t('adminUsers.deleteTitle'),
+      t('adminUsers.deleteConfirm', { name: userName }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('adminUsers.cancel'), style: 'cancel' },
         { 
-          text: 'Delete', 
+          text: t('adminUsers.delete'), 
           style: 'destructive',
           onPress: () => dispatch(deleteUserRequest(userId))
         },
@@ -76,12 +78,12 @@ const AdminUsersScreen = () => {
 
   const handleImpersonate = (userId: string) => {
     Alert.alert(
-      'Impersonate User',
-      'You will be logged in as this student. You can switch back from the Account section.',
+      t('adminUsers.impersonateTitle'),
+      t('adminUsers.impersonateConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('adminUsers.cancel'), style: 'cancel' },
         { 
-          text: 'Proceed', 
+          text: t('adminUsers.proceed'), 
           onPress: () => dispatch(impersonateUserRequest(userId))
         },
       ]
@@ -100,7 +102,7 @@ const AdminUsersScreen = () => {
           onPress={() => setCourseFilter('')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.chipText, courseFilter === '' && styles.activeChipText]}>All Users</Text>
+          <Text style={[styles.chipText, courseFilter === '' && styles.activeChipText]}>{t('adminUsers.allUsers')}</Text>
         </TouchableOpacity>
         {courses.map(course => (
           <TouchableOpacity 
@@ -154,7 +156,7 @@ const AdminUsersScreen = () => {
             <View style={[styles.statusDot, { backgroundColor: item.isOnline ? '#10b981' : '#cbd5e1' }]} />
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={1}>{item.name || 'No Name'}</Text>
+            <Text style={styles.userName} numberOfLines={1}>{item.name || t('adminUsers.noName')}</Text>
             <Text style={styles.userEmail} numberOfLines={1}>{item.email}</Text>
           </View>
           <View style={styles.listActions}>
@@ -193,12 +195,12 @@ const AdminUsersScreen = () => {
           </View>
           <View style={[styles.roleBadge, item.role === 'mentor' ? styles.mentorBadge : item.role === 'premium' ? styles.premiumBadge : styles.freeBadge]}>
             <Text style={[styles.roleText, item.role === 'mentor' ? styles.mentorText : item.role === 'premium' ? styles.premiumText : styles.freeText]}>
-              {item.role || 'FREE TIER'}
+              {item.role || t('adminUsers.freeTier')}
             </Text>
           </View>
         </View>
         
-        <Text style={styles.userNameGrid} numberOfLines={1}>{item.name || 'No Name'}</Text>
+        <Text style={styles.userNameGrid} numberOfLines={1}>{item.name || t('adminUsers.noName')}</Text>
         <Text style={styles.userEmailGrid} numberOfLines={1}>{item.email}</Text>
         
         <View style={styles.gridActions}>
@@ -207,7 +209,7 @@ const AdminUsersScreen = () => {
             onPress={() => handleImpersonate(item.id)}
           >
             <UserSquare2 size={16} color="#fff" />
-            <Text style={styles.impersonateButtonText}>Impersonate</Text>
+            <Text style={styles.impersonateButtonText}>{t('adminUsers.impersonate')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.deleteButtonSmall} 
@@ -224,8 +226,8 @@ const AdminUsersScreen = () => {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>User Management</Text>
-          <Text style={styles.subtitle}>Control and oversee your community</Text>
+          <Text style={styles.title}>{t('adminUsers.management')}</Text>
+          <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
         </View>
         <ScrollView contentContainerStyle={styles.listContent}>
           {[1, 2, 3, 4].map(i => <View key={i}>{renderSkeleton()}</View>)}
@@ -240,14 +242,14 @@ const AdminUsersScreen = () => {
         ListHeaderComponent={
           <>
             <View style={[styles.header, { paddingTop: SPACING.xl }]}>
-              <Text style={styles.title}>User Management</Text>
-              <Text style={styles.subtitle}>Control and oversee your community</Text>
+              <Text style={styles.title}>{t('adminUsers.management')}</Text>
+              <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
             </View>
             <View style={styles.toolbar}>
               <View style={styles.searchBar}>
                 <Search size={20} color={COLORS.onSurfaceVariant} style={styles.searchIcon} />
                 <TextInput
-                  placeholder="Search name or email..."
+                  placeholder={t('adminUsers.searchPlaceholder')}
                   style={styles.searchInput}
                   value={searchTerm}
                   onChangeText={setSearchTerm}
@@ -281,7 +283,7 @@ const AdminUsersScreen = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Users size={48} color={COLORS.outline} />
-            <Text style={styles.emptyText}>No students found</Text>
+            <Text style={styles.emptyText}>{t('adminUsers.noStudents')}</Text>
           </View>
         }
       />

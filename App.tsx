@@ -15,6 +15,7 @@ import { RootState } from './src/store';
 import { COLORS } from './src/constants/Theme';
 import RootNavigator from './src/navigation/RootNavigator';
 import ImpersonationBanner from './src/components/ImpersonationBanner';
+import './src/i18n';
 
 const StatusBarBackground = () => {
   const insets = useSafeAreaInsets();

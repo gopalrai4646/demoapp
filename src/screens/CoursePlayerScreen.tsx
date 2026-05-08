@@ -33,6 +33,7 @@ import {
 import { fetchProgressRequest, updateProgressRequest } from '../store/slices/progressSlice';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
 import { UserCourseStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 const YOUTUBE_URL_REGEX = /(youtube\.com|youtu\.be)/i;
@@ -41,6 +42,7 @@ const CoursePlayerScreen = () => {
   const route = useRoute<RouteProp<UserCourseStackParamList, 'CoursePlayer'>>();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const { courseId, initialVideoId } = route.params;
 
   const { user } = useAppSelector((state) => state.auth);
@@ -156,7 +158,7 @@ const CoursePlayerScreen = () => {
     
     // 2. Fallback to legacy field if no videos array or first video has no URL
     if (course?.videoUrl) {
-      return { title: 'Lesson', url: course.videoUrl, order: 0, duration: course.totalDuration || 0 };
+      return { title: t('coursePlayer.lesson'), url: course.videoUrl, order: 0, duration: course.totalDuration || 0 };
     }
     
     return null;
@@ -299,13 +301,13 @@ const CoursePlayerScreen = () => {
         </View>
         <View style={styles.errorContainer}>
           <Lock size={64} color={COLORS.outline} />
-          <Text style={styles.errorTitle}>Enrollment Required</Text>
-          <Text style={styles.errorSubtitle}>Please enroll in this course to access the lessons.</Text>
+          <Text style={styles.errorTitle}>{t('coursePlayer.enrollmentRequired')}</Text>
+          <Text style={styles.errorSubtitle}>{t('coursePlayer.enrollmentSubtitle')}</Text>
           <TouchableOpacity 
             style={styles.actionButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.actionButtonText}>Back to Dashboard</Text>
+            <Text style={styles.actionButtonText}>{t('coursePlayer.backToDashboard')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -421,10 +423,10 @@ const CoursePlayerScreen = () => {
             <View style={styles.videoPlaceholder}>
               <ActivityIndicator color="#fff" />
               <Text style={styles.placeholderText}>
-                {!course ? 'Loading Course...' : 'Lesson unavailable'}
+                {!course ? t('coursePlayer.loadingCourse') : t('coursePlayer.lessonUnavailable')}
               </Text>
               <Text style={[styles.debugText, { textAlign: 'center', marginHorizontal: 20 }]}>
-                {normalizedVideo.unsupportedReason || 'No video URL found for this lesson.'}
+                {normalizedVideo.unsupportedReason || t('coursePlayer.noVideoUrl')}
               </Text>
             </View>
           )}
@@ -435,13 +437,13 @@ const CoursePlayerScreen = () => {
         {/* Course Info */}
         <View style={styles.infoSection}>
           <Text style={styles.courseTitle}>{course.title}</Text>
-          <Text style={styles.courseMeta}>by {course.instructor} • {videoList.length} Lessons</Text>
+          <Text style={styles.courseMeta}>{t('coursePlayer.courseMeta', { instructor: course.instructor, count: videoList.length })}</Text>
         </View>
 
         {/* Progress Card */}
         <View style={styles.progressCard}>
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>Course Progress</Text>
+            <Text style={styles.progressLabel}>{t('coursePlayer.courseProgress')}</Text>
             <Text style={[styles.progressVal, overallPct === 100 && { color: '#4caf50' }]}>
               {overallPct}%
             </Text>
@@ -452,7 +454,7 @@ const CoursePlayerScreen = () => {
           {overallPct === 100 && (
             <View style={styles.completedBadge}>
               <Award size={14} color="#4caf50" />
-              <Text style={styles.completedText}>COURSE COMPLETED</Text>
+              <Text style={styles.completedText}>{t('coursePlayer.courseCompleted')}</Text>
             </View>
           )}
         </View>
@@ -464,14 +466,14 @@ const CoursePlayerScreen = () => {
             onPress={() => setActiveTab('lessons')}
           >
             <BookOpen size={18} color={activeTab === 'lessons' ? COLORS.primary : COLORS.secondary} />
-            <Text style={[styles.tabText, activeTab === 'lessons' && styles.activeTabText]}>Lessons</Text>
+            <Text style={[styles.tabText, activeTab === 'lessons' && styles.activeTabText]}>{t('coursePlayer.lessonsTab')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'about' && styles.activeTab]}
             onPress={() => setActiveTab('about')}
           >
             <Info size={18} color={activeTab === 'about' ? COLORS.primary : COLORS.secondary} />
-            <Text style={[styles.tabText, activeTab === 'about' && styles.activeTabText]}>About</Text>
+            <Text style={[styles.tabText, activeTab === 'about' && styles.activeTabText]}>{t('coursePlayer.aboutTab')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -508,7 +510,7 @@ const CoursePlayerScreen = () => {
                       </Text>
                       <View style={styles.lessonMeta}>
                         {video.duration ? <Text style={styles.lessonDuration}>{Math.floor(video.duration/60)}:{String(video.duration%60).padStart(2, '0')}</Text> : null}
-                        {vidPct > 0 && !isCompleted && <Text style={styles.lessonPct}>{vidPct}% watched</Text>}
+                        {vidPct > 0 && !isCompleted && <Text style={styles.lessonPct}>{t('coursePlayer.watchedPct', { pct: vidPct })}</Text>}
                       </View>
                       {vidPct > 0 && !isCompleted && (
                         <View style={styles.smallTrack}>
@@ -522,7 +524,7 @@ const CoursePlayerScreen = () => {
             </View>
           ) : (
             <View style={styles.aboutContainer}>
-              <Text style={styles.descriptionHeader}>Course Description</Text>
+              <Text style={styles.descriptionHeader}>{t('coursePlayer.courseDescription')}</Text>
               <Text style={styles.descriptionText}>{course.description}</Text>
             </View>
           )}

@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectAssignedPlans } from '../store/selectors';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
@@ -27,6 +28,7 @@ const UserTrainingPlanScreen = () => {
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const trainingPlans = useAppSelector(selectAssignedPlans);
   const loading = useAppSelector(state => state.trainingPlans.loading);
 
@@ -47,9 +49,9 @@ const UserTrainingPlanScreen = () => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.md }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Training Plans</Text>
+        <Text style={styles.title}>{t('userPlans.title')}</Text>
         <Text style={styles.subtitle}>
-          View your assigned learning paths curated by administrators.
+          {t('userPlans.subtitle')}
         </Text>
       </View>
 
@@ -69,7 +71,7 @@ const UserTrainingPlanScreen = () => {
                 resizeMode="cover"
               />
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{plan.courseIds?.length || 0} Courses</Text>
+                <Text style={styles.badgeText}>{t('userPlans.coursesCount', { count: plan.courseIds?.length || 0 })}</Text>
               </View>
             </View>
 
@@ -86,7 +88,7 @@ const UserTrainingPlanScreen = () => {
                     navigation.navigate('UserTrainingPlanDetails', { planId: plan.id });
                   }}
                 >
-                  <Text style={styles.viewLinkText}>view plan</Text>
+                  <Text style={styles.viewLinkText}>{t('userPlans.viewPlan')}</Text>
                   <ArrowRight size={16} color="#4f46e5" style={styles.arrowIcon} />
                 </TouchableOpacity>
               </View>
@@ -96,7 +98,7 @@ const UserTrainingPlanScreen = () => {
       ) : (
         <View style={styles.emptyContainer}>
           <BookOpen size={48} color={COLORS.onSurfaceVariant} opacity={0.5} />
-          <Text style={styles.emptyText}>No training plans assigned yet.</Text>
+          <Text style={styles.emptyText}>{t('userPlans.noPlans')}</Text>
         </View>
       )}
       </ScrollView>

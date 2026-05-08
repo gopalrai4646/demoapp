@@ -18,7 +18,7 @@ function createTrainingPlansChannel() {
         plans.push({ id: doc.id, ...doc.data() });
       });
       emit(plans);
-    }, (error) => {
+    }, (error: any) => {
       if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
         console.error("Training plans listener error:", error);
       }

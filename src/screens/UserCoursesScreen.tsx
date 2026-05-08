@@ -11,6 +11,7 @@ import {
   StatusBar,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { Search, BookOpen, CheckCircle2, RotateCw, PauseCircle } from 'lucide-react-native';
@@ -27,6 +28,7 @@ type NavigationProp = NativeStackNavigationProp<UserCourseStackParamList, 'UserC
 const UserCoursesScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const { user } = useAppSelector((state) => state.auth);
   const { courses, loading: coursesLoading } = useAppSelector((state) => state.courses);
   const { progress } = useAppSelector((state) => state.progress);
@@ -124,21 +126,21 @@ const UserCoursesScreen = () => {
             {isCompleted ? (
               <View style={styles.badgeRow}>
                 <CheckCircle2 size={12} color="#4caf50" />
-                <Text style={[styles.statusText, { color: '#4caf50' }]}>COMPLETED</Text>
+                <Text style={[styles.statusText, { color: '#4caf50' }]}>{t('userCourses.statusCompleted')}</Text>
               </View>
             ) : (
-              <Text style={[styles.statusText, { color: COLORS.primary }]}>IN PROGRESS</Text>
+              <Text style={[styles.statusText, { color: COLORS.primary }]}>{t('userCourses.statusInProgress')}</Text>
             )}
           </View>
         </View>
 
         <View style={styles.cardContent}>
           <Text style={styles.courseTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.instructorName}>Instructor: {item.instructor}</Text>
+          <Text style={styles.instructorName}>{t('userCourses.instructorPrefix', { name: item.instructor })}</Text>
 
           <View style={styles.progressHeader}>
             <Text style={[styles.progressLabel, isCompleted && { color: '#4caf50' }]}>
-              {isCompleted ? 'Final Grade: A+' : 'Progress'}
+              {isCompleted ? t('userCourses.finalGrade') : t('userCourses.progress')}
             </Text>
             <Text style={[styles.progressValue, { color: isCompleted ? '#4caf50' : COLORS.primary }]}>
               {pct}%
@@ -164,15 +166,15 @@ const UserCoursesScreen = () => {
         ListHeaderComponent={
           <>
             <View style={[styles.header, { paddingTop: SPACING.xl }]}>
-              <Text style={styles.title}>My Courses</Text>
-              <Text style={styles.subtitle}>Track your learning progress</Text>
+              <Text style={styles.title}>{t('userCourses.myCourses')}</Text>
+              <Text style={styles.subtitle}>{t('userCourses.trackProgress')}</Text>
             </View>
 
             <View style={styles.searchContainer}>
               <Search size={18} color={COLORS.secondary} style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search your courses..."
+                placeholder={t('userCourses.searchPlaceholder')}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholderTextColor={COLORS.outline}
@@ -182,9 +184,9 @@ const UserCoursesScreen = () => {
             <View style={styles.tabWrapper}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer}>
                 {[
-                  { id: 'all', label: 'All', count: counts.all },
-                  { id: 'in-progress', label: 'In Progress', count: counts.inProgress },
-                  { id: 'completed', label: 'Completed', count: counts.completed },
+                  { id: 'all', label: t('userCourses.tabAll'), count: counts.all },
+                  { id: 'in-progress', label: t('userCourses.tabInProgress'), count: counts.inProgress },
+                  { id: 'completed', label: t('userCourses.tabCompleted'), count: counts.completed },
                 ].map((tab) => (
                   <TouchableOpacity
                     key={tab.id}
@@ -225,11 +227,11 @@ const UserCoursesScreen = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <BookOpen size={64} color={COLORS.outlineVariant} />
-            <Text style={styles.emptyTitle}>No courses found</Text>
+            <Text style={styles.emptyTitle}>{t('userCourses.noCourses')}</Text>
             <Text style={styles.emptySubtitle}>
               {activeTab === 'all'
-                ? "You haven't enrolled in any courses yet."
-                : `You don't have any courses marked as ${activeTab}.`}
+                ? t('userCourses.noEnrollments')
+                : t('userCourses.noMarked', { status: activeTab === 'in-progress' ? t('userCourses.tabInProgress') : t('userCourses.tabCompleted') })}
             </Text>
           </View>
         }

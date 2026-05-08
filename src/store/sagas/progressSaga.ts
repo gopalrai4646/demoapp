@@ -28,7 +28,7 @@ function createProgressChannel(userId: string) {
         progressList.push({ ...doc.data() } as UserProgress);
       });
       emit(progressList);
-    }, (error) => {
+    }, (error: any) => {
       if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
         console.error("Progress listener error:", error);
       }

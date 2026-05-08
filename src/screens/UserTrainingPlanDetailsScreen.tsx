@@ -17,6 +17,7 @@ import { BookOpen, Target, Play, GraduationCap, Video, ChevronLeft } from 'lucid
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserTrainingPlanStackParamList } from '../navigation/UserTrainingPlanStack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,7 @@ const UserTrainingPlanDetailsScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<UserTrainingPlanStackParamList, 'UserTrainingPlanDetails'>>();
   const { planId } = route.params;
+  const { t } = useTranslation();
 
   const trainingPlans = useAppSelector(selectTrainingPlans);
   const allCourses = useAppSelector(selectCourses);
@@ -65,11 +67,11 @@ const UserTrainingPlanDetailsScreen = () => {
             <View style={styles.badgeRow}>
               <View style={styles.headerBadge}>
                 <BookOpen size={14} color="#fff" style={styles.badgeIcon} />
-                <Text style={styles.headerBadgeText}>{plan.courseIds?.length || 0} Courses</Text>
+                <Text style={styles.headerBadgeText}>{t('userTrainingPlanDetails.coursesCount', { count: plan.courseIds?.length || 0 })}</Text>
               </View>
               <View style={[styles.headerBadge, { backgroundColor: '#4f46e5' }]}>
                 <Target size={14} color="#fff" style={styles.badgeIcon} />
-                <Text style={styles.headerBadgeText}>Assigned Plan</Text>
+                <Text style={styles.headerBadgeText}>{t('userTrainingPlanDetails.assignedPlan')}</Text>
               </View>
             </View>
           </View>
@@ -78,15 +80,15 @@ const UserTrainingPlanDetailsScreen = () => {
         <View style={styles.body}>
           {/* Training Plan Info */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Training Plan Info</Text>
+            <Text style={styles.sectionTitle}>{t('userTrainingPlanDetails.planInfo')}</Text>
             <Text style={styles.planDescription}>{plan.description}</Text>
           </View>
 
           {/* Curriculum */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Curriculum</Text>
+            <Text style={styles.sectionTitle}>{t('userTrainingPlanDetails.curriculum')}</Text>
             <Text style={styles.sectionSubtitle}>
-              Complete these courses in order to finish the training plan.
+              {t('userTrainingPlanDetails.curriculumSubtitle')}
             </Text>
 
             <View style={styles.courseList}>
@@ -107,7 +109,7 @@ const UserTrainingPlanDetailsScreen = () => {
                         <Text style={styles.courseTitle} numberOfLines={1}>{course.title}</Text>
                         <View style={[styles.typeBadge, { backgroundColor: course.price === 0 ? '#ecfdf5' : '#fff7ed' }]}>
                           <Text style={[styles.typeBadgeText, { color: course.price === 0 ? '#059669' : '#d97706' }]}>
-                            {course.price === 0 ? 'PUBLIC' : 'PRIVATE'}
+                            {course.price === 0 ? t('userTrainingPlanDetails.public') : t('userTrainingPlanDetails.private')}
                           </Text>
                         </View>
                       </View>
@@ -120,7 +122,7 @@ const UserTrainingPlanDetailsScreen = () => {
                         <View style={styles.metaSeparator} />
                         <View style={styles.metaItem}>
                           <Video size={14} color="#64748b" />
-                          <Text style={styles.metaText}>{course.videos?.length || 0} Lessons</Text>
+                          <Text style={styles.metaText}>{t('userTrainingPlanDetails.lessonsCount', { count: course.videos?.length || 0 })}</Text>
                         </View>
                       </View>
                     </View>
@@ -136,7 +138,7 @@ const UserTrainingPlanDetailsScreen = () => {
                     }}
                   >
                     <Play size={18} color="#fff" fill="#fff" />
-                    <Text style={styles.startButtonText}>Start Course</Text>
+                    <Text style={styles.startButtonText}>{t('userTrainingPlanDetails.startCourse')}</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -208,6 +210,7 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row',
     gap: 12,
+    flexWrap: 'wrap',
   },
   headerBadge: {
     flexDirection: 'row',

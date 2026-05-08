@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ScrollView,
   StyleSheet,
@@ -67,6 +68,7 @@ const ProgressRing = ({ percentage, size = 48, strokeWidth = 4, color = '#6366f1
 const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const { user } = useAppSelector((state: RootState) => state.auth);
   const { courses } = useAppSelector((state: RootState) => state.courses);
 
@@ -89,7 +91,7 @@ const Dashboard: React.FC = () => {
   }, [courses, user?.enrolledCourses]);
 
   const isNewUser = !user?.enrolledCourses || user.enrolledCourses.length === 0;
-  const greeting = isNewUser ? 'Hello' : 'Welcome back';
+  const greeting = isNewUser ? t('dashboard.hello') : t('dashboard.welcomeBack');
 
 
   return (
@@ -111,16 +113,16 @@ const Dashboard: React.FC = () => {
           </Svg>
           <View style={styles.heroContent}>
             <Text style={styles.heroDate}>{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-            <Text style={styles.heroTitle}>{greeting},{'\n'}{user?.displayName?.split(' ')[0] || 'Learner'}!</Text>
+            <Text style={styles.heroTitle}>{greeting},{'\n'}{user?.displayName?.split(' ')[0] || t('dashboard.learner')}!</Text>
 
-            <Text style={styles.heroSub}>Here's what's happening with{'\n'}your learning today.</Text>
+            <Text style={styles.heroSub}>{t('dashboard.heroSub')}</Text>
           </View>
         </View>
 
         {/* 2. Completion Overview */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Completion Overview</Text>
-          <Text style={styles.cardSub}>Your overall course completion rate</Text>
+          <Text style={styles.cardTitle}>{t('dashboard.completionOverview')}</Text>
+          <Text style={styles.cardSub}>{t('dashboard.completionSubtitle')}</Text>
 
           <View style={styles.donutContainer}>
             <Svg height="180" width="180" viewBox="0 0 100 100">
@@ -136,7 +138,7 @@ const Dashboard: React.FC = () => {
               />
               <View style={styles.donutLabelContainer}>
                 <Text style={styles.donutPercent}>{stats.completionRate}%</Text>
-                <Text style={styles.donutText}>Completion Rate</Text>
+                <Text style={styles.donutText}>{t('dashboard.completionRate')}</Text>
                 <Text style={styles.donutFraction}>{stats.completed} of {stats.enrolled}</Text>
               </View>
             </Svg>
@@ -146,28 +148,28 @@ const Dashboard: React.FC = () => {
             <View style={[styles.legendPill, { backgroundColor: '#ecfdf5' }]}>
               <View style={styles.legendLeft}>
                 <View style={[styles.dot, { backgroundColor: '#10b981' }]} />
-                <Text style={styles.legendText}>Completed</Text>
+                <Text style={styles.legendText}>{t('dashboard.completed')}</Text>
               </View>
               <Text style={[styles.legendValue, { color: '#10b981' }]}>{stats.completed}</Text>
             </View>
             <View style={[styles.legendPill, { backgroundColor: '#eff6ff' }]}>
               <View style={styles.legendLeft}>
                 <View style={[styles.dot, { backgroundColor: '#f59e0b' }]} />
-                <Text style={styles.legendText}>In Progress</Text>
+                <Text style={styles.legendText}>{t('dashboard.inProgress')}</Text>
               </View>
               <Text style={[styles.legendValue, { color: '#f59e0b' }]}>{stats.inProgress}</Text>
             </View>
             <View style={[styles.legendPill, { backgroundColor: '#f5f3ff' }]}>
               <View style={styles.legendLeft}>
                 <View style={[styles.dot, { backgroundColor: '#6366f1' }]} />
-                <Text style={styles.legendText}>Courses Enrolled</Text>
+                <Text style={styles.legendText}>{t('dashboard.coursesEnrolled')}</Text>
               </View>
               <Text style={[styles.legendValue, { color: '#6366f1' }]}>{stats.enrolled}</Text>
             </View>
             <View style={[styles.legendPill, { backgroundColor: '#f8fafc' }]}>
               <View style={styles.legendLeft}>
                 <View style={[styles.dot, { backgroundColor: '#cbd5e1' }]} />
-                <Text style={styles.legendText}>Not Started</Text>
+                <Text style={styles.legendText}>{t('dashboard.notStarted')}</Text>
               </View>
               <Text style={[styles.legendValue, { color: '#64748b' }]}>{stats.notStarted}</Text>
             </View>
@@ -176,8 +178,8 @@ const Dashboard: React.FC = () => {
 
         {/* 3. Weekly Activity */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Weekly Activity</Text>
-          <Text style={styles.cardSub}>Videos watched per day this week</Text>
+          <Text style={styles.cardTitle}>{t('dashboard.weeklyActivity')}</Text>
+          <Text style={styles.cardSub}>{t('dashboard.weeklyActivitySub')}</Text>
 
           <View style={styles.barChartContainer}>
             <Svg height="160" width="100%">
@@ -212,8 +214,8 @@ const Dashboard: React.FC = () => {
         {/* 4. Continue Learning */}
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={styles.sectionTitle}>Continue Learning</Text>
-            <Text style={styles.sectionSub}>pick up where you left off</Text>
+            <Text style={styles.sectionTitle}>{t('dashboard.continueLearning')}</Text>
+            <Text style={styles.sectionSub}>{t('dashboard.continueSub')}</Text>
           </View>
         </View>
 
@@ -244,15 +246,15 @@ const Dashboard: React.FC = () => {
           </ScrollView>
         ) : (
           <View style={styles.emptyStateCard}>
-            <Text style={styles.emptyStateText}>Start a course to see your progress here.</Text>
+            <Text style={styles.emptyStateText}>{t('dashboard.startCourse')}</Text>
           </View>
         )}
 
         {/* 5. Assigned Training Plans */}
         <View style={[styles.sectionHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 16 }]}>
-          <Text style={styles.sectionTitle}>Assigned Training Plans</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.assignedPlans')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Plans')}>
-            <Text style={styles.viewAllBtn}>View All</Text>
+            <Text style={styles.viewAllBtn}>{t('common.viewAll')}</Text>
           </TouchableOpacity>
         </View>
         {assignedPlans.length > 0 ? (
@@ -262,14 +264,14 @@ const Dashboard: React.FC = () => {
                 <View style={styles.planImageContainer}>
                   <Image source={{ uri: plan.image }} style={styles.planImage} />
                   <View style={styles.badgeContainer}>
-                    <Text style={styles.badgeText}>{plan.courseIds?.length || 0} Courses</Text>
+                    <Text style={styles.badgeText}>{plan.courseIds?.length || 0} {t('common.courses')}</Text>
                   </View>
                 </View>
                 <View style={styles.planInfo}>
                   <Text style={styles.planTitle} numberOfLines={1}>{plan.name}</Text>
                   <Text style={styles.planDesc} numberOfLines={2}>{plan.description}</Text>
                   <View style={styles.viewPlanRow}>
-                    <Text style={styles.viewPlanText}>View Plan</Text>
+                    <Text style={styles.viewPlanText}>{t('common.viewPlan')}</Text>
                     <ArrowRight size={16} color="#4f46e5" />
                   </View>
                 </View>
@@ -278,15 +280,15 @@ const Dashboard: React.FC = () => {
           </ScrollView>
         ) : (
           <View style={[styles.emptyStateCard, { marginHorizontal: 16 }]}>
-            <Text style={styles.emptyStateText}>No training plans assigned yet.</Text>
+            <Text style={styles.emptyStateText}>{t('dashboard.noPlans')}</Text>
           </View>
         )}
 
         {/* 6. My Courses */}
         <View style={[styles.sectionHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }]}>
-          <Text style={styles.sectionTitle}>My Courses</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.myCourses')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Courses', { screen: 'UserCourses' })}>
-            <Text style={styles.viewAllBtn}>View All</Text>
+            <Text style={styles.viewAllBtn}>{t('common.viewAll')}</Text>
           </TouchableOpacity>
         </View>
         {enrolledCourses.length > 0 ? (
@@ -296,7 +298,7 @@ const Dashboard: React.FC = () => {
                 <View style={styles.myCourseHeader}>
                   <View style={styles.videoBadge}>
                     <Video size={14} color="#fff" />
-                    <Text style={styles.videoBadgeText}>{course.videos?.length || 0} videos</Text>
+                    <Text style={styles.videoBadgeText}>{course.videos?.length || 0} {t('common.videos')}</Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => dispatch(saveCourseRequest(course.id))}
@@ -318,12 +320,12 @@ const Dashboard: React.FC = () => {
                     <View style={styles.myCourseTitleRow}>
                       <Text style={styles.myCourseTitle} numberOfLines={1}>{course.title} <Text style={styles.myCourseInstructor}>• {course.instructor}</Text></Text>
                       <View style={styles.freeBadge}>
-                        <Text style={styles.freeBadgeText}>{course.price === 0 ? 'FREE' : 'PAID'}</Text>
+                        <Text style={styles.freeBadgeText}>{course.price === 0 ? t('common.free') : t('common.paid')}</Text>
                       </View>
                     </View>
 
                     <View style={styles.myCourseProgressRow}>
-                      <Text style={styles.progressLabel}>YOUR PROGRESS</Text>
+                      <Text style={styles.progressLabel}>{t('common.yourProgress')}</Text>
                       <Text style={styles.progressPercent}>{course.progressPercent}%</Text>
                     </View>
                     <View style={styles.progressBarTrackFull}>
@@ -332,7 +334,7 @@ const Dashboard: React.FC = () => {
 
                     <View style={styles.viewCourseBtn}>
                       <Play size={16} color="#fff" fill="#fff" />
-                      <Text style={styles.viewCourseBtnText}>View Course</Text>
+                      <Text style={styles.viewCourseBtnText}>{t('common.viewCourse')}</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -341,13 +343,13 @@ const Dashboard: React.FC = () => {
           </ScrollView>
         ) : (
           <View style={[styles.emptyStateCard, { marginHorizontal: 16 }]}>
-            <Text style={styles.emptyStateText}>You haven't enrolled in any courses yet.</Text>
+            <Text style={styles.emptyStateText}>{t('dashboard.notEnrolled')}</Text>
           </View>
         )}
 
         {/* 7. Discover Courses */}
         <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-          <Text style={styles.sectionTitle}>Discover Courses</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.discoverCourses')}</Text>
         </View>
         {discoverCourses.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
@@ -376,7 +378,7 @@ const Dashboard: React.FC = () => {
                     <View style={styles.myCourseTitleRow}>
                       <Text style={styles.myCourseTitle} numberOfLines={1}>{course.title}</Text>
                       <View style={styles.freeBadge}>
-                        <Text style={styles.freeBadgeText}>{course.price === 0 ? 'FREE' : `$${course.price}`}</Text>
+                        <Text style={styles.freeBadgeText}>{course.price === 0 ? t('common.free') : `$${course.price}`}</Text>
                       </View>
                     </View>
                     <Text style={[styles.continueInstructor, { marginTop: 4, marginBottom: 16 }]}>{course.instructor}</Text>
@@ -386,7 +388,7 @@ const Dashboard: React.FC = () => {
                       onPress={() => dispatch(enrollCourseRequest(course.id))}
                     >
                       <GraduationCap size={18} color="#fff" />
-                      <Text style={styles.viewCourseBtnText}>Enroll Now</Text>
+                      <Text style={styles.viewCourseBtnText}>{t('common.enrollNow')}</Text>
                     </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
@@ -395,13 +397,13 @@ const Dashboard: React.FC = () => {
           </ScrollView>
         ) : (
           <View style={[styles.emptyStateCard, { marginHorizontal: 16 }]}>
-            <Text style={styles.emptyStateText}>No new courses available to discover.</Text>
+            <Text style={styles.emptyStateText}>{t('dashboard.noDiscover')}</Text>
           </View>
         )}
 
         {/* 8. Saved Courses */}
         <View style={[styles.sectionHeader, { marginTop: 32 }]}>
-          <Text style={styles.sectionTitle}>Saved Courses</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.savedCourses')}</Text>
         </View>
         {savedCoursesList.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
@@ -435,14 +437,14 @@ const Dashboard: React.FC = () => {
                       <View style={styles.myCourseTitleRow}>
                         <Text style={styles.myCourseTitle} numberOfLines={1}>{course.title} <Text style={styles.myCourseInstructor}>• {course.instructor}</Text></Text>
                         <View style={styles.freeBadge}>
-                          <Text style={styles.freeBadgeText}>{course.price === 0 ? 'FREE' : `$${course.price}`}</Text>
+                          <Text style={styles.freeBadgeText}>{course.price === 0 ? t('common.free') : `$${course.price}`}</Text>
                         </View>
                       </View>
 
                       {isEnrolled ? (
                         <>
                           <View style={styles.myCourseProgressRow}>
-                            <Text style={styles.progressLabel}>YOUR PROGRESS</Text>
+                            <Text style={styles.progressLabel}>{t('common.yourProgress')}</Text>
                             <Text style={styles.progressPercent}>{course.progressPercent}%</Text>
                           </View>
                           <View style={styles.progressBarTrackFull}>
@@ -451,7 +453,7 @@ const Dashboard: React.FC = () => {
 
                           <View style={styles.viewCourseBtn}>
                             <Play size={16} color="#fff" fill="#fff" />
-                            <Text style={styles.viewCourseBtnText}>View Course</Text>
+                            <Text style={styles.viewCourseBtnText}>{t('common.viewCourse')}</Text>
                           </View>
                         </>
                       ) : (
@@ -460,7 +462,7 @@ const Dashboard: React.FC = () => {
                           onPress={() => dispatch(enrollCourseRequest(course.id))}
                         >
                           <GraduationCap size={18} color="#fff" />
-                          <Text style={styles.viewCourseBtnText}>Enroll Now</Text>
+                          <Text style={styles.viewCourseBtnText}>{t('common.enrollNow')}</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -472,7 +474,7 @@ const Dashboard: React.FC = () => {
         ) : (
           <View style={[styles.emptyStateCard, { marginHorizontal: 16 }]}>
             <Heart size={24} color="#cbd5e1" />
-            <Text style={styles.emptyStateText}>No saved courses yet. Tap the heart icon to save courses.</Text>
+            <Text style={styles.emptyStateText}>{t('dashboard.noSaved')}</Text>
           </View>
         )}
 
@@ -660,6 +662,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#0f172a',
+    flex: 1,
   },
   sectionSub: {
     fontSize: 13,

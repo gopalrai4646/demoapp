@@ -21,6 +21,7 @@ import {
   Trash2,
   MoreVertical
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 type AdminCourseDetailsRouteProp = RouteProp<AdminCourseStackParamList, 'AdminCourseDetails'>;
 
@@ -29,6 +30,7 @@ const AdminCourseDetails = () => {
   const navigation = useNavigation();
   const route = useRoute<AdminCourseDetailsRouteProp>();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   
   const { courseId } = route.params || {};
   const isEditing = !!courseId;
@@ -83,7 +85,7 @@ const AdminCourseDetails = () => {
         const url = await uploadToCloudinary(result.assets[0].uri, 'image');
         setThumbnail(url);
       } catch (error: any) {
-        Alert.alert('Upload Error', error.message);
+        Alert.alert(t('adminCourseDetails.uploadError'), error.message);
       } finally {
         setUploadingThumbnail(false);
       }
@@ -105,7 +107,7 @@ const AdminCourseDetails = () => {
         newVids[index] = { ...newVids[index], url, duration };
         setVideos(newVids);
       } catch (error: any) {
-        Alert.alert('Upload Error', error.message);
+        Alert.alert(t('adminCourseDetails.uploadError'), error.message);
       } finally {
         setUploadingVideos(prev => prev.filter(i => i !== index));
       }
@@ -114,12 +116,12 @@ const AdminCourseDetails = () => {
 
   const handleSave = () => {
     if (!title || !description || !instructor || !price) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert(t('adminCourseDetails.error'), t('adminCourseDetails.fillRequiredFields'));
       return;
     }
 
     if (uploadingThumbnail || uploadingVideos.length > 0) {
-      Alert.alert('Please Wait', 'Media is still uploading...');
+      Alert.alert(t('adminCourseDetails.pleaseWait'), t('adminCourseDetails.mediaUploading'));
       return;
     }
 
@@ -135,16 +137,16 @@ const AdminCourseDetails = () => {
 
     if (isEditing) {
       dispatch(updateCourseRequest({ id: courseId, ...payload }));
-      Alert.alert('Success', 'Course updated successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert(t('adminCourseDetails.success'), t('adminCourseDetails.courseUpdated'), [{ text: t('adminCourseDetails.ok'), onPress: () => navigation.goBack() }]);
     } else {
       dispatch(createCourseRequest(payload));
-      Alert.alert('Success', 'Course created successfully', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert(t('adminCourseDetails.success'), t('adminCourseDetails.courseCreated'), [{ text: t('adminCourseDetails.ok'), onPress: () => navigation.goBack() }]);
     }
   };
 
   const handleAddLesson = () => {
     const newLesson: VideoItem = {
-      title: 'New Lesson',
+      title: t('adminCourseDetails.newLesson'),
       url: '',
       order: videos.length + 1,
       duration: 0,
@@ -162,7 +164,7 @@ const AdminCourseDetails = () => {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
         <X size={20} color={COLORS.primary} />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Course Manager</Text>
+      <Text style={styles.headerTitle}>{t('adminCourseDetails.courseManager')}</Text>
       <View style={styles.profileContainer}>
         {user?.photoURL ? (
           <Image source={{ uri: user.photoURL }} style={styles.profileImage} />
@@ -181,16 +183,16 @@ const AdminCourseDetails = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {isEditing && <Text style={styles.modeOverline}>EDITING MODE</Text>}
-        <Text style={TYPOGRAPHY.headline}>{isEditing ? 'Course Details' : 'Create New Course'}</Text>
+        {isEditing && <Text style={styles.modeOverline}>{t('adminCourseDetails.editingMode')}</Text>}
+        <Text style={TYPOGRAPHY.headline}>{isEditing ? t('adminCourseDetails.courseDetails') : t('adminCourseDetails.createNewCourse')}</Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Course Title</Text>
+          <Text style={styles.label}>{t('adminCourseDetails.courseTitle')}</Text>
           <TextInput 
             style={styles.input}
             value={title}
             onChangeText={setTitle}
-            placeholder="Enter title"
+            placeholder={t('adminCourseDetails.enterTitle')}
             placeholderTextColor={COLORS.outline}
           />
         </View>
@@ -210,18 +212,18 @@ const AdminCourseDetails = () => {
               <View style={styles.camIconWrapper}>
                 <Camera size={24} color={COLORS.primary} />
               </View>
-              <Text style={styles.thumbUploadText}>{isEditing ? 'Change Thumbnail' : 'Upload Thumbnail'}</Text>
+              <Text style={styles.thumbUploadText}>{isEditing ? t('adminCourseDetails.changeThumbnail') : t('adminCourseDetails.uploadThumbnail')}</Text>
             </View>
           )}
         </TouchableOpacity>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Course Description</Text>
+          <Text style={styles.label}>{t('adminCourseDetails.courseDescription')}</Text>
           <TextInput 
             style={[styles.input, styles.textArea]}
             value={description}
             onChangeText={setDescription}
-            placeholder="Enter description"
+            placeholder={t('adminCourseDetails.enterDescription')}
             placeholderTextColor={COLORS.outline}
             multiline
             numberOfLines={4}
@@ -231,19 +233,19 @@ const AdminCourseDetails = () => {
 
         <View style={styles.row}>
           <View style={[styles.formGroup, { flex: 1, marginRight: SPACING.md }]}>
-            <Text style={styles.label}>Instructor</Text>
+            <Text style={styles.label}>{t('adminCourseDetails.instructor')}</Text>
             <View style={styles.inputDropdown}>
                <TextInput 
                 style={[styles.dropdownText, { flex: 1, height: 20, padding: 0 }]}
                 value={instructor}
                 onChangeText={setInstructor}
-                placeholder="Instructor Name"
+                placeholder={t('adminCourseDetails.instructorName')}
                 placeholderTextColor={COLORS.outline}
               />
             </View>
           </View>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={styles.label}>Price</Text>
+            <Text style={styles.label}>{t('adminCourseDetails.price')}</Text>
             <View style={styles.priceInputWrapper}>
               <Text style={styles.currencyIcon}>$</Text>
               <TextInput 
@@ -261,9 +263,9 @@ const AdminCourseDetails = () => {
         <View style={styles.visibilityCard}>
           <View style={styles.visibilityInfo}>
             <Eye size={20} color={COLORS.primary} style={{ marginRight: 12 }} />
-            <View>
-              <Text style={styles.visibilityTitle}>Public Visibility</Text>
-              <Text style={styles.visibilityDesc}>Make this course discoverable in catalog</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.visibilityTitle}>{t('adminCourseDetails.publicVisibility')}</Text>
+              <Text style={styles.visibilityDesc}>{t('adminCourseDetails.publicVisibilityDesc')}</Text>
             </View>
           </View>
           <Switch 
@@ -275,9 +277,9 @@ const AdminCourseDetails = () => {
         </View>
 
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Course Content</Text>
+          <Text style={styles.sectionTitle}>{t('adminCourseDetails.courseContent')}</Text>
           <TouchableOpacity style={styles.addLessonBtn} onPress={handleAddLesson}>
-            <Text style={styles.addLessonText}>+ Add Lesson</Text>
+            <Text style={styles.addLessonText}>{t('adminCourseDetails.addLesson')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -311,15 +313,15 @@ const AdminCourseDetails = () => {
                       newVids[idx] = { ...newVids[idx], title: val };
                       setVideos(newVids);
                   }}
-                  placeholder="Lesson Title"
+                  placeholder={t('adminCourseDetails.lessonTitle')}
                 />
                 <View style={styles.lessonMeta}>
                   <Text style={styles.metaReady}>
-                    {isUploading ? 'Uploading...' : hasUrl ? (lesson.duration ? `${Math.floor(lesson.duration / 60)}:${(lesson.duration % 60).toString().padStart(2, '0')}` : 'Ready') : 'No video uploaded'}
+                    {isUploading ? t('adminCourseDetails.uploading') : hasUrl ? (lesson.duration ? `${Math.floor(lesson.duration / 60)}:${(lesson.duration % 60).toString().padStart(2, '0')}` : t('adminCourseDetails.ready')) : t('adminCourseDetails.noVideoUploaded')}
                   </Text>
                   {!hasUrl && !isUploading && (
                     <TouchableOpacity onPress={() => handleVideoPick(idx)}>
-                      <Text style={[styles.metaStatusReady, { color: COLORS.primary, marginLeft: 8 }]}>Upload Video</Text>
+                      <Text style={[styles.metaStatusReady, { color: COLORS.primary, marginLeft: 8 }]}>{t('adminCourseDetails.uploadVideo')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -344,7 +346,7 @@ const AdminCourseDetails = () => {
           {createLoading || updateLoading ? (
             <ActivityIndicator color={COLORS.onPrimary} />
           ) : (
-            <Text style={styles.saveCourseText}>{isEditing ? 'Update Course' : 'Create Course'}</Text>
+            <Text style={styles.saveCourseText}>{isEditing ? t('adminCourseDetails.updateCourse') : t('adminCourseDetails.createCourse')}</Text>
           )}
         </TouchableOpacity>
       </View>
