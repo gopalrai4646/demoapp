@@ -121,8 +121,8 @@ const AdminDashboardScreen = () => {
     
     for (let i = daysToLookBack; i >= 0; i--) {
       const d = new Date();
-      d.setUTCDate(d.getUTCDate() - i);
-      const ds = d.toISOString().split('T')[0];
+      d.setDate(d.getDate() - i);
+      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       
       const labelDate = new Date();
       labelDate.setDate(labelDate.getDate() - i);

@@ -30,8 +30,9 @@ import {
   Maximize,
   Minimize
 } from 'lucide-react-native';
-import { fetchProgressRequest, updateProgressRequest } from '../store/slices/progressSlice';
+import { fetchProgressRequest, updateProgressRequest, updateRatingRequest } from '../store/slices/progressSlice';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
+import CourseRatingModal from '../components/CourseRatingModal';
 import { UserCourseStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
 
@@ -62,6 +63,8 @@ const CoursePlayerScreen = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [hasDismissedRating, setHasDismissedRating] = useState(false);
 
   // Reset player state when switching to a different video
   useEffect(() => {
@@ -282,6 +285,27 @@ const CoursePlayerScreen = () => {
   };
 
   const overallPct = calculateOverallProgress();
+
+  useEffect(() => {
+    if (overallPct === 100 && courseProgress && !courseProgress.isRated && !showRatingModal && !hasDismissedRating) {
+      // Delay slightly to show completion after last video update
+      const timer = setTimeout(() => {
+        setShowRatingModal(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [overallPct, courseProgress?.isRated, hasDismissedRating]);
+
+  const handleRatingSubmit = (rating: number) => {
+    if (user?.uid && courseId) {
+      dispatch(updateRatingRequest({
+        userId: user.uid,
+        courseId,
+        rating
+      }));
+    }
+    setShowRatingModal(false);
+  };
 
   if (!course) {
     return (
@@ -530,6 +554,15 @@ const CoursePlayerScreen = () => {
           )}
         </View>
       </ScrollView>
+      <CourseRatingModal
+        isVisible={showRatingModal}
+        courseName={course?.title || ''}
+        onClose={() => {
+          setShowRatingModal(false);
+          setHasDismissedRating(true);
+        }}
+        onSubmit={handleRatingSubmit}
+      />
     </SafeAreaView>
   );
 };

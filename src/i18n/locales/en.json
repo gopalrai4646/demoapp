@@ -284,6 +284,12 @@
     "enrollmentSubtitle": "Please enroll in this course to access the lessons.",
     "backToDashboard": "Back to Dashboard"
   },
+  "rating": {
+    "title": "Enjoying this course?",
+    "subtitle": "Congratulations on finishing {{courseName}}! How would you rate your learning experience?",
+    "submit": "Submit Rating",
+    "later": "Rate Later"
+  },
 
   "tabs": {
     "dashboard": "Dashboard",

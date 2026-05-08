@@ -27,7 +27,6 @@ import {
   UserSquare2,
   ChevronRight,
   Filter,
-  UserPlus,
   Circle
 } from 'lucide-react-native';
 import { AppHeader } from '../components/AppHeader';
@@ -288,9 +287,7 @@ const AdminUsersScreen = () => {
         }
       />
 
-      <TouchableOpacity style={styles.fab}>
-        <UserPlus size={24} color="#fff" />
-      </TouchableOpacity>
+
 
       <AdminUserDetailsModal
         visible={modalVisible}
@@ -612,22 +609,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fee2e2',
     borderRadius: 16,
   },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
+
   gridCardSkeleton: {
     backgroundColor: '#fff',
     padding: 24,

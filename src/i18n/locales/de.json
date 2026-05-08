@@ -284,6 +284,12 @@
     "enrollmentSubtitle": "Bitte schreiben Sie sich in diesen Kurs ein, um auf die Lektionen zuzugreifen.",
     "backToDashboard": "Zurück zum Dashboard"
   },
+  "rating": {
+    "title": "Gefällt dir dieser Kurs?",
+    "subtitle": "Glückwunsch zum Abschluss von {{courseName}}! Wie würdest du dein Lernerlebnis bewerten?",
+    "submit": "Bewertung absenden",
+    "later": "Später bewerten"
+  },
   "tabs": {
     "dashboard": "Dashboard",
     "courses": "Kurse",

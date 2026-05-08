@@ -197,7 +197,7 @@ const Dashboard: React.FC = () => {
                       <Rect x={x} y={y} width={barWidth} height={height} rx={6} fill="#9f7aea" />
                     )}
                     {d.value > 0 && (
-                      <SvgText x={x + barWidth / 2} y={y + 12} fill="#fff" fontSize="9" fontWeight="bold" textAnchor="middle">
+                      <SvgText x={x + barWidth / 2} y={y - 6} fill="#64748b" fontSize="10" fontWeight="bold" textAnchor="middle">
                         {d.value}
                       </SvgText>
                     )}
@@ -818,10 +818,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heartBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#f1f5f9',
+    padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },

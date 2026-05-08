@@ -81,7 +81,8 @@ const progressSlice = createSlice({
       if (!currentProgress.completedVideos) currentProgress.completedVideos = [];
       if (!currentProgress.dailyActivity) currentProgress.dailyActivity = {};
 
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       if (!currentProgress.dailyActivity[today]) {
         currentProgress.dailyActivity[today] = [];
       }

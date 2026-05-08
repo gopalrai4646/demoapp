@@ -284,6 +284,12 @@
     "enrollmentSubtitle": "Veuillez vous inscrire à ce cours pour accéder aux leçons.",
     "backToDashboard": "Retour au tableau de bord"
   },
+  "rating": {
+    "title": "Vous appréciez ce cours ?",
+    "subtitle": "Félicitations pour avoir terminé {{courseName}} ! Comment évalueriez-vous votre expérience d'apprentissage ?",
+    "submit": "Envoyer l'évaluation",
+    "later": "Évaluer plus tard"
+  },
   "tabs": {
     "dashboard": "Tableau de bord",
     "courses": "Cours",

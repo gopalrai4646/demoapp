@@ -21,6 +21,7 @@ import { updateProfileRequest, updatePasswordRequest, clearError } from '../stor
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { AppHeader } from '../components/AppHeader';
+import { User as UserIcon, Phone as PhoneIcon, Lock, ShieldCheck } from 'lucide-react-native';
 
 const Account = () => {
   const insets = useSafeAreaInsets();
@@ -114,7 +115,7 @@ const Account = () => {
             {/* Profile Information Header */}
             <View style={styles.sectionHeader}>
               <View style={styles.iconBox}>
-                <Text style={styles.iconText}>👤</Text>
+                <UserIcon size={18} color={COLORS.primary} />
               </View>
               <Text style={styles.sectionTitle}>{t('account.profileInfo')}</Text>
             </View>
@@ -159,7 +160,7 @@ const Account = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('account.phone')}</Text>
               <View style={styles.phoneInputContainer}>
-                <Text style={styles.phoneIcon}>📞</Text>
+                <PhoneIcon size={16} color="#94a3b8" style={styles.phoneIconPosition} />
                 <TextInput
                   style={[styles.input, { paddingLeft: 40 }]}
                   value={phone}
@@ -183,7 +184,7 @@ const Account = () => {
             {/* Change Password Header */}
             <View style={[styles.sectionHeader, { marginTop: SPACING.xl }]}>
               <View style={styles.iconBox}>
-                <Text style={styles.iconText}>📋</Text>
+                <ShieldCheck size={18} color={COLORS.primary} />
               </View>
               <Text style={styles.sectionTitle}>{t('account.changePassword')}</Text>
             </View>
@@ -330,11 +331,9 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
   },
-  phoneIcon: {
+  phoneIconPosition: {
     position: 'absolute',
     left: 16,
-    fontSize: 16,
-    color: '#94a3b8',
     zIndex: 1,
   },
   hint: {
