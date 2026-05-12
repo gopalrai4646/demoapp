@@ -1,7 +1,7 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { RootState } from '../store';
@@ -12,11 +12,9 @@ import AdminCourseStack from './AdminCourseStack';
 import { AdminTrainingPlanStack } from './AdminTrainingPlanStack';
 import UserCourseStack from './UserCourseStack';
 import UserTrainingPlanStack from './UserTrainingPlanStack';
-import { PlansScreen } from '../screens/Placeholders';
 import AdminUsersScreen from '../screens/AdminUsersScreen';
 import { MainTabParamList } from './types';
-import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
-import { AppHeader } from '../components/AppHeader';
+import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
 import { 
   BarChart2, 
   BookOpen, 
@@ -27,7 +25,75 @@ import {
   ClipboardList
 } from 'lucide-react-native';
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const Tab = createMaterialTopTabNavigator<MainTabParamList>();
+
+const CustomTabBar = ({ state, descriptors, navigation, insets, t, isAdmin }: any) => {
+  return (
+    <View style={[styles.tabBar, { paddingBottom: insets.bottom }]}>
+      {state.routes.map((route: any, index: number) => {
+        const { options } = descriptors[route.key];
+        const label =
+          options.tabBarLabel !== undefined
+            ? options.tabBarLabel
+            : options.title !== undefined
+            ? options.title
+            : route.name;
+
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name, route.params);
+          }
+        };
+
+        const onLongPress = () => {
+          navigation.emit({
+            type: 'tabLongPress',
+            target: route.key,
+          });
+        };
+
+        const Icon = options.tabBarIcon;
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarTestID}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            style={styles.tabItem}
+            activeOpacity={0.7}
+          >
+            <View style={styles.iconContainer}>
+              {isFocused && <View style={styles.activeIndicator} />}
+              {Icon && Icon({
+                focused: isFocused,
+                color: isFocused ? COLORS.primary : COLORS.onSurfaceVariant,
+                size: 24,
+              })}
+            </View>
+            <Text style={[
+              styles.tabLabel,
+              { color: isFocused ? COLORS.primary : COLORS.onSurfaceVariant }
+            ]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+};
 
 const MainTabNavigator = () => {
   const { role } = useSelector((state: RootState) => state.auth);
@@ -37,22 +103,18 @@ const MainTabNavigator = () => {
 
   return (
     <Tab.Navigator
+      tabBarPosition="bottom"
+      tabBar={(props) => (
+        <CustomTabBar 
+          {...props} 
+          insets={insets} 
+          t={t} 
+          isAdmin={isAdmin} 
+        />
+      )}
       screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.onSurfaceVariant,
-        tabBarStyle: {
-          borderTopWidth: 1,
-          borderTopColor: COLORS.outlineVariant,
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          height: 64 + insets.bottom,
-          paddingBottom: 8 + insets.bottom,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-        },
+        swipeEnabled: true,
+        lazy: true,
       }}
     >
       <Tab.Screen
@@ -61,10 +123,7 @@ const MainTabNavigator = () => {
         options={{
           tabBarLabel: isAdmin ? t('tabs.reports') : t('tabs.dashboard'),
           tabBarIcon: ({ color, size, focused }) => (
-            <View style={styles.iconContainer}>
-              {focused && <View style={styles.activeIndicator} />}
-              {isAdmin ? <BarChart2 size={size} color={color} /> : <LayoutDashboard size={size} color={color} />}
-            </View>
+            isAdmin ? <BarChart2 size={size} color={color} /> : <LayoutDashboard size={size} color={color} />
           ),
         }}
       />
@@ -72,13 +131,9 @@ const MainTabNavigator = () => {
         name="Courses"
         component={isAdmin ? AdminCourseStack : UserCourseStack}
         options={{
-          headerShown: false,
           tabBarLabel: t('tabs.courses'),
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={styles.iconContainer}>
-              {focused && <View style={styles.activeIndicator} />}
-              <BookOpen size={size} color={color} />
-            </View>
+          tabBarIcon: ({ color, size }) => (
+            <BookOpen size={size} color={color} />
           ),
         }}
         listeners={({ navigation }) => ({
@@ -94,13 +149,9 @@ const MainTabNavigator = () => {
         name="Plans"
         component={isAdmin ? AdminTrainingPlanStack : UserTrainingPlanStack}
         options={{
-          headerShown: false,
           tabBarLabel: t('tabs.plans'),
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={styles.iconContainer}>
-              {focused && <View style={styles.activeIndicator} />}
-              <ClipboardList size={size} color={color} />
-            </View>
+          tabBarIcon: ({ color, size }) => (
+            <ClipboardList size={size} color={color} />
           ),
         }}
         listeners={({ navigation }) => ({
@@ -112,17 +163,15 @@ const MainTabNavigator = () => {
           },
         })}
       />
+
       {isAdmin && (
         <Tab.Screen
           name="Users"
           component={AdminUsersScreen}
           options={{
             tabBarLabel: t('tabs.users'),
-            tabBarIcon: ({ color, size, focused }) => (
-              <View style={styles.iconContainer}>
-                {focused && <View style={styles.activeIndicator} />}
-                <Users size={size} color={color} />
-              </View>
+            tabBarIcon: ({ color, size }) => (
+              <Users size={size} color={color} />
             ),
           }}
         />
@@ -132,11 +181,8 @@ const MainTabNavigator = () => {
         component={Account}
         options={{
           tabBarLabel: isAdmin ? t('tabs.settings') : t('tabs.account'),
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={styles.iconContainer}>
-              {focused && <View style={styles.activeIndicator} />}
-              {isAdmin ? <Settings size={size} color={color} /> : <GraduationCap size={size} color={color} />}
-            </View>
+          tabBarIcon: ({ color, size }) => (
+            isAdmin ? <Settings size={size} color={color} /> : <GraduationCap size={size} color={color} />
           ),
         }}
       />
@@ -145,9 +191,28 @@ const MainTabNavigator = () => {
 };
 
 const styles = StyleSheet.create({
+  tabBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.outlineVariant,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    height: 64,
+    paddingTop: 8,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 4,
+  },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    height: 32,
   },
   activeIndicator: {
     width: 4,
@@ -160,3 +225,4 @@ const styles = StyleSheet.create({
 });
 
 export default MainTabNavigator;
+
