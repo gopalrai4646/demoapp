@@ -48,9 +48,9 @@ const AdminStaffRolesScreen = () => {
   const getStaffCount = useCallback((roleId: string) => staffUsers.filter(u => u.staffRoleId === roleId).length, [staffUsers]);
 
   const getRoleName = useCallback((roleId?: string) => {
-    if (!roleId) return 'Unassigned';
-    return roles.find(r => r.id === roleId)?.name || 'Unknown Role';
-  }, [roles]);
+    if (!roleId) return t('admin.staff.unassigned');
+    return roles.find(r => r.id === roleId)?.name || t('admin.staff.unknownRole');
+  }, [roles, t]);
 
   const openEditRole = (role: StaffRole) => { setEditingRole(role); setShowRoleModal(true); };
   const openCreateRole = () => { setEditingRole(null); setShowRoleModal(true); };
@@ -58,26 +58,26 @@ const AdminStaffRolesScreen = () => {
   const handleDeleteRole = (role: StaffRole) => {
     const count = getStaffCount(role.id);
     const msg = count > 0
-      ? `Delete "${role.name}"? ${count} staff member(s) will be demoted.`
-      : `Delete role "${role.name}"?`;
-    Alert.alert(t('adminStaffRoles.confirmDeleteRole'), msg, [
-      { text: t('adminCourses.cancel'), style: 'cancel' },
+      ? t('admin.staff.deleteRoleWithStaff', { name: role.name, count })
+      : t('admin.staff.deleteRoleConfirm', { name: role.name });
+    Alert.alert(t('common.delete'), msg, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: t('adminCourses.delete'), style: 'destructive', onPress: () => {
+        text: t('common.delete'), style: 'destructive', onPress: () => {
           dispatch(deleteStaffRoleRequest(role.id));
-          setSuccessMsg(t('adminStaffRoles.roleDeleted', { name: role.name }));
+          setSuccessMsg(t('admin.staff.roleDeleted', { name: role.name }));
         }
       },
     ]);
   };
 
   const handleDeleteStaff = (userId: string, name: string) => {
-    Alert.alert(t('adminStaffRoles.confirmDeleteStaff'), `Remove "${name}" from staff?`, [
-      { text: t('adminCourses.cancel'), style: 'cancel' },
+    Alert.alert(t('common.delete'), t('admin.staff.deleteStaffConfirm', { name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: t('adminCourses.delete'), style: 'destructive', onPress: () => {
+        text: t('common.delete'), style: 'destructive', onPress: () => {
           dispatch(deleteUserRequest(userId));
-          setSuccessMsg(t('adminStaffRoles.staffDeleted', { name }));
+          setSuccessMsg(t('admin.staff.staffDeleted', { name }));
         }
       },
     ]);
@@ -88,7 +88,7 @@ const AdminStaffRolesScreen = () => {
       <View style={styles.roleHeader}>
         <View style={{ flex: 1 }}>
           <Text style={styles.roleName}>{item.name}</Text>
-          <Text style={styles.roleDesc}>{item.description || 'No description'}</Text>
+          <Text style={styles.roleDesc}>{item.description || t('admin.staff.noDescription')}</Text>
         </View>
         <View style={styles.roleActions}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => openEditRole(item)}>
@@ -128,7 +128,7 @@ const AdminStaffRolesScreen = () => {
       <View style={styles.roleFooter}>
         <View style={styles.staffCountContainer}>
           <UsersIcon size={14} color={COLORS.outline} />
-          <Text style={styles.staffCountText}>{getStaffCount(item.id)} staff member{getStaffCount(item.id) !== 1 ? 's' : ''}</Text>
+          <Text style={styles.staffCountText}>{t('admin.staff.staffMemberCount', { count: getStaffCount(item.id) })}</Text>
         </View>
       </View>
     </View>
@@ -163,25 +163,9 @@ const AdminStaffRolesScreen = () => {
 
         <View style={styles.staffMetaContainer}>
           <View style={styles.staffMetaItem}>
-            <Text style={styles.staffMetaLabel}>{t('adminStaffRoles.staffRole')}</Text>
+            <Text style={styles.staffMetaLabel}>{t('admin.staff.staffRole')}</Text>
             <View style={styles.staffRoleBadge}>
               <Text style={styles.staffRoleText}>{getRoleName(user.staffRoleId)}</Text>
-            </View>
-          </View>
-
-          <View style={styles.staffMetaItem}>
-            <Text style={styles.staffMetaLabel}>{t('adminStaffRoles.permissions')}</Text>
-            <View style={styles.staffPermissions}>
-              {userRole?.permissions.slice(0, 4).map(perm => (
-                <View key={perm} style={styles.staffPermBadge}>
-                  <Text style={styles.staffPermText}>{t(PERMISSION_MODULES[perm]?.label, { defaultValue: perm })}</Text>
-                </View>
-              ))}
-              {(userRole?.permissions.length || 0) > 4 && (
-                <View style={styles.staffPermBadge}>
-                  <Text style={styles.staffPermText}>+{(userRole?.permissions.length || 0) - 4} more</Text>
-                </View>
-              )}
             </View>
           </View>
         </View>
@@ -208,9 +192,9 @@ const AdminStaffRolesScreen = () => {
         <View style={styles.headerInner}>
           <View style={styles.headerRow}>
             <Shield size={28} color="rgba(255,255,255,0.6)" strokeWidth={1.5} style={styles.shieldIcon} />
-            <Text style={styles.headerTitleText}>{t('adminStaffRoles.title')}</Text>
+            <Text style={styles.headerTitleText}>{t('admin.staff.title')}</Text>
           </View>
-          <Text style={styles.headerDescText}>{t('adminStaffRoles.subtitle')}</Text>
+          <Text style={styles.headerDescText}>{t('admin.staff.subtitle')}</Text>
         </View>
       </View>
 
@@ -235,8 +219,8 @@ const AdminStaffRolesScreen = () => {
         <View style={styles.sectionTitleRow}>
           <View style={styles.iconCircle}><Shield size={20} color="#a855f7" /></View>
           <View>
-            <Text style={styles.sectionTitle}>{t('adminStaffRoles.roleDefinitions')}</Text>
-            <Text style={styles.sectionSubtitle}>{t('adminStaffRoles.roleDefinitionsSub')}</Text>
+            <Text style={styles.sectionTitle}>{t('admin.staff.roleDefinitions')}</Text>
+            <Text style={styles.sectionSubtitle}>{t('admin.staff.roleDefinitionsSubtitle')}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.createButtonSmall} onPress={openCreateRole}>
@@ -247,8 +231,8 @@ const AdminStaffRolesScreen = () => {
       {!loading && roles.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}><Shield size={36} color="#c084fc" /></View>
-          <Text style={styles.emptyTitle}>{t('adminStaffRoles.noRoles')}</Text>
-          <Text style={styles.emptyDesc}>Create your first role to start assigning staff members.</Text>
+          <Text style={styles.emptyTitle}>{t('admin.staff.noRoles')}</Text>
+          <Text style={styles.emptyDesc}>{t('admin.staff.noRolesDesc')}</Text>
         </View>
       ) : (
         <View style={styles.rolesList}>
@@ -261,8 +245,8 @@ const AdminStaffRolesScreen = () => {
         <View style={styles.sectionTitleRow}>
           <View style={styles.iconCircle}><UsersIcon size={20} color="#a855f7" /></View>
           <View>
-            <Text style={styles.sectionTitle}>{t('adminStaffRoles.activeStaff')}</Text>
-            <Text style={styles.sectionSubtitle}>{t('adminStaffRoles.activeStaffSub')}</Text>
+            <Text style={styles.sectionTitle}>{t('admin.staff.activeStaff')}</Text>
+            <Text style={styles.sectionSubtitle}>{t('admin.staff.activeStaffSubtitle')}</Text>
           </View>
         </View>
         <TouchableOpacity style={[styles.createButtonSmall, roles.length === 0 && { opacity: 0.5 }]} onPress={() => setShowStaffModal(true)} disabled={roles.length === 0}>
@@ -273,8 +257,10 @@ const AdminStaffRolesScreen = () => {
       {staffUsers.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}><UsersIcon size={36} color="#c084fc" /></View>
-          <Text style={styles.emptyTitle}>{t('adminStaffRoles.noStaff')}</Text>
-          <Text style={styles.emptyDesc}>{roles.length === 0 ? 'Create a role first, then add staff.' : 'Add your first staff member.'}</Text>
+          <Text style={styles.emptyTitle}>{t('admin.staff.noStaff')}</Text>
+          <Text style={styles.emptyDesc}>
+            {roles.length === 0 ? t('admin.staff.createRoleFirst') : t('admin.staff.addFirstStaff')}
+          </Text>
         </View>
       ) : (
         <View style={styles.staffList}>
@@ -359,9 +345,6 @@ const styles = StyleSheet.create({
   staffMetaLabel: { fontSize: 10, fontWeight: '800', color: COLORS.outline, letterSpacing: 0.5 },
   staffRoleBadge: { backgroundColor: '#f3e8ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignSelf: 'flex-start' },
   staffRoleText: { fontSize: 10, fontWeight: '900', color: '#a855f7' },
-  staffPermissions: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  staffPermBadge: { backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
-  staffPermText: { fontSize: 9, fontWeight: '800', color: '#3b82f6' },
   createStaffButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#a855f7', paddingVertical: 12, borderRadius: 16, gap: 8 },
   createStaffButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 });

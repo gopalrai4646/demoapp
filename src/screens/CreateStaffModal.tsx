@@ -35,7 +35,7 @@ const CreateStaffModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
   useEffect(() => {
     if (submitting && !loading) {
       if (error) { setSubmitting(false); }
-      else { onSuccess?.(t('adminStaffRoles.staffCreated', { name })); setSubmitting(false); onClose(); }
+      else { onSuccess?.(t('admin.staff.staffCreated', { name })); setSubmitting(false); onClose(); }
     }
   }, [submitting, loading, error]);
 
@@ -53,21 +53,21 @@ const CreateStaffModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
       <View style={s.overlay}>
         <View style={s.container}>
           <View style={s.header}>
-            <Text style={s.headerTitle}>{t('adminStaffRoles.createStaffTitle')}</Text>
+            <Text style={s.headerTitle}>{t('admin.staff.createStaff')}</Text>
             <TouchableOpacity onPress={onClose} style={s.closeBtn}><X size={20} color={COLORS.onSurface} /></TouchableOpacity>
           </View>
           <ScrollView style={s.body} contentContainerStyle={s.bodyContent} showsVerticalScrollIndicator={false}>
             {error && <View style={s.err}><Text style={s.errTxt}>{error}</Text></View>}
 
-            <View style={s.field}><Text style={s.label}>{t('adminStaffRoles.fullName')} *</Text>
+            <View style={s.field}><Text style={s.label}>{t('admin.staff.staffName')} *</Text>
               <TextInput style={s.input} value={name} onChangeText={setName} placeholder="e.g. John Smith" placeholderTextColor={COLORS.outline} /></View>
 
-            <View style={s.field}><Text style={s.label}>{t('adminStaffRoles.emailAddress')} *</Text>
+            <View style={s.field}><Text style={s.label}>{t('admin.staff.emailAddress')} *</Text>
               <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder="e.g. john@company.com" placeholderTextColor={COLORS.outline} keyboardType="email-address" autoCapitalize="none" /></View>
 
-            <View style={s.field}><Text style={s.label}>{t('adminStaffRoles.password')} *</Text>
+            <View style={s.field}><Text style={s.label}>{t('admin.staff.password')} *</Text>
               <View style={s.pwWrap}>
-                <TextInput style={s.pwInput} value={password} onChangeText={setPassword} placeholder={t('adminStaffRoles.passwordHint')} placeholderTextColor={COLORS.outline} secureTextEntry={!showPw} />
+                <TextInput style={s.pwInput} value={password} onChangeText={setPassword} placeholder={t('admin.staff.passwordPlaceholder', { defaultValue: 'At least 6 characters' })} placeholderTextColor={COLORS.outline} secureTextEntry={!showPw} />
                 <TouchableOpacity onPress={() => setShowPw(!showPw)} style={s.eyeBtn}>
                   {showPw ? <EyeOff size={18} color={COLORS.outline} /> : <Eye size={18} color={COLORS.outline} />}
                 </TouchableOpacity>
@@ -75,9 +75,13 @@ const CreateStaffModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
               {password.length > 0 && password.length < 6 && <Text style={s.valErr}>Password must be at least 6 characters</Text>}
             </View>
 
-            <View style={s.field}><Text style={s.label}>{t('adminStaffRoles.assignRole')} *</Text>
+            <View style={s.field}><Text style={s.label}>{t('admin.staff.staffRole')} *</Text>
               <TouchableOpacity style={s.picker} onPress={() => setShowPicker(!showPicker)} activeOpacity={0.7}>
-                <Text style={[s.pickerTxt, !roleId && { color: COLORS.outline }]}>{selectedRole ? `${selectedRole.name} — ${selectedRole.permissions.length} permissions` : t('adminStaffRoles.selectRole')}</Text>
+                <Text style={[s.pickerTxt, !roleId && { color: COLORS.outline }]}>
+                  {selectedRole 
+                    ? `${selectedRole.name} — ${t('admin.staff.permissionsCount', { count: selectedRole.permissions.length })}` 
+                    : t('admin.staff.selectRole')}
+                </Text>
                 <ChevronDown size={16} color={COLORS.outline} />
               </TouchableOpacity>
               {showPicker && (
@@ -85,7 +89,7 @@ const CreateStaffModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
                   {roles.map(r => (
                     <TouchableOpacity key={r.id} style={[s.pickerItem, roleId === r.id && s.pickerItemSel]} onPress={() => { setRoleId(r.id); setShowPicker(false); }}>
                       <Text style={[s.pickerItemTxt, roleId === r.id && s.pickerItemTxtSel]}>{r.name}</Text>
-                      <Text style={s.pickerItemSub}>{r.permissions.length} permissions</Text>
+                      <Text style={s.pickerItemSub}>{t('admin.staff.permissionsCount', { count: r.permissions.length })}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -98,7 +102,7 @@ const CreateStaffModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
           </ScrollView>
           <View style={s.footer}>
             <TouchableOpacity style={[s.submitBtn, !valid && s.submitDis]} onPress={handleSubmit} disabled={!valid || loading} activeOpacity={0.8}>
-              {loading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.submitTxt}>{t('adminStaffRoles.createStaff')}</Text>}
+              {loading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.submitTxt}>{t('admin.staff.createStaffBtn')}</Text>}
             </TouchableOpacity>
           </View>
         </View>

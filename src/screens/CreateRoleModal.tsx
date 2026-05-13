@@ -38,7 +38,7 @@ const CreateRoleModal: React.FC<Props> = ({ visible, onClose, editingRole = null
   useEffect(() => {
     if (submitting && !loading) {
       if (error) { setSubmitting(false); }
-      else { onSuccess?.(editingRole ? t('adminStaffRoles.roleUpdated', { name: roleName }) : t('adminStaffRoles.roleCreated', { name: roleName })); setSubmitting(false); onClose(); }
+      else { onSuccess?.(editingRole ? t('admin.staff.roleUpdated', { name: roleName }) : t('admin.staff.roleCreated', { name: roleName })); setSubmitting(false); onClose(); }
     }
   }, [submitting, loading, error]);
 
@@ -57,15 +57,15 @@ const CreateRoleModal: React.FC<Props> = ({ visible, onClose, editingRole = null
       <View style={s.overlay}>
         <View style={s.container}>
           <View style={s.header}>
-            <Text style={s.headerTitle}>{editingRole ? t('adminStaffRoles.editRoleTitle') : t('adminStaffRoles.createRoleTitle')}</Text>
+            <Text style={s.headerTitle}>{editingRole ? t('admin.staff.editRole', { name: editingRole.name }) : t('admin.staff.createRole')}</Text>
             <TouchableOpacity onPress={onClose} style={s.closeBtn}><X size={20} color={COLORS.onSurface} /></TouchableOpacity>
           </View>
           <ScrollView style={s.body} contentContainerStyle={s.bodyContent} showsVerticalScrollIndicator={false}>
             {error && <View style={s.err}><Text style={s.errTxt}>{error}</Text></View>}
-            <View style={s.field}><Text style={s.label}>{t('adminStaffRoles.roleName')} *</Text><TextInput style={s.input} value={roleName} onChangeText={setRoleName} placeholder="e.g. Content Manager" placeholderTextColor={COLORS.outline} /></View>
-            <View style={s.field}><Text style={s.label}>{t('adminStaffRoles.roleDescription')}</Text><TextInput style={s.input} value={roleDesc} onChangeText={setRoleDesc} placeholder="e.g. Can manage courses" placeholderTextColor={COLORS.outline} /></View>
+            <View style={s.field}><Text style={s.label}>{t('admin.staff.roleNameLabel')}</Text><TextInput style={s.input} value={roleName} onChangeText={setRoleName} placeholder="e.g. Content Manager" placeholderTextColor={COLORS.outline} /></View>
+            <View style={s.field}><Text style={s.label}>{t('admin.staff.description')}</Text><TextInput style={s.input} value={roleDesc} onChangeText={setRoleDesc} placeholder="e.g. Can manage courses and training plans" placeholderTextColor={COLORS.outline} /></View>
             <View style={s.field}>
-              <View style={s.permHdr}><Text style={s.label}>{t('adminStaffRoles.selectPermissions')} *</Text><TouchableOpacity onPress={toggleAll}><Text style={s.selAll}>{selPerms.length === ALL_PERMISSIONS.length ? t('adminStaffRoles.deselectAll') : t('adminStaffRoles.selectAll')}</Text></TouchableOpacity></View>
+              <View style={s.permHdr}><Text style={s.label}>{t('admin.staff.permissions')} *</Text><TouchableOpacity onPress={toggleAll}><Text style={s.selAll}>{selPerms.length === ALL_PERMISSIONS.length ? t('admin.staff.deselectAll') : t('admin.staff.selectAll')}</Text></TouchableOpacity></View>
               {Object.entries(PERMISSION_GROUPS).map(([gk, g]) => (
                 <View key={gk} style={s.grpCard}>
                   <View style={s.grpHdr}><Text style={s.grpLabel}>{t(g.label, { defaultValue: gk })}</Text></View>
@@ -78,12 +78,12 @@ const CreateRoleModal: React.FC<Props> = ({ visible, onClose, editingRole = null
                   })}
                 </View>
               ))}
-              {selPerms.length === 0 && <Text style={s.valErr}>Select at least one permission</Text>}
+              {selPerms.length === 0 && <Text style={s.valErr}>{t('admin.staff.selectAtLeastOnePermission')}</Text>}
             </View>
           </ScrollView>
           <View style={s.footer}>
             <TouchableOpacity style={[s.submitBtn, !valid && s.submitDis]} onPress={handleSubmit} disabled={!valid || loading} activeOpacity={0.8}>
-              {loading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.submitTxt}>{editingRole ? t('adminStaffRoles.updateRole', { defaultValue: 'Update Role' }) : t('adminStaffRoles.createRole')}</Text>}
+              {loading ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.submitTxt}>{editingRole ? t('admin.staff.updateRoleBtn') : t('admin.staff.createRoleBtn')}</Text>}
             </TouchableOpacity>
           </View>
         </View>
