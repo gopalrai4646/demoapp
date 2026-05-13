@@ -11,7 +11,7 @@ interface AuthState {
     photoURL: string | null;
     phoneNumber: string | null;
   } | null;
-  role: 'student' | 'admin' | null;
+  role: 'student' | 'admin' | 'staff' | null;
   loading: boolean;
   error: string | null;
   isNewUser: boolean;

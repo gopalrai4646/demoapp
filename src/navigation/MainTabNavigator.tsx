@@ -13,6 +13,7 @@ import { AdminTrainingPlanStack } from './AdminTrainingPlanStack';
 import UserCourseStack from './UserCourseStack';
 import UserTrainingPlanStack from './UserTrainingPlanStack';
 import AdminUsersScreen from '../screens/AdminUsersScreen';
+import AdminStaffRolesScreen from '../screens/AdminStaffRolesScreen';
 import { MainTabParamList } from './types';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
 import { 
@@ -22,14 +23,15 @@ import {
   Settings, 
   Users, 
   GraduationCap,
-  ClipboardList
+  ClipboardList,
+  Shield
 } from 'lucide-react-native';
 
 const Tab = createMaterialTopTabNavigator<MainTabParamList>();
 
 const CustomTabBar = ({ state, descriptors, navigation, insets, t, isAdmin }: any) => {
   return (
-    <View style={[styles.tabBar, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const label =
@@ -165,16 +167,28 @@ const MainTabNavigator = () => {
       />
 
       {isAdmin && (
-        <Tab.Screen
-          name="Users"
-          component={AdminUsersScreen}
-          options={{
-            tabBarLabel: t('tabs.users'),
-            tabBarIcon: ({ color, size }) => (
-              <Users size={size} color={color} />
-            ),
-          }}
-        />
+        <>
+          <Tab.Screen
+            name="Users"
+            component={AdminUsersScreen}
+            options={{
+              tabBarLabel: t('tabs.users'),
+              tabBarIcon: ({ color, size }) => (
+                <Users size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="StaffRoles"
+            component={AdminStaffRolesScreen}
+            options={{
+              tabBarLabel: t('tabs.staffRoles') || 'Staff',
+              tabBarIcon: ({ color, size }) => (
+                <Shield size={size} color={color} />
+              ),
+            }}
+          />
+        </>
       )}
       <Tab.Screen
         name="Account"
@@ -196,8 +210,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.outlineVariant,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    height: 64,
-    paddingTop: 8,
+    paddingTop: 12,
   },
   tabItem: {
     flex: 1,

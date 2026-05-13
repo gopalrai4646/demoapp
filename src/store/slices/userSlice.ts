@@ -4,7 +4,8 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'student' | 'admin';
+  role: 'student' | 'admin' | 'staff';
+  staffRoleId?: string;
   enrolledCourses?: string[];
   savedCourses?: string[];
   assignedTrainingPlans?: string[];

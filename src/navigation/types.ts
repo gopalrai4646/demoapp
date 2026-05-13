@@ -31,6 +31,7 @@ export type MainTabParamList = {
   Courses: NavigatorScreenParams<AdminCourseStackParamList & UserCourseStackParamList> | undefined;
   Plans: NavigatorScreenParams<AdminTrainingPlanStackParamList & UserTrainingPlanStackParamList> | undefined;
   Users: undefined;
+  StaffRoles: undefined;
   Account: undefined;
 };
 

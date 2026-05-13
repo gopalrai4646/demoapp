@@ -147,6 +147,46 @@
     "searchPlaceholder": "Search name or email...",
     "noStudents": "No students found"
   },
+  "adminStaffRoles": {
+    "title": "Staff & Roles",
+    "subtitle": "Create custom roles with specific permissions and manage your staff team.",
+    "roleDefinitions": "Role Definitions",
+    "roleDefinitionsSub": "Define what each staff role can access",
+    "createRole": "Create Role",
+    "activeStaff": "Active Staff",
+    "activeStaffSub": "Manage individual team members",
+    "createStaff": "Create New Staff",
+    "staffName": "STAFF NAME",
+    "staffRole": "STAFF ROLE",
+    "permissions": "PERMISSIONS",
+    "actions": "ACTIONS",
+    "createRoleTitle": "Create New Role",
+    "editRoleTitle": "Edit Role",
+    "roleName": "Role Name",
+    "roleDescription": "Description",
+    "selectPermissions": "Permissions",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "createStaffTitle": "Create New Staff Member",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "password": "Password",
+    "assignRole": "Assign Role",
+    "selectRole": "Select a role...",
+    "passwordHint": "Min. 6 characters",
+    "noRoles": "No Roles Created Yet",
+    "noStaff": "No Staff Members Yet",
+    "roleCreated": "Role \"{{name}}\" created successfully",
+    "roleUpdated": "Role \"{{name}}\" updated successfully",
+    "roleDeleted": "Role \"{{name}}\" deleted",
+    "staffCreated": "Staff member \"{{name}}\" created",
+    "staffDeleted": "Staff member \"{{name}}\" removed",
+    "confirmDeleteRole": "Delete Role",
+    "confirmDeleteStaff": "Remove Staff Member",
+    "updateRole": "Update Role",
+    "saving": "Saving...",
+    "creating": "Creating..."
+  },
   "userCourses": {
     "myCourses": "My Courses",
     "trackProgress": "Track your learning progress",
@@ -290,7 +330,6 @@
     "submit": "Submit Rating",
     "later": "Rate Later"
   },
-
   "tabs": {
     "dashboard": "Dashboard",
     "courses": "Courses",
@@ -298,7 +337,8 @@
     "users": "Users",
     "account": "Account",
     "reports": "Reports",
-    "settings": "Settings"
+    "settings": "Settings",
+    "staffRoles": "Staff"
   },
   "language": {
     "title": "Language",

@@ -171,3 +171,14 @@ export const selectSavedCourses = createSelector(
       .filter((c): c is NonNullable<typeof c> => c !== null);
   }
 );
+
+// ─── Staff & Roles Selectors ───
+export const selectAllUsers = (state: RootState) => state.users.users;
+export const selectStaffRoles = (state: RootState) => state.staffRoles.roles;
+export const selectStaffRolesLoading = (state: RootState) => state.staffRoles.loading;
+export const selectStaffRolesError = (state: RootState) => state.staffRoles.error;
+
+export const selectStaffUsers = createSelector(
+  [selectAllUsers],
+  (users) => users.filter(u => u.role === 'staff')
+);
