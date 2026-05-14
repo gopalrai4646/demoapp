@@ -73,7 +73,18 @@ const CreateRoleModal: React.FC<Props> = ({ visible, onClose, editingRole = null
                     const p = pk as Permission; const sel = selPerms.includes(p);
                     return (<TouchableOpacity key={p} style={[s.pItem, sel && s.pItemSel]} onPress={() => togglePerm(p)} activeOpacity={0.7}>
                       <View style={[s.chk, sel && s.chkSel]}>{sel && <Check size={12} color="#fff" />}</View>
-                      <View style={s.pTxt}><Text style={s.pLabel}>{t(sp.label, { defaultValue: pk })}</Text><Text style={s.pDesc}>{t(sp.description, { defaultValue: '' })}</Text></View>
+                      <View style={s.pTxt}>
+                        <Text style={s.pLabel}>
+                          {p === 'training_plans_assign' 
+                            ? "Assign" 
+                            : t(sp.label, { defaultValue: pk })}
+                        </Text>
+                        <Text style={s.pDesc}>
+                          {p === 'training_plans_assign'
+                            ? "First set the user management view condition"
+                            : t(sp.description, { defaultValue: '' })}
+                        </Text>
+                      </View>
                     </TouchableOpacity>);
                   })}
                 </View>

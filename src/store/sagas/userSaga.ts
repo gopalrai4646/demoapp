@@ -1,6 +1,8 @@
 import { call, put, takeLatest, take, fork, cancel, all } from 'redux-saga/effects';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import { eventChannel } from 'redux-saga';
+import { ENV } from '../../config/env';
 import { 
   fetchUsersRequest, 
   fetchUsersSuccess, 
@@ -79,26 +81,63 @@ function* handleLogout(): any {
 function* handleDeleteUser(action: ReturnType<typeof deleteUserRequest>): any {
   try {
     const userId = action.payload;
-    // Note: This only deletes from Firestore. 
-    // To delete from Firebase Auth, a cloud function or admin API is needed.
-    const userRef = firestore().collection('users').doc(userId);
-    yield call([userRef, 'delete'] as any);
+    const currentUser = auth().currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
+
+    const token = yield call([currentUser, currentUser.getIdToken]);
+
+    const response = yield call(fetch, `${ENV.API_URL}/api/admin/users/delete`, {
+      method: 'POST',
+      body: JSON.stringify({ uid: userId }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = yield call([response, response.json]);
+      throw new Error(errorData.error || 'Failed to delete user');
+    }
+
     yield put(deleteUserSuccess(userId));
   } catch (error: any) {
+    console.error('Saga: Error deleting user', error.message);
     yield put(fetchUsersFailure(error.message));
   }
 }
 
+
+
 function* handleAssignTrainingPlan(action: ReturnType<typeof assignTrainingPlanRequest>): any {
   try {
     const { userId, trainingPlanIds } = action.payload;
-    const userRef = firestore().collection('users').doc(userId);
-    yield call([userRef, 'update'] as any, {
-      assignedTrainingPlans: firestore.FieldValue.arrayUnion(...trainingPlanIds),
+    const currentUser = auth().currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
+
+    const token = yield call([currentUser, currentUser.getIdToken]);
+
+    console.log(`Saga: Assigning plan to user ${userId} at ${ENV.API_URL}/api/admin/users/assign-plan`);
+    const response = yield call(fetch, `${ENV.API_URL}/api/admin/users/assign-plan`, {
+      method: 'POST',
+      body: JSON.stringify({ userId, trainingPlanIds, action: 'assign' }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
     });
+
+    console.log(`Saga: API Response Status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorData = yield call([response, response.json]);
+      console.error('Saga: Assign API Error details:', errorData);
+      throw new Error(errorData.error || `Server returned ${response.status}`);
+    }
+
     yield put(assignTrainingPlanSuccess({ userId, trainingPlanIds }));
   } catch (error: any) {
-    console.error('Saga: Error assigning training plan', error.message);
+    console.error('Saga: Detailed error assigning training plan:', error);
     yield put(fetchUsersFailure(error.message));
   }
 }
@@ -106,13 +145,32 @@ function* handleAssignTrainingPlan(action: ReturnType<typeof assignTrainingPlanR
 function* handleUnassignTrainingPlan(action: ReturnType<typeof unassignTrainingPlanRequest>): any {
   try {
     const { userId, trainingPlanId } = action.payload;
-    const userRef = firestore().collection('users').doc(userId);
-    yield call([userRef, 'update'] as any, {
-      assignedTrainingPlans: firestore.FieldValue.arrayRemove(trainingPlanId),
+    const currentUser = auth().currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
+
+    const token = yield call([currentUser, currentUser.getIdToken]);
+
+    console.log(`Saga: Unassigning plan ${trainingPlanId} from user ${userId} at ${ENV.API_URL}/api/admin/users/assign-plan`);
+    const response = yield call(fetch, `${ENV.API_URL}/api/admin/users/assign-plan`, {
+      method: 'POST',
+      body: JSON.stringify({ userId, trainingPlanIds: [trainingPlanId], action: 'unassign' }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
     });
+
+    console.log(`Saga: API Response Status (Unassign): ${response.status}`);
+
+    if (!response.ok) {
+      const errorData = yield call([response, response.json]);
+      console.error('Saga: Unassign API Error details:', errorData);
+      throw new Error(errorData.error || `Server returned ${response.status}`);
+    }
+
     yield put(unassignTrainingPlanSuccess({ userId, trainingPlanId }));
   } catch (error: any) {
-    console.error('Saga: Error unassigning training plan', error.message);
+    console.error('Saga: Detailed error unassigning training plan:', error);
     yield put(fetchUsersFailure(error.message));
   }
 }

@@ -37,6 +37,11 @@ const AdminUsersScreen = () => {
   const { t } = useTranslation();
   const { users, loading, error } = useAppSelector(state => state.users);
   const { courses } = useAppSelector(state => state.courses);
+  const { role, permissions } = useAppSelector(state => state.auth);
+  
+  const isAdmin = role === 'admin';
+  const canImpersonate = isAdmin || permissions.includes('users_impersonate');
+  const canDelete = isAdmin || permissions.includes('users_delete');
   
   const [searchTerm, setSearchTerm] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
@@ -159,12 +164,27 @@ const AdminUsersScreen = () => {
             <Text style={styles.userEmail} numberOfLines={1}>{item.email}</Text>
           </View>
           <View style={styles.listActions}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => handleImpersonate(item.id)}>
-              <UserSquare2 size={20} color={COLORS.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.deleteIconButton} onPress={() => handleDelete(item.id, item.name)}>
-              <Trash2 size={20} color={COLORS.error} />
-            </TouchableOpacity>
+            {canImpersonate && (
+              <TouchableOpacity style={styles.iconButton} onPress={() => handleImpersonate(item.id)}>
+                <UserSquare2 size={20} color={COLORS.primary} />
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity style={styles.deleteIconButton} onPress={() => handleDelete(item.id, item.name)}>
+                <Trash2 size={20} color={COLORS.error} />
+              </TouchableOpacity>
+            )}
+            {!canImpersonate && !canDelete && (
+              <TouchableOpacity 
+                style={styles.iconButton} 
+                onPress={() => {
+                  setSelectedUser(item);
+                  setModalVisible(true);
+                }}
+              >
+                <Eye size={20} color={COLORS.outline} />
+              </TouchableOpacity>
+            )}
           </View>
         </TouchableOpacity>
       );
@@ -192,31 +212,51 @@ const AdminUsersScreen = () => {
             )}
             <View style={styles.statusDotLarge} />
           </View>
-          <View style={[styles.roleBadge, item.role === 'mentor' ? styles.mentorBadge : item.role === 'premium' ? styles.premiumBadge : styles.freeBadge]}>
-            <Text style={[styles.roleText, item.role === 'mentor' ? styles.mentorText : item.role === 'premium' ? styles.premiumText : styles.freeText]}>
-              {item.role || t('adminUsers.freeTier')}
-            </Text>
+          <View style={{ alignItems: 'flex-end', gap: 8 }}>
+            <View style={[styles.roleBadge, item.role === 'mentor' ? styles.mentorBadge : item.role === 'premium' ? styles.premiumBadge : styles.freeBadge]}>
+              <Text style={[styles.roleText, item.role === 'mentor' ? styles.mentorText : item.role === 'premium' ? styles.premiumText : styles.freeText]}>
+                {item.role || t('adminUsers.freeTier')}
+              </Text>
+            </View>
+            
+            {!canImpersonate && !canDelete && (
+              <TouchableOpacity 
+                style={styles.iconButton} 
+                onPress={() => {
+                  setSelectedUser(item);
+                  setModalVisible(true);
+                }}
+              >
+                <Eye size={20} color={COLORS.onSurfaceVariant} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
         
         <Text style={styles.userNameGrid} numberOfLines={1}>{item.name || t('adminUsers.noName')}</Text>
         <Text style={styles.userEmailGrid} numberOfLines={1}>{item.email}</Text>
         
-        <View style={styles.gridActions}>
-          <TouchableOpacity 
-            style={styles.impersonateButton} 
-            onPress={() => handleImpersonate(item.id)}
-          >
-            <UserSquare2 size={16} color="#fff" />
-            <Text style={styles.impersonateButtonText}>{t('adminUsers.impersonate')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.deleteButtonSmall} 
-            onPress={() => handleDelete(item.id, item.name)}
-          >
-            <Trash2 size={18} color={COLORS.error} />
-          </TouchableOpacity>
-        </View>
+        {(canImpersonate || canDelete) && (
+          <View style={styles.gridActions}>
+            {canImpersonate && (
+              <TouchableOpacity 
+                style={styles.impersonateButton} 
+                onPress={() => handleImpersonate(item.id)}
+              >
+                <UserSquare2 size={16} color="#fff" />
+                <Text style={styles.impersonateButtonText}>{t('adminUsers.impersonate')}</Text>
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity 
+                style={styles.deleteButtonSmall} 
+                onPress={() => handleDelete(item.id, item.name)}
+              >
+                <Trash2 size={18} color={COLORS.error} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     );
   };

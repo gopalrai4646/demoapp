@@ -27,9 +27,9 @@ function createCoursesChannel() {
       });
       emit(courses);
     }, (error: any) => {
-      if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
-        console.error("Courses listener error:", error);
-      }
+      console.error("Courses listener error:", error);
+      // Emit empty array on permission-denied so loading state resolves
+      emit([]);
     });
   });
 }

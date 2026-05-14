@@ -26,6 +26,7 @@ import {
   ClipboardList,
   Shield
 } from 'lucide-react-native';
+import { hasModuleAccess, Permission } from '../constants/permissions';
 
 const Tab = createMaterialTopTabNavigator<MainTabParamList>();
 
@@ -98,10 +99,19 @@ const CustomTabBar = ({ state, descriptors, navigation, insets, t, isAdmin }: an
 };
 
 const MainTabNavigator = () => {
-  const { role } = useSelector((state: RootState) => state.auth);
+  const { role, permissions } = useSelector((state: RootState) => state.auth);
   const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+
+  // Students always see Courses & Plans (user versions).
+  // Staff only see them if admin granted matching module permissions.
+  // Admins always see everything.
+  const isStudent = !isAdmin && !isStaff;
+  const canSeeCourses = isAdmin || isStudent || (isStaff && hasModuleAccess(permissions as Permission[], 'courses'));
+  const canSeePlans = isAdmin || isStudent || (isStaff && hasModuleAccess(permissions as Permission[], 'training_plans'));
+  const canSeeUsers = isAdmin || (isStaff && hasModuleAccess(permissions as Permission[], 'users'));
 
   return (
     <Tab.Navigator
@@ -121,74 +131,78 @@ const MainTabNavigator = () => {
     >
       <Tab.Screen
         name="Dashboard"
-        component={isAdmin ? AdminDashboardScreen : Dashboard}
+        component={isAdmin || isStaff ? AdminDashboardScreen : Dashboard}
         options={{
-          tabBarLabel: isAdmin ? t('tabs.reports') : t('tabs.dashboard'),
+          tabBarLabel: isAdmin || isStaff ? t('tabs.reports') : t('tabs.dashboard'),
           tabBarIcon: ({ color, size, focused }) => (
-            isAdmin ? <BarChart2 size={size} color={color} /> : <LayoutDashboard size={size} color={color} />
+            isAdmin || isStaff ? <BarChart2 size={size} color={color} /> : <LayoutDashboard size={size} color={color} />
           ),
         }}
       />
-      <Tab.Screen
-        name="Courses"
-        component={isAdmin ? AdminCourseStack : UserCourseStack}
-        options={{
-          tabBarLabel: t('tabs.courses'),
-          tabBarIcon: ({ color, size }) => (
-            <BookOpen size={size} color={color} />
-          ),
-        }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate('Courses', {
-              screen: isAdmin ? 'AdminCourseList' : 'UserCourses',
-            });
-          },
-        })}
-      />
-      <Tab.Screen
-        name="Plans"
-        component={isAdmin ? AdminTrainingPlanStack : UserTrainingPlanStack}
-        options={{
-          tabBarLabel: t('tabs.plans'),
-          tabBarIcon: ({ color, size }) => (
-            <ClipboardList size={size} color={color} />
-          ),
-        }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate('Plans', {
-              screen: isAdmin ? 'AdminTrainingPlanList' : 'UserTrainingPlanList',
-            });
-          },
-        })}
-      />
+      {canSeeCourses && (
+        <Tab.Screen
+          name="Courses"
+          component={isAdmin || isStaff ? AdminCourseStack : UserCourseStack}
+          options={{
+            tabBarLabel: t('tabs.courses'),
+            tabBarIcon: ({ color, size }) => (
+              <BookOpen size={size} color={color} />
+            ),
+          }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate('Courses', {
+                screen: isAdmin || isStaff ? 'AdminCourseList' : 'UserCourses',
+              });
+            },
+          })}
+        />
+      )}
+      {canSeePlans && (
+        <Tab.Screen
+          name="Plans"
+          component={isAdmin || isStaff ? AdminTrainingPlanStack : UserTrainingPlanStack}
+          options={{
+            tabBarLabel: t('tabs.plans'),
+            tabBarIcon: ({ color, size }) => (
+              <ClipboardList size={size} color={color} />
+            ),
+          }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate('Plans', {
+                screen: isAdmin || isStaff ? 'AdminTrainingPlanList' : 'UserTrainingPlanList',
+              });
+            },
+          })}
+        />
+      )}
 
+      {canSeeUsers && (
+        <Tab.Screen
+          name="Users"
+          component={AdminUsersScreen}
+          options={{
+            tabBarLabel: t('tabs.users'),
+            tabBarIcon: ({ color, size }) => (
+              <Users size={size} color={color} />
+            ),
+          }}
+        />
+      )}
       {isAdmin && (
-        <>
-          <Tab.Screen
-            name="Users"
-            component={AdminUsersScreen}
-            options={{
-              tabBarLabel: t('tabs.users'),
-              tabBarIcon: ({ color, size }) => (
-                <Users size={size} color={color} />
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="StaffRoles"
-            component={AdminStaffRolesScreen}
-            options={{
-              tabBarLabel: t('tabs.staffRoles') || 'Staff',
-              tabBarIcon: ({ color, size }) => (
-                <Shield size={size} color={color} />
-              ),
-            }}
-          />
-        </>
+        <Tab.Screen
+          name="StaffRoles"
+          component={AdminStaffRolesScreen}
+          options={{
+            tabBarLabel: t('tabs.staffRoles') || 'Staff',
+            tabBarIcon: ({ color, size }) => (
+              <Shield size={size} color={color} />
+            ),
+          }}
+        />
       )}
       <Tab.Screen
         name="Account"

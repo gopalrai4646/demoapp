@@ -12,12 +12,14 @@ interface AuthState {
     phoneNumber: string | null;
   } | null;
   role: 'student' | 'admin' | 'staff' | null;
+  permissions: string[];
   loading: boolean;
   error: string | null;
   isNewUser: boolean;
   originalAdmin?: {
     user: AuthState['user'];
     role: AuthState['role'];
+    permissions: string[];
   } | null;
   isImpersonating?: boolean;
 }
@@ -25,6 +27,7 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   role: null,
+  permissions: [],
   loading: false,
   error: null,
   isNewUser: false,
@@ -73,9 +76,10 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    authSuccess: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | null; isNewUser?: boolean }>) => {
+    authSuccess: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | 'staff' | null; permissions?: string[]; isNewUser?: boolean }>) => {
       state.user = action.payload.user;
       state.role = action.payload.role ?? null;
+      state.permissions = action.payload.permissions ?? [];
       state.isNewUser = action.payload.isNewUser ?? false;
       state.loading = false;
       state.error = null;
@@ -115,7 +119,10 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    updateUserData: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | null }>) => {
+    updatePermissions: (state, action: PayloadAction<string[]>) => {
+      state.permissions = action.payload;
+    },
+    updateUserData: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | 'staff' | null; permissions?: string[] }>) => {
       // Merges incoming Firestore data into the existing auth state ONLY if UIDs match
       if (!state.user || state.user.uid !== action.payload.user?.uid) return;
 
@@ -123,21 +130,26 @@ const authSlice = createSlice({
       if (action.payload.role !== undefined) {
         state.role = action.payload.role;
       }
+      if (action.payload.permissions !== undefined) {
+        state.permissions = action.payload.permissions;
+      }
     },
     impersonateUserRequest: (state, _action: PayloadAction<string>) => {
       state.loading = true;
     },
-    impersonateUserSuccess: (state, action: PayloadAction<{ user: AuthState['user']; role: AuthState['role'] }>) => {
+    impersonateUserSuccess: (state, action: PayloadAction<{ user: AuthState['user']; role: AuthState['role']; permissions: AuthState['permissions'] }>) => {
       // 1. If not already impersonating, save the CURRENT user as the original admin
       if (!state.isImpersonating) {
         state.originalAdmin = {
           user: state.user,
-          role: state.role
+          role: state.role,
+          permissions: state.permissions
         };
       }
-      // 2. Set the current user/role to the target user
+      // 2. Set the current user/role/perms to the target user
       state.user = action.payload.user;
       state.role = action.payload.role;
+      state.permissions = action.payload.permissions;
       state.isImpersonating = true;
       state.loading = false;
     },
@@ -148,6 +160,7 @@ const authSlice = createSlice({
       if (state.originalAdmin) {
         state.user = state.originalAdmin.user;
         state.role = state.originalAdmin.role;
+        state.permissions = state.originalAdmin.permissions;
       }
       state.originalAdmin = null;
       state.isImpersonating = false;
@@ -175,6 +188,7 @@ export const {
   saveCourseRequest,
   saveCourseSuccess,
   updateUserData,
+  updatePermissions,
   impersonateUserRequest,
   impersonateUserSuccess,
   stopImpersonationRequest,

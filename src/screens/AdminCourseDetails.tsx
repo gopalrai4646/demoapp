@@ -129,6 +129,7 @@ const AdminCourseDetails = () => {
       title,
       description,
       instructor,
+      instructorId: user?.uid,
       price: parseFloat(price),
       visibility: isPublic ? ('public' as const) : ('private' as const),
       videos,

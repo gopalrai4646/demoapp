@@ -5,6 +5,12 @@ import {
   fetchTrainingPlansRequest, 
   fetchTrainingPlansSuccess, 
   fetchTrainingPlansFailure,
+  createTrainingPlanRequest,
+  createTrainingPlanSuccess,
+  updateTrainingPlanRequest,
+  updateTrainingPlanSuccess,
+  deleteTrainingPlanRequest,
+  deleteTrainingPlanSuccess,
   TrainingPlan
 } from '../slices/trainingPlanSlice';
 import { logoutSuccess } from '../slices/authSlice';
@@ -19,9 +25,9 @@ function createTrainingPlansChannel() {
       });
       emit(plans);
     }, (error: any) => {
-      if (error.code !== 'permission-denied' && error.code !== 'firestore/permission-denied') {
-        console.error("Training plans listener error:", error);
-      }
+      console.error("Training plans listener error:", error);
+      // Emit empty array on permission-denied so loading state resolves
+      emit([]);
     });
   });
 }
@@ -52,6 +58,46 @@ function* watchFetchPlans(): any {
   }
 }
 
+function* handleCreateTrainingPlan(action: ReturnType<typeof createTrainingPlanRequest>): any {
+  try {
+    const planData = {
+      ...action.payload,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    };
+    const collectionRef = firestore().collection('trainingPlans');
+    const docRef = yield call([collectionRef, collectionRef.add], planData);
+    yield put(createTrainingPlanSuccess({
+      id: docRef.id,
+      ...action.payload,
+      createdAt: new Date().toISOString()
+    }));
+  } catch (error: any) {
+    yield put(fetchTrainingPlansFailure(error.message));
+  }
+}
+
+function* handleUpdateTrainingPlan(action: ReturnType<typeof updateTrainingPlanRequest>): any {
+  try {
+    const { id, ...updates } = action.payload;
+    const planRef = firestore().collection('trainingPlans').doc(id);
+    yield call([planRef, 'update'] as any, updates);
+    yield put(updateTrainingPlanSuccess({ ...action.payload } as TrainingPlan));
+  } catch (error: any) {
+    yield put(fetchTrainingPlansFailure(error.message));
+  }
+}
+
+function* handleDeleteTrainingPlan(action: ReturnType<typeof deleteTrainingPlanRequest>): any {
+  try {
+    const id = action.payload;
+    const planRef = firestore().collection('trainingPlans').doc(id);
+    yield call([planRef, planRef.delete]);
+    yield put(deleteTrainingPlanSuccess(id));
+  } catch (error: any) {
+    yield put(fetchTrainingPlansFailure(error.message));
+  }
+}
+
 function* handleLogout(): any {
   if (fetchPlansTask) yield cancel(fetchPlansTask);
 }
@@ -60,5 +106,8 @@ export function* trainingPlanSaga() {
   yield all([
     fork(watchFetchPlans),
     takeLatest(logoutSuccess.type, handleLogout),
+    takeLatest(createTrainingPlanRequest.type, handleCreateTrainingPlan),
+    takeLatest(updateTrainingPlanRequest.type, handleUpdateTrainingPlan),
+    takeLatest(deleteTrainingPlanRequest.type, handleDeleteTrainingPlan),
   ]);
 }

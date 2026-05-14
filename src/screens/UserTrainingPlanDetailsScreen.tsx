@@ -67,7 +67,7 @@ const UserTrainingPlanDetailsScreen = () => {
             <View style={styles.badgeRow}>
               <View style={styles.headerBadge}>
                 <BookOpen size={14} color="#fff" style={styles.badgeIcon} />
-                <Text style={styles.headerBadgeText}>{t('userTrainingPlanDetails.coursesCount', { count: plan.courseIds?.length || 0 })}</Text>
+                <Text style={styles.headerBadgeText}>{t('userTrainingPlanDetails.coursesCount', { count: planCourses.length })}</Text>
               </View>
               <View style={[styles.headerBadge, { backgroundColor: '#4f46e5' }]}>
                 <Target size={14} color="#fff" style={styles.badgeIcon} />

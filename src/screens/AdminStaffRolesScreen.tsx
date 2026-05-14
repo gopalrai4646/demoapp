@@ -115,7 +115,9 @@ const AdminStaffRolesScreen = () => {
                 {groupPerms.map(perm => (
                   <View key={perm} style={styles.permissionBadge}>
                     <Text style={styles.permissionText}>
-                      {t(PERMISSION_MODULES[perm]?.label, { defaultValue: perm })}
+                      {perm === 'training_plans_assign'
+                        ? "Assign"
+                        : t(PERMISSION_MODULES[perm]?.label, { defaultValue: perm })}
                     </Text>
                   </View>
                 ))}

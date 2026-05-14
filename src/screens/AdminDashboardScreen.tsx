@@ -42,7 +42,7 @@ const AdminDashboardScreen = () => {
   const { users } = useAppSelector(state => state.users);
   const { courses } = useAppSelector(state => state.courses);
   const { trainingPlans } = useAppSelector(state => state.trainingPlans);
-  const { user } = useAppSelector(state => state.auth);
+  const { user, role, permissions } = useAppSelector(state => state.auth);
   const { t } = useTranslation();
 
   const [allProgress, setAllProgress] = useState<any[]>([]);
@@ -84,14 +84,22 @@ const AdminDashboardScreen = () => {
 
     const planCounts: Record<string, number> = {};
     trainingPlans.forEach(tp => { planCounts[tp.id] = 0; });
-    
     users.forEach(u => {
       u.assignedTrainingPlans?.forEach(tpId => {
         if (planCounts[tpId] !== undefined) planCounts[tpId]++;
       });
     });
+
+    const planRevenue: Record<string, number> = {};
+    trainingPlans.forEach(tp => {
+      const planValue = tp.courseIds.reduce((sum, cid) => {
+        const course = courses.find(c => c.id === cid);
+        return sum + (course?.price || 0);
+      }, 0);
+      planRevenue[tp.id] = planValue * (planCounts[tp.id] || 0);
+    });
     
-    const sortedPlans = [...trainingPlans].sort((a, b) => (planCounts[b.id] || 0) - (planCounts[a.id] || 0));
+    const sortedPlans = [...trainingPlans].sort((a, b) => (planRevenue[b.id] || 0) - (planRevenue[a.id] || 0));
     const topPlan = sortedPlans[0]?.name || 'None';
 
     const sortedCourses = [...courses].sort((a, b) => {
@@ -227,16 +235,16 @@ const AdminDashboardScreen = () => {
           .slice(0, 5)
           .map(c => ({ label: c.title, value: c.enrolledUsers?.length || 0 }))
       : [...trainingPlans]
-          .sort((a, b) => {
-             const countA = users.filter(u => u.assignedTrainingPlans?.includes(a.id)).length;
-             const countB = users.filter(u => u.assignedTrainingPlans?.includes(b.id)).length;
-             return countB - countA;
+          .map(tp => {
+            const planValue = tp.courseIds.reduce((sum, cid) => {
+              const course = courses.find(c => c.id === cid);
+              return sum + (course?.price || 0);
+            }, 0);
+            const count = users.filter(u => u.assignedTrainingPlans?.includes(tp.id)).length;
+            return { label: tp.name, value: planValue * count };
           })
-          .slice(0, 5)
-          .map(tp => ({ 
-            label: tp.name, 
-            value: users.filter(u => u.assignedTrainingPlans?.includes(tp.id)).length 
-          }));
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 5);
 
     const maxVal = Math.max(...data.map(d => d.value), 1);
 
@@ -257,7 +265,9 @@ const AdminDashboardScreen = () => {
             </View>
             
             <View style={styles.modalBody}>
-              <Text style={styles.chartSub}>{t('adminDashboard.enrollmentDist')}</Text>
+              {isCourses && (
+                <Text style={styles.chartSub}>{t('adminDashboard.enrollmentDist')}</Text>
+              )}
               <View style={styles.modalChartWrapper}>
                 <Svg height="220" width={width - 80}>
                   {data.map((item, index) => {
@@ -293,7 +303,7 @@ const AdminDashboardScreen = () => {
                           textAnchor="middle"
                           fontWeight="900"
                         >
-                          {item.value}
+                          {isCourses ? item.value : `$${item.value >= 1000 ? (item.value / 1000).toFixed(1) + 'k' : item.value}`}
                         </SvgText>
                       </G>
                     );
@@ -537,15 +547,17 @@ const AdminDashboardScreen = () => {
       </View>
 
       <View style={styles.statsGrid}>
-        <AnalyticsCard 
-          title={t('adminDashboard.totalUsers')}
-          value={stats.totalUsers} 
-          subtext={t('adminDashboard.totalUsersSub')}
-          icon={Users} 
-          color="#4f46e5" 
-          bg="#eef2ff" 
-          onPress={() => navigation.navigate('Users')}
-        />
+        {role === 'admin' && (
+          <AnalyticsCard 
+            title={t('adminDashboard.totalUsers')}
+            value={stats.totalUsers} 
+            subtext={t('adminDashboard.totalUsersSub')}
+            icon={Users} 
+            color="#4f46e5" 
+            bg="#eef2ff" 
+            onPress={() => navigation.navigate('Users')}
+          />
+        )}
         <AnalyticsCard 
           title={t('adminDashboard.totalCourses')}
           value={stats.totalCourses} 
@@ -564,34 +576,40 @@ const AdminDashboardScreen = () => {
           bg="#fffbeb" 
           onPress={() => navigation.navigate('Plans')}
         />
-        <AnalyticsCard 
-          title={t('adminDashboard.totalRevenue')}
-          value={`$${stats.totalRevenue.toLocaleString()}`} 
-          subtext={t('adminDashboard.totalRevenueSub')}
-          icon={DollarSign} 
-          color="#ef4444" 
-          bg="#fef2f2" 
-        />
-        <AnalyticsCard 
-          title={t('adminDashboard.topPlans')}
-          value={stats.topPlan} 
-          subtext={t('adminDashboard.topPlansSub')}
-          icon={GraduationCap} 
-          color="#8b5cf6" 
-          bg="#f5f3ff" 
-          miniChart 
-          onPress={() => setActiveInsight('plans')}
-        />
-        <AnalyticsCard 
-          title={t('adminDashboard.topCourses')}
-          value={stats.topCourse} 
-          subtext={t('adminDashboard.topCoursesSub')}
-          icon={BarChart2} 
-          color="#0ea5e9" 
-          bg="#f0f9ff" 
-          miniChart 
-          onPress={() => setActiveInsight('courses')}
-        />
+        {role === 'admin' && (
+          <AnalyticsCard 
+            title={t('adminDashboard.totalRevenue')}
+            value={`$${stats.totalRevenue.toLocaleString()}`} 
+            subtext={t('adminDashboard.totalRevenueSub')}
+            icon={DollarSign} 
+            color="#ef4444" 
+            bg="#fef2f2" 
+          />
+        )}
+        {(role === 'admin' || (permissions as string[]).includes('top_training_plans')) && (
+          <AnalyticsCard 
+            title={t('adminDashboard.topPlans')}
+            value={stats.topPlan} 
+            subtext="Most revenue producer"
+            icon={GraduationCap} 
+            color="#8b5cf6" 
+            bg="#f5f3ff" 
+            miniChart 
+            onPress={() => setActiveInsight('plans')}
+          />
+        )}
+        {(role === 'admin' || (permissions as string[]).includes('top_courses')) && (
+          <AnalyticsCard 
+            title={t('adminDashboard.topCourses')}
+            value={stats.topCourse} 
+            subtext={t('adminDashboard.topCoursesSub')}
+            icon={BarChart2} 
+            color="#0ea5e9" 
+            bg="#f0f9ff" 
+            miniChart 
+            onPress={() => setActiveInsight('courses')}
+          />
+        )}
       </View>
 
       {renderDAUChart()}

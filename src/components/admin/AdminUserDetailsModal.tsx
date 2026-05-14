@@ -43,9 +43,12 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
   // ─── Redux selectors (read from Firestore via real-time onSnapshot listeners) ───
   const { trainingPlans } = useAppSelector(state => state.trainingPlans);
   const { courses } = useAppSelector(state => state.courses);
-  // Get the LIVE user from Redux (not the stale prop) so changes reflect in real-time
   const { users } = useAppSelector(state => state.users);
   const user = users.find(u => u.id === userProp?.id) || userProp;
+
+  // ─── Permission check ───
+  const { role, permissions } = useAppSelector(state => state.auth);
+  const canAssign = role === 'admin' || (role === 'staff' && permissions.includes('training_plans_assign'));
 
   // ─── Local UI state for the assign flow ───
   const [isAssigning, setIsAssigning] = useState(false);
@@ -69,10 +72,10 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
 
   // ─── Cross-collection lookups ───
   const getCourseTitle = (id: string) =>
-    courses.find(c => c.id === id)?.title || 'Unknown Course';
+    courses.find(c => c.id === id)?.title || null;
 
   const getPlanName = (id: string) =>
-    trainingPlans.find(tp => tp.id === id)?.name || 'Unknown Plan';
+    trainingPlans.find(tp => tp.id === id)?.name || null;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -124,6 +127,11 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
   const availablePlans = trainingPlans.filter(
     tp => !user.assignedTrainingPlans?.includes(tp.id),
   );
+
+  // ─── Derived Data: Filter out deleted items ───
+  const validAssignedPlans = (user.assignedTrainingPlans || []).filter(id => trainingPlans.some(tp => tp.id === id));
+  const validEnrolledCourses = (user.enrolledCourses || []).filter(id => courses.some(c => c.id === id));
+  const validSavedCourses = (user.savedCourses || []).filter(id => courses.some(c => c.id === id));
 
   return (
     <Modal
@@ -209,17 +217,19 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                 <View style={styles.cardTitleRow}>
                   <ClipboardList size={16} color="#64748b" />
                   <Text style={styles.cardTitle}>
-                    {t('adminUserDetails.assignedPlans', { count: user.assignedTrainingPlans?.length || 0 })}
+                    {t('adminUserDetails.assignedPlans', { count: validAssignedPlans.length })}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.assignBtn}
-                  onPress={() => {
-                    setIsAssigning(!isAssigning);
-                    setShowPlanList(false);
-                  }}>
-                  <Text style={styles.assignBtnText}>{isAssigning ? t('adminUserDetails.cancel') : t('adminUserDetails.assignPlan')}</Text>
-                </TouchableOpacity>
+                {canAssign && (
+                  <TouchableOpacity
+                    style={styles.assignBtn}
+                    onPress={() => {
+                      setIsAssigning(!isAssigning);
+                      setShowPlanList(false);
+                    }}>
+                    <Text style={styles.assignBtnText}>{isAssigning ? t('adminUserDetails.cancel') : t('adminUserDetails.assignPlan')}</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               {isAssigning && (
@@ -229,7 +239,7 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                     onPress={() => setShowPlanList(!showPlanList)}
                   >
                     <Text style={[styles.pickerText, !selectedPlanId && { color: '#94a3b8' }]}>
-                      {selectedPlanId ? getPlanName(selectedPlanId) : t('adminUserDetails.selectPlan')}
+                      {selectedPlanId ? (getPlanName(selectedPlanId) || 'Select Plan') : t('adminUserDetails.selectPlan')}
                     </Text>
                     <ChevronDown size={16} color="#94a3b8" />
                   </TouchableOpacity>
@@ -267,19 +277,21 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
                 </View>
               )}
 
-              {user.assignedTrainingPlans && user.assignedTrainingPlans.length > 0 ? (
+              {validAssignedPlans.length > 0 ? (
                 <View style={styles.listContainer}>
-                  {user.assignedTrainingPlans.map(id => {
+                  {validAssignedPlans.map(id => {
                     const planName = getPlanName(id);
                     return (
                       <View key={id} style={styles.listItem}>
                         <View style={[styles.dot, { backgroundColor: '#94a3b8' }]} />
                         <Text style={styles.listItemText} numberOfLines={1}>{planName}</Text>
-                        <TouchableOpacity
-                          onPress={() => handleUnassignPlan(id, planName)}
-                          style={styles.trashBtn}>
-                          <Trash2 size={16} color="#ef4444" />
-                        </TouchableOpacity>
+                        {canAssign && (
+                          <TouchableOpacity
+                            onPress={() => handleUnassignPlan(id, planName || '')}
+                            style={styles.trashBtn}>
+                            <Trash2 size={16} color="#ef4444" />
+                          </TouchableOpacity>
+                        )}
                       </View>
                     );
                   })}
@@ -296,13 +308,13 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
               <View style={styles.cardHeader}>
                 <View style={styles.cardTitleRow}>
                   <BookOpen size={16} color="#64748b" />
-                  <Text style={styles.cardTitle}>{t('adminUserDetails.enrolledCourses', { count: user.enrolledCourses?.length || 0 })}</Text>
+                  <Text style={styles.cardTitle}>{t('adminUserDetails.enrolledCourses', { count: validEnrolledCourses.length })}</Text>
                 </View>
               </View>
 
-              {user.enrolledCourses && user.enrolledCourses.length > 0 ? (
+              {validEnrolledCourses.length > 0 ? (
                 <View style={styles.listContainer}>
-                  {user.enrolledCourses.map(id => (
+                  {validEnrolledCourses.map(id => (
                     <View key={id} style={styles.listItem}>
                       <View style={[styles.dot, { backgroundColor: '#6366f1' }]} />
                       <Text style={[styles.listItemText, { color: '#6366f1' }]} numberOfLines={1}>{getCourseTitle(id)}</Text>
@@ -321,13 +333,13 @@ const AdminUserDetailsModal = ({ visible, user: userProp, onClose }: Props) => {
               <View style={styles.cardHeader}>
                 <View style={styles.cardTitleRow}>
                   <Heart size={16} color="#e11d48" fill="#e11d48" />
-                  <Text style={styles.cardTitle}>{t('adminUserDetails.savedCourses', { count: user.savedCourses?.length || 0 })}</Text>
+                  <Text style={styles.cardTitle}>{t('adminUserDetails.savedCourses', { count: validSavedCourses.length })}</Text>
                 </View>
               </View>
 
-              {user.savedCourses && user.savedCourses.length > 0 ? (
+              {validSavedCourses.length > 0 ? (
                 <View style={styles.listContainer}>
-                  {user.savedCourses.map(id => (
+                  {validSavedCourses.map(id => (
                     <View key={id} style={styles.listItem}>
                       <View style={[styles.dot, { backgroundColor: '#e11d48' }]} />
                       <Text style={[styles.listItemText, { color: '#e11d48' }]} numberOfLines={1}>{getCourseTitle(id)}</Text>

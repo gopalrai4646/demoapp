@@ -33,6 +33,11 @@ const AdminCourseList = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { courses, loading } = useSelector((state: RootState) => state.courses);
+  const { role, permissions } = useSelector((state: RootState) => state.auth);
+  const isAdmin = role === 'admin';
+  const canCreate = isAdmin || permissions.includes('courses_create');
+  const canEdit = isAdmin || permissions.includes('courses_edit');
+  const canDelete = isAdmin || permissions.includes('courses_delete');
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filter, setFilter] = useState<'all' | 'public' | 'private'>('all');
@@ -108,18 +113,30 @@ const AdminCourseList = () => {
           </View>
           
           <View style={styles.cardActions}>
-            <TouchableOpacity 
-              style={styles.actionButton} 
-              onPress={() => navigation.navigate('AdminCourseDetails', { courseId: item.id })}
-            >
-              <Pencil size={18} color={COLORS.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => handleDelete(item.id, item.title)}
-            >
-              <Trash2 size={18} color={COLORS.error} />
-            </TouchableOpacity>
+            {canEdit && (
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                onPress={() => navigation.navigate('AdminCourseDetails', { courseId: item.id })}
+              >
+                <Pencil size={18} color={COLORS.primary} />
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleDelete(item.id, item.title)}
+              >
+                <Trash2 size={18} color={COLORS.error} />
+              </TouchableOpacity>
+            )}
+            {!canEdit && !canDelete && (
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                onPress={() => navigation.navigate('AdminCourseDetails', { courseId: item.id })}
+              >
+                <Search size={18} color={COLORS.outline} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -133,12 +150,14 @@ const AdminCourseList = () => {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
         <Text style={TYPOGRAPHY.headline}>{t('adminCourses.manageCourses')}</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AdminCourseDetails', {})}
-        >
-          <Plus size={24} color={COLORS.onPrimary} />
-        </TouchableOpacity>
+        {canCreate && (
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AdminCourseDetails', {})}
+          >
+            <Plus size={24} color={COLORS.onPrimary} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Search */}

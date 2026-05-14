@@ -21,14 +21,38 @@ import {
   saveCourseRequest,
   saveCourseSuccess,
   updateUserData,
+  updatePermissions,
   impersonateUserRequest,
   impersonateUserSuccess,
   stopImpersonationRequest,
   stopImpersonationSuccess,
 } from '../slices/authSlice';
 import { enrollUserInCourseSuccess } from '../slices/courseSlice';
+import { ENV } from '../../config/env';
 import { clearProgress } from '../slices/progressSlice';
 import { clearUsers } from '../slices/userSlice';
+
+/**
+ * Fetches the permissions array for a staff member by looking up their
+ * staffRoleId in the 'staffRoles' Firestore collection.
+ * Returns an empty array for non-staff users or if the role is not found.
+ */
+function* fetchStaffPermissions(staffRoleId: string | undefined): any {
+  if (!staffRoleId) return [];
+  try {
+    const roleRef = firestore().collection('staffRoles').doc(staffRoleId);
+    const roleDoc: any = yield call([roleRef, 'get'] as any);
+    const roleExists = typeof roleDoc.exists === 'function' ? roleDoc.exists() : roleDoc.exists;
+    if (roleExists) {
+      const roleData = roleDoc.data();
+      return roleData?.permissions || [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching staff permissions:', error);
+    return [];
+  }
+}
 
 function createUserChannel(uid: string) {
   return eventChannel(emit => {
@@ -49,7 +73,8 @@ function createUserChannel(uid: string) {
               photoURL: data.photoURL || null,
               phoneNumber: data.phoneNumber || null
             },
-            role: data.role || 'student'
+            role: data.role || 'student',
+            staffRoleId: data.staffRoleId || null,
           });
         }
       }
@@ -59,14 +84,75 @@ function createUserChannel(uid: string) {
   });
 }
 
+/**
+ * Creates a real-time Firestore listener on a staffRoles document.
+ * When the admin edits the role's permissions, this channel emits the new array.
+ */
+function createStaffRoleChannel(staffRoleId: string) {
+  return eventChannel(emit => {
+    const roleRef = firestore().collection('staffRoles').doc(staffRoleId);
+    return roleRef.onSnapshot((snapshot) => {
+      const exists = typeof snapshot.exists === 'function' ? snapshot.exists() : snapshot.exists;
+      if (exists) {
+        const data = snapshot.data();
+        emit(data?.permissions || []);
+      } else {
+        // Role was deleted — revoke all permissions
+        emit([]);
+      }
+    }, (error) => {
+      console.error('Staff role listener error:', error);
+    });
+  });
+}
+
+/**
+ * Watches a single staffRoles document in real time.
+ * Dispatches updatePermissions whenever the role's permissions change.
+ */
+function* syncStaffRolePermissions(staffRoleId: string): any {
+  const channel = yield call(createStaffRoleChannel, staffRoleId);
+  try {
+    while (true) {
+      const permissions: string[] = yield take(channel);
+      yield put(updatePermissions(permissions));
+    }
+  } finally {
+    channel.close();
+  }
+}
+
 function* syncUserSession(uid: string): any {
   const channel = yield call(createUserChannel, uid);
+  let staffRoleSyncTask: any = null;
+  let currentStaffRoleId: string | null = null;
   try {
     while (true) {
       const data = yield take(channel);
-      yield put(updateUserData(data));
+
+      // If the user is staff, manage the real-time staff role listener
+      if (data.role === 'staff' && data.staffRoleId) {
+        // Start or restart the role listener if staffRoleId changed
+        if (data.staffRoleId !== currentStaffRoleId) {
+          if (staffRoleSyncTask) yield cancel(staffRoleSyncTask);
+          staffRoleSyncTask = yield fork(syncStaffRolePermissions, data.staffRoleId);
+          currentStaffRoleId = data.staffRoleId;
+        }
+        // Fetch once immediately for the user data update
+        const permissions: string[] = yield call(fetchStaffPermissions, data.staffRoleId);
+        yield put(updateUserData({ ...data, permissions }));
+      } else {
+        // Not staff — cancel any active role listener and clear permissions
+        if (staffRoleSyncTask) {
+          yield cancel(staffRoleSyncTask);
+          staffRoleSyncTask = null;
+          currentStaffRoleId = null;
+        }
+        yield put(updateUserData({ ...data, permissions: [] }));
+      }
     }
   } finally {
+    if (staffRoleSyncTask) yield cancel(staffRoleSyncTask);
     channel.close();
   }
 }
@@ -91,6 +177,13 @@ function* handleLogin(action: ReturnType<typeof loginRequest>): any {
     }
 
     const userData = userDoc.data();
+    
+    // If user is staff, fetch their granular permissions from their assigned role
+    let staffPermissions: string[] = [];
+    if (userData.role === 'staff' && userData.staffRoleId) {
+      staffPermissions = yield call(fetchStaffPermissions, userData.staffRoleId);
+    }
+
     yield put(authSuccess({ 
       user: { 
         uid: user.uid, 
@@ -102,7 +195,8 @@ function* handleLogin(action: ReturnType<typeof loginRequest>): any {
         photoURL: userData.photoURL || null,
         phoneNumber: userData.phoneNumber || null
       }, 
-      role: userData.role || 'student', 
+      role: userData.role || 'student',
+      permissions: staffPermissions,
       isNewUser: false 
     }));
 
@@ -231,7 +325,7 @@ function* handleGoogleLogin(): any {
     const userDoc: any = yield call([userRef, 'get'] as any);
     const userExists = typeof userDoc.exists === 'function' ? userDoc.exists() : userDoc.exists;
     
-    let role: 'student' | 'admin' = 'student';
+    let role: 'student' | 'admin' | 'staff' = 'student';
     let userData: any = {};
 
     if (!userExists) {
@@ -255,6 +349,12 @@ function* handleGoogleLogin(): any {
       role = userData.role || 'student';
     }
 
+    // If user is staff, fetch their granular permissions from their assigned role
+    let staffPermissions: string[] = [];
+    if (role === 'staff' && userData.staffRoleId) {
+      staffPermissions = yield call(fetchStaffPermissions, userData.staffRoleId);
+    }
+
     yield put(authSuccess({ 
       user: { 
         uid: user.uid, 
@@ -266,7 +366,8 @@ function* handleGoogleLogin(): any {
         photoURL: userData.photoURL || user.photoURL,
         phoneNumber: userData.phoneNumber || user.phoneNumber || null
       }, 
-      role, 
+      role,
+      permissions: staffPermissions,
       isNewUser: !userDoc.exists 
     }));
 
@@ -317,19 +418,40 @@ function* handleUpdateProfile(action: ReturnType<typeof updateProfileRequest>): 
     if (!targetUid) throw new Error('User context not found.');
 
     const currentUser = auth().currentUser;
-    
-    if (!isImpersonating && currentUser) {
+    if (!currentUser) throw new Error('Not authenticated');
+
+    if (isImpersonating) {
+      // 1. Use Backend API when impersonating (to bypass Firestore security rules)
+      const token = yield call([currentUser, currentUser.getIdToken]);
+      
+      console.log(`Saga: Updating impersonated profile for ${targetUid} via API`);
+      const response = yield call(fetch, `${ENV.API_URL}/api/admin/users/update-profile`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: targetUid, displayName, photoURL, phoneNumber }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = yield call([response, response.json]);
+        console.error('Saga: Update Profile API Error:', errorData);
+        throw new Error(errorData.error || `Server returned ${response.status}`);
+      }
+    } else {
+      // 2. Standard flow for own profile
       const authUpdates: any = { displayName };
       if (photoURL !== undefined) authUpdates.photoURL = photoURL;
       yield call([currentUser, currentUser.updateProfile], authUpdates);
+      
+      const firestoreUpdates: any = { displayName };
+      if (photoURL !== undefined) firestoreUpdates.photoURL = photoURL;
+      if (phoneNumber !== undefined) firestoreUpdates.phoneNumber = phoneNumber;
+      
+      const userRef = firestore().collection('users').doc(targetUid);
+      yield call([userRef, userRef.set], firestoreUpdates, { merge: true });
     }
-    
-    const firestoreUpdates: any = { displayName };
-    if (photoURL !== undefined) firestoreUpdates.photoURL = photoURL;
-    if (phoneNumber !== undefined) firestoreUpdates.phoneNumber = phoneNumber;
-    
-    const userRef = firestore().collection('users').doc(targetUid);
-    yield call([userRef, userRef.set], firestoreUpdates, { merge: true });
     
     yield put(updateProfileSuccess({ 
       displayName, 
@@ -337,6 +459,7 @@ function* handleUpdateProfile(action: ReturnType<typeof updateProfileRequest>): 
       phoneNumber: phoneNumber !== undefined ? phoneNumber : state.auth.user?.phoneNumber 
     }));
   } catch (error: any) {
+    console.error('Saga: handleUpdateProfile error:', error.message);
     yield put(authFailure(error.message));
   }
 }
@@ -346,24 +469,46 @@ function* handleEnrollCourse(action: ReturnType<typeof enrollCourseRequest>): an
     const courseId = action.payload;
     const state: any = yield select();
     const targetUid = state.auth.user?.uid;
-    if (!targetUid) {
-      yield put(authFailure('User context not found.'));
-      return;
-    }
+    const isImpersonating = state.auth.isImpersonating;
 
-    const userRef = firestore().collection('users').doc(targetUid);
-    yield call([userRef, userRef.set], {
-      enrolledCourses: firestore.FieldValue.arrayUnion(courseId)
-    }, { merge: true });
-    
-    const courseRef = firestore().collection('courses').doc(courseId);
-    yield call([courseRef, courseRef.set], {
-      enrolledUsers: firestore.FieldValue.arrayUnion(targetUid)
-    }, { merge: true });
+    if (!targetUid) throw new Error('User context not found.');
+
+    const currentUser = auth().currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
+
+    if (isImpersonating) {
+      // Use Backend API when impersonating
+      const token = yield call([currentUser, currentUser.getIdToken]);
+      const response = yield call(fetch, `${ENV.API_URL}/api/admin/users/enroll-course`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: targetUid, courseId, action: 'enroll' }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = yield call([response, response.json]);
+        throw new Error(errorData.error || 'Failed to enroll course via API');
+      }
+    } else {
+      // Standard flow for own profile
+      const userRef = firestore().collection('users').doc(targetUid);
+      yield call([userRef, userRef.set], {
+        enrolledCourses: firestore.FieldValue.arrayUnion(courseId)
+      }, { merge: true });
+      
+      const courseRef = firestore().collection('courses').doc(courseId);
+      yield call([courseRef, courseRef.set], {
+        enrolledUsers: firestore.FieldValue.arrayUnion(targetUid)
+      }, { merge: true });
+    }
     
     yield put(enrollUserInCourseSuccess({ courseId, userId: targetUid }));
     yield put(enrollCourseSuccess(courseId));
   } catch (error: any) {
+    console.error('Saga: handleEnrollCourse error:', error.message);
     yield put(authFailure(error.message));
   }
 }
@@ -373,26 +518,45 @@ function* handleSaveCourse(action: ReturnType<typeof saveCourseRequest>): any {
     const courseId = action.payload;
     const state: any = yield select();
     const targetUid = state.auth.user?.uid;
+    const isImpersonating = state.auth.isImpersonating;
     
-    if (!targetUid) {
-      yield put(authFailure('User context not found.'));
-      return;
-    }
+    if (!targetUid) throw new Error('User context not found.');
+
+    const currentUser = auth().currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
 
     const currentSavedCourses = state.auth.user?.savedCourses || [];
     const isSaved = currentSavedCourses.includes(courseId);
-    
-    const userRef = firestore().collection('users').doc(targetUid);
-    
-    // Atomic update: no need to 'get' first
-    yield call([userRef, userRef.set], {
-      savedCourses: isSaved 
-        ? firestore.FieldValue.arrayRemove(courseId) 
-        : firestore.FieldValue.arrayUnion(courseId)
-    }, { merge: true });
+
+    if (isImpersonating) {
+      // Use Backend API when impersonating
+      const token = yield call([currentUser, currentUser.getIdToken]);
+      const response = yield call(fetch, `${ENV.API_URL}/api/admin/users/save-course`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: targetUid, courseId, action: isSaved ? 'unsave' : 'save' }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = yield call([response, response.json]);
+        throw new Error(errorData.error || 'Failed to save course via API');
+      }
+    } else {
+      // Standard flow for own profile
+      const userRef = firestore().collection('users').doc(targetUid);
+      yield call([userRef, userRef.set], {
+        savedCourses: isSaved 
+          ? firestore.FieldValue.arrayRemove(courseId) 
+          : firestore.FieldValue.arrayUnion(courseId)
+      }, { merge: true });
+    }
     
     yield put(saveCourseSuccess(courseId));
   } catch (error: any) {
+    console.error('Saga: handleSaveCourse error:', error.message);
     yield put(authFailure(error.message));
   }
 }
@@ -419,7 +583,13 @@ function* handleImpersonateUser(action: ReturnType<typeof impersonateUserRequest
       phoneNumber: userData.phoneNumber || null,
     };
  
-    yield put(impersonateUserSuccess({ user, role: userData.role || 'student' }));
+    // Fetch permissions if target user is staff
+    let permissions: string[] = [];
+    if (userData.role === 'staff' && userData.staffRoleId) {
+      permissions = yield call(fetchStaffPermissions, userData.staffRoleId);
+    }
+ 
+    yield put(impersonateUserSuccess({ user, role: userData.role || 'student', permissions }));
     
     if (userSyncTask) yield cancel(userSyncTask);
     userSyncTask = yield fork(syncUserSession, targetUid);
