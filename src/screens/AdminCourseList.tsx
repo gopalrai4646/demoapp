@@ -334,7 +334,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: SPACING.md,
-    paddingBottom: 20,
   },
   gridColumnWrapper: {
     justifyContent: 'space-between',

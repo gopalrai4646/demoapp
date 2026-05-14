@@ -130,53 +130,52 @@ export const AdminTrainingPlanList = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      {loading ? (
+      
+      <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
+        <Text style={TYPOGRAPHY.headline}>{t('adminPlans.managePlans')}</Text>
+        {canCreate && (
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
+          >
+            <Plus size={24} color={COLORS.onPrimary} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.searchContainer}>
+        <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t('adminPlans.searchPlaceholder')}
+          placeholderTextColor={COLORS.outline}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {loading && trainingPlans.length === 0 ? (
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           ListHeaderComponent={
-            <>
-              <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
-                <Text style={TYPOGRAPHY.headline}>{t('adminPlans.managePlans')}</Text>
-                {canCreate && (
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
-                  >
-                    <Plus size={24} color={COLORS.onPrimary} />
-                  </TouchableOpacity>
-                )}
+            <View style={styles.controlsRow}>
+              <View style={styles.viewToggles}>
+                <TouchableOpacity
+                  style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]}
+                  onPress={() => setViewMode('grid')}
+                >
+                  <LayoutGrid size={16} color={viewMode === 'grid' ? COLORS.primary : COLORS.outline} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
+                  onPress={() => setViewMode('list')}
+                >
+                  <List size={16} color={viewMode === 'list' ? COLORS.primary : COLORS.outline} />
+                </TouchableOpacity>
               </View>
-
-              <View style={styles.searchContainer}>
-                <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder={t('adminPlans.searchPlaceholder')}
-                  placeholderTextColor={COLORS.outline}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-              </View>
-
-              <View style={styles.controlsRow}>
-                <View style={styles.viewToggles}>
-                  <TouchableOpacity
-                    style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]}
-                    onPress={() => setViewMode('grid')}
-                  >
-                    <LayoutGrid size={16} color={viewMode === 'grid' ? COLORS.primary : COLORS.outline} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
-                    onPress={() => setViewMode('list')}
-                  >
-                    <List size={16} color={viewMode === 'list' ? COLORS.primary : COLORS.outline} />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.itemCountText}>{t('adminPlans.showingCount', { count: filteredPlans.length })}</Text>
-              </View>
-            </>
+              <Text style={styles.itemCountText}>{t('adminPlans.showingCount', { count: filteredPlans.length })}</Text>
+            </View>
           }
           key={viewMode}
           data={filteredPlans}
@@ -290,7 +289,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: SPACING.md,
-    paddingBottom: 20,
   },
   gridColumnWrapper: {
     justifyContent: 'space-between',

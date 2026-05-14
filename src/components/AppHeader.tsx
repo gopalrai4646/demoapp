@@ -38,13 +38,17 @@ export const AppHeader = () => {
       <View style={[styles.container, { paddingTop: insets.top + 4 }]}>
         <View style={styles.content}>
           {/* Left: Logo Only */}
-          <View style={styles.logoContainer}>
+          <TouchableOpacity 
+            style={styles.logoContainer}
+            onPress={() => navigation.navigate('Dashboard')}
+            activeOpacity={0.7}
+          >
             <Image
               source={MENTORA_LOGO}
               style={styles.logoIcon}
               resizeMode="contain"
             />
-          </View>
+          </TouchableOpacity>
 
           {/* Right: Language Selector + Profile Picture */}
           <View style={styles.rightSection}>

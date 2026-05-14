@@ -290,7 +290,7 @@ const AdminStaffRolesScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: SPACING.md, paddingBottom: 100 },
+  content: { padding: SPACING.md, paddingBottom: SPACING.xxl },
   headerWrapper: { minHeight: 180, borderRadius: 32, overflow: 'hidden', marginBottom: SPACING.xl, elevation: 8, shadowColor: '#4f46e5', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.3, shadowRadius: 24 },
   headerInner: { padding: 24, flex: 1, justifyContent: 'center' },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },

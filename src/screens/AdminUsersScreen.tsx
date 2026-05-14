@@ -11,6 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchUsersRequest, deleteUserRequest } from '../store/slices/userSlice';
@@ -33,6 +34,7 @@ import { AppHeader } from '../components/AppHeader';
 import AdminUserDetailsModal from '../components/admin/AdminUserDetailsModal';
 
 const AdminUsersScreen = () => {
+  const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const { users, loading, error } = useAppSelector(state => state.users);
@@ -264,10 +266,10 @@ const AdminUsersScreen = () => {
   if (loading && users.length === 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
           <Text style={styles.title}>{t('adminUsers.management')}</Text>
-          <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
         </View>
+        <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
         <ScrollView contentContainerStyle={styles.listContent}>
           {[1, 2, 3, 4].map(i => <View key={i}>{renderSkeleton()}</View>)}
         </ScrollView>
@@ -280,33 +282,35 @@ const AdminUsersScreen = () => {
       <FlatList
         ListHeaderComponent={
           <>
-            <View style={[styles.header, { paddingTop: SPACING.xl }]}>
+            <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
               <Text style={styles.title}>{t('adminUsers.management')}</Text>
-              <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
             </View>
-            <View style={styles.toolbar}>
-              <View style={styles.searchBar}>
-                <Search size={20} color={COLORS.onSurfaceVariant} style={styles.searchIcon} />
+            <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
+            
+            <View style={styles.searchContainer}>
+                <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
                 <TextInput
                   placeholder={t('adminUsers.searchPlaceholder')}
                   style={styles.searchInput}
                   value={searchTerm}
                   onChangeText={setSearchTerm}
-                  placeholderTextColor={COLORS.onSurfaceVariant}
+                  placeholderTextColor={COLORS.outline}
                 />
-              </View>
+            </View>
+
+            <View style={styles.viewModeToggleWrapper}>
               <View style={styles.viewModeToggle}>
                 <TouchableOpacity 
                   style={[styles.toggleTab, viewMode === 'grid' && styles.activeToggleTab]} 
                   onPress={() => setViewMode('grid')}
                 >
-                  <LayoutGrid size={20} color={viewMode === 'grid' ? COLORS.primary : COLORS.onSurfaceVariant} />
+                  <LayoutGrid size={20} color={viewMode === 'grid' ? COLORS.primary : COLORS.outline} />
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.toggleTab, viewMode === 'list' && styles.activeToggleTab]} 
                   onPress={() => setViewMode('list')}
                 >
-                  <List size={20} color={viewMode === 'list' ? COLORS.primary : COLORS.onSurfaceVariant} />
+                  <List size={20} color={viewMode === 'list' ? COLORS.primary : COLORS.outline} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -352,68 +356,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    padding: SPACING.lg,
-    paddingTop: SPACING.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.sm,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    ...TYPOGRAPHY.headline,
     color: COLORS.onSurface,
-    fontFamily: TYPOGRAPHY.headline.fontFamily,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#64748b',
-    marginTop: 2,
-    fontWeight: '500',
+    fontSize: 14,
+    color: COLORS.outline,
+    marginTop: -2,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.md,
   },
   toolbar: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.lg,
-    alignItems: 'center',
-    gap: SPACING.md,
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
-  searchBar: {
-    flex: 1,
+  searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 24,
+    backgroundColor: COLORS.surfaceContainerHighest,
+    marginHorizontal: SPACING.md,
+    borderRadius: ROUNDNESS.lg,
     paddingHorizontal: SPACING.md,
-    height: 44,
+    height: 40,
+    marginBottom: SPACING.xs,
   },
   searchIcon: {
-    marginRight: SPACING.sm,
+    marginRight: 8,
+    opacity: 0.6,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.onSurface,
-    fontWeight: '500',
+    fontFamily: 'Inter-Regular',
+  },
+  viewModeToggleWrapper: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   viewModeToggle: {
     flexDirection: 'row',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 16,
+    backgroundColor: COLORS.surfaceContainerHighest,
+    borderRadius: ROUNDNESS.lg,
     padding: 4,
-    gap: 4,
+    flex: 1,
   },
   toggleTab: {
-    padding: 8,
-    borderRadius: 12,
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: ROUNDNESS.md,
   },
   activeToggleTab: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 2,
     elevation: 2,
   },
   filterWrapper: {
-    height: 60,
-    marginBottom: SPACING.md,
+    height: 50,
+    marginBottom: SPACING.sm,
   },
   filterScrollContent: {
     paddingHorizontal: SPACING.lg,
@@ -421,9 +432,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
     backgroundColor: '#fff',
     marginRight: 10,
     shadowColor: '#000',
@@ -448,21 +459,21 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   listContent: {
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: 120,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.xxl,
   },
   listCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: SPACING.md,
-    borderRadius: 24,
-    marginBottom: SPACING.md,
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 2,
   },
   avatarContainer: {
     marginRight: SPACING.md,
@@ -479,9 +490,9 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
   },
   initialsAvatar: {
     backgroundColor: COLORS.primaryContainer,
@@ -497,14 +508,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: COLORS.onSurface,
   },
   userEmail: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#64748b',
-    marginTop: 2,
+    marginTop: 1,
   },
   listActions: {
     flexDirection: 'row',
@@ -522,14 +533,14 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 32,
-    marginBottom: 20,
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 12,
     shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 25,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.04,
+    shadowRadius: 15,
+    elevation: 3,
   },
   gridHeader: {
     flexDirection: 'row',
@@ -541,9 +552,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   avatarLarge: {
-    width: 72,
-    height: 72,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 18,
   },
   statusDotLarge: {
     position: 'absolute',

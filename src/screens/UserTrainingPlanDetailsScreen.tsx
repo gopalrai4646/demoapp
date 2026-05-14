@@ -99,10 +99,16 @@ const UserTrainingPlanDetailsScreen = () => {
                       <Text style={styles.indexText}>{index + 1}</Text>
                     </View>
                     
-                    <Image 
-                      source={{ uri: course.thumbnail || 'https://via.placeholder.com/100' }} 
-                      style={styles.courseThumbnail}
-                    />
+                    {course.thumbnail ? (
+                      <Image 
+                        source={{ uri: course.thumbnail }} 
+                        style={styles.courseThumbnail}
+                      />
+                    ) : (
+                      <View style={[styles.courseThumbnail, { backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }]}>
+                        <BookOpen size={24} color="#94a3b8" />
+                      </View>
+                    )}
 
                     <View style={styles.courseMainInfo}>
                       <View style={styles.titleRow}>

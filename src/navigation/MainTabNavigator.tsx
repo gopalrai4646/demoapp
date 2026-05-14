@@ -14,6 +14,7 @@ import UserCourseStack from './UserCourseStack';
 import UserTrainingPlanStack from './UserTrainingPlanStack';
 import AdminUsersScreen from '../screens/AdminUsersScreen';
 import AdminStaffRolesScreen from '../screens/AdminStaffRolesScreen';
+// LandingPage is only for AuthStack now
 import { MainTabParamList } from './types';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
 import { 
@@ -134,8 +135,8 @@ const MainTabNavigator = () => {
         component={isAdmin || isStaff ? AdminDashboardScreen : Dashboard}
         options={{
           tabBarLabel: isAdmin || isStaff ? t('tabs.reports') : t('tabs.dashboard'),
-          tabBarIcon: ({ color, size, focused }) => (
-            isAdmin || isStaff ? <BarChart2 size={size} color={color} /> : <LayoutDashboard size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            isAdmin || isStaff ? <BarChart2 size={24} color={color} /> : <LayoutDashboard size={24} color={color} />
           ),
         }}
       />
@@ -145,8 +146,8 @@ const MainTabNavigator = () => {
           component={isAdmin || isStaff ? AdminCourseStack : UserCourseStack}
           options={{
             tabBarLabel: t('tabs.courses'),
-            tabBarIcon: ({ color, size }) => (
-              <BookOpen size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <BookOpen size={24} color={color} />
             ),
           }}
           listeners={({ navigation }) => ({
@@ -165,8 +166,8 @@ const MainTabNavigator = () => {
           component={isAdmin || isStaff ? AdminTrainingPlanStack : UserTrainingPlanStack}
           options={{
             tabBarLabel: t('tabs.plans'),
-            tabBarIcon: ({ color, size }) => (
-              <ClipboardList size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <ClipboardList size={24} color={color} />
             ),
           }}
           listeners={({ navigation }) => ({
@@ -186,8 +187,8 @@ const MainTabNavigator = () => {
           component={AdminUsersScreen}
           options={{
             tabBarLabel: t('tabs.users'),
-            tabBarIcon: ({ color, size }) => (
-              <Users size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <Users size={24} color={color} />
             ),
           }}
         />
@@ -198,8 +199,8 @@ const MainTabNavigator = () => {
           component={AdminStaffRolesScreen}
           options={{
             tabBarLabel: t('tabs.staffRoles') || 'Staff',
-            tabBarIcon: ({ color, size }) => (
-              <Shield size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <Shield size={24} color={color} />
             ),
           }}
         />
@@ -209,8 +210,8 @@ const MainTabNavigator = () => {
         component={Account}
         options={{
           tabBarLabel: isAdmin ? t('tabs.settings') : t('tabs.account'),
-          tabBarIcon: ({ color, size }) => (
-            isAdmin ? <Settings size={size} color={color} /> : <GraduationCap size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            isAdmin ? <Settings size={24} color={color} /> : <GraduationCap size={24} color={color} />
           ),
         }}
       />

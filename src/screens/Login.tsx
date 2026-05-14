@@ -96,14 +96,17 @@ const Login = () => {
 
         {/* Brand Identity */}
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
+          <TouchableOpacity 
+            style={styles.logoContainer}
+            onPress={() => navigation.navigate('Landing')}
+            activeOpacity={0.7}
+          >
             <Image
               source={MENTORA_LOGO}
               style={styles.logo}
               resizeMode="contain"
             />
-
-          </View>
+          </TouchableOpacity>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
             Sign in to continue your journey with your mentor.

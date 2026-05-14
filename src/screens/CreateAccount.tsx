@@ -133,13 +133,17 @@ const CreateAccount = () => {
         </TouchableOpacity>
 
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
+          <TouchableOpacity 
+            style={styles.logoContainer}
+            onPress={() => navigation.navigate('Landing')}
+            activeOpacity={0.7}
+          >
             <Image
               source={MENTORA_LOGO}
               style={styles.logo}
               resizeMode="contain"
             />
-          </View>
+          </TouchableOpacity>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join thousands of learners today</Text>
         </View>

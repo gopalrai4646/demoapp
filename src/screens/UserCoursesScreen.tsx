@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: SPACING.lg,
-    paddingBottom: 40,
+    paddingBottom: SPACING.md,
   },
   card: {
     backgroundColor: '#ffffff',

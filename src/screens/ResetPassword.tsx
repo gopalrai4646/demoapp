@@ -99,13 +99,17 @@ const ResetPassword = () => {
 
         {/* Brand Identity */}
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
+          <TouchableOpacity 
+            style={styles.logoContainer}
+            onPress={() => navigation.navigate('Landing')}
+            activeOpacity={0.7}
+          >
             <Image
               source={MENTORA_LOGO}
               style={styles.logo}
               resizeMode="contain"
             />
-          </View>
+          </TouchableOpacity>
           <Text style={styles.title}>Reset Password</Text>
           <Text style={styles.subtitle}>
             Enter your email and we'll send you a link to reset your password.

@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     color: COLORS.outline,
   },
   scrollContent: {
-    padding: SPACING.md,
+    paddingBottom: SPACING.xxl,
   },
   modeOverline: {
     fontSize: 10,
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
   },
   modalListContent: {
     padding: SPACING.md,
-    paddingBottom: 100,
+    paddingBottom: SPACING.xxl,
   },
   modalLessonCard: {
     backgroundColor: '#ffffff',

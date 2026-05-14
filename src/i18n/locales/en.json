@@ -390,5 +390,67 @@
     "english": "English",
     "german": "Deutsch",
     "french": "Français"
+  },
+  "landing": {
+    "nav": {
+      "mentora": "Mentora",
+      "login": "Login",
+      "getStarted": "Get Started"
+    },
+    "hero": {
+      "badge": "EVOLUTION OF LEARNING",
+      "title_1": "Mentora: Master Your Craft",
+      "title_with": "with",
+      "title_2": "Precision",
+      "subtitle": "The ultimate high-density platform for professionals. Strategic training meets immersive technology in a digital sanctuary for growth.",
+      "velocity": "Current Velocity",
+      "accuracy": "+128% Accuracy"
+    },
+    "features": {
+      "title": "Precision Engineering for Growth",
+      "subtitle": "Designed by scholars, built for performers. Every pixel serves a pedagogical purpose.",
+      "feature_1": {
+        "title": "Analytics Dashboard",
+        "desc": "Real-time telemetry of your progress. Visualize cognitive retention rates with millisecond precision."
+      },
+      "feature_2": {
+        "title": "Immersive Video Player",
+        "desc": "Powered by Cloudinary for seamless 4K streaming. Adaptive bitrate focus."
+      },
+      "feature_3": {
+        "title": "Strategic Training Plans",
+        "desc": "AI-curated pathways that adjust to your pace. Evolution as you do."
+      },
+      "feature_4": {
+        "title": "Admin Command Center",
+        "desc": "Centralized control for teams. Manage licenses and monitor performance in real-time."
+      }
+    },
+    "advantage": {
+      "title": "Global Advantage",
+      "subtitle_1": "Breaking barriers through linguistic precision. Our platform delivers",
+      "subtitle_2": "Native Translations, ensuring technical nuances are never lost.",
+      "langs": ["English (Global)", "Deutsch (Native)", "Français (Native)"]
+    },
+    "security": {
+      "badge": "Enterprise Grade",
+      "title": "Security by Design",
+      "subtitle": "Experience a unified compact layout where performance meets protection. We prioritize your data integrity above all else.",
+      "zeroTrust": "Zero-trust architecture",
+      "automatedScanning": "Automated vulnerability scanning",
+      "systemStatus": "System Status",
+      "secure": "Secure",
+      "updates": "Frictionless Updates",
+      "live": "Live",
+      "encryption": "256-bit Encryption",
+      "active": "Active"
+    },
+    "footer": {
+      "copyright": "© 2026 Mentora. The Luminous Scholar.",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "twitter": "Twitter",
+      "linkedin": "LinkedIn"
+    }
   }
 }

@@ -262,7 +262,13 @@ const Dashboard: React.FC = () => {
             {assignedPlans.slice(0, 4).map(plan => (
               <TouchableOpacity key={plan.id} style={styles.planCard} onPress={() => navigation.navigate('Plans')}>
                 <View style={styles.planImageContainer}>
-                  <Image source={{ uri: plan.image }} style={styles.planImage} />
+                  {plan.image ? (
+                    <Image source={{ uri: plan.image }} style={styles.planImage} />
+                  ) : (
+                    <View style={[styles.planImage, { backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }]}>
+                      <BookOpen size={32} color="#94a3b8" />
+                    </View>
+                  )}
                   <View style={styles.badgeContainer}>
                     <Text style={styles.badgeText}>{plan.courseIds?.length || 0} {t('common.courses')}</Text>
                   </View>
@@ -313,7 +319,13 @@ const Dashboard: React.FC = () => {
                   onPress={() => navigation.navigate('Courses', { screen: 'CoursePlayer', params: { courseId: course.id } })}
                 >
                   <View style={styles.myCourseThumbnail}>
-                    <Image source={{ uri: course.thumbnail }} style={styles.myCourseImage} />
+                    {course.thumbnail ? (
+                      <Image source={{ uri: course.thumbnail }} style={styles.myCourseImage} />
+                    ) : (
+                      <View style={[styles.myCourseImage, { backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }]}>
+                        <BookOpen size={32} color="#94a3b8" />
+                      </View>
+                    )}
                   </View>
 
                   <View style={styles.myCourseInfo}>
@@ -372,7 +384,13 @@ const Dashboard: React.FC = () => {
                   onPress={() => navigation.navigate('Courses', { screen: 'CoursePlayer', params: { courseId: course.id } })}
                 >
                   <View style={styles.myCourseThumbnail}>
-                    <Image source={{ uri: course.thumbnail }} style={styles.myCourseImage} />
+                    {course.thumbnail ? (
+                      <Image source={{ uri: course.thumbnail }} style={styles.myCourseImage} />
+                    ) : (
+                      <View style={[styles.myCourseImage, { backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }]}>
+                        <BookOpen size={32} color="#94a3b8" />
+                      </View>
+                    )}
                   </View>
                   <View style={styles.myCourseInfo}>
                     <View style={styles.myCourseTitleRow}>
@@ -430,7 +448,13 @@ const Dashboard: React.FC = () => {
                     onPress={() => navigation.navigate('Courses', { screen: 'CoursePlayer', params: { courseId: course.id } })}
                   >
                     <View style={styles.myCourseThumbnail}>
-                      <Image source={{ uri: course.thumbnail }} style={styles.myCourseImage} />
+                      {course.thumbnail ? (
+                        <Image source={{ uri: course.thumbnail }} style={styles.myCourseImage} />
+                      ) : (
+                        <View style={[styles.myCourseImage, { backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }]}>
+                          <BookOpen size={32} color="#94a3b8" />
+                        </View>
+                      )}
                     </View>
 
                     <View style={styles.myCourseInfo}>
@@ -489,7 +513,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   content: {
-    paddingBottom: 40,
+    paddingBottom: SPACING.lg,
   },
   heroContainer: {
     margin: 16,

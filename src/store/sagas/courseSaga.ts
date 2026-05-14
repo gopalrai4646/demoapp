@@ -128,6 +128,8 @@ function* handleDeleteCourse(action: ReturnType<typeof deleteCourseRequest>): an
         }
       }
 
+      yield call([courseRef, courseRef.delete]);
+
       for (const asset of assetsToDelete) {
         try {
           yield call(fetch, `${ENV.API_URL}/api/cloudinary/delete`, {
@@ -139,9 +141,9 @@ function* handleDeleteCourse(action: ReturnType<typeof deleteCourseRequest>): an
           console.error(`Saga: Failed to delete Cloudinary asset ${asset.publicId}:`, error);
         }
       }
+    } else {
+      yield call([courseRef, courseRef.delete]);
     }
-
-    yield call([courseRef, courseRef.delete]);
 
     const usersRef = firestore().collection('users');
     const enrolledQuery = usersRef.where('enrolledCourses', 'array-contains', id);
