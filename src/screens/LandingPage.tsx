@@ -137,27 +137,29 @@ const LandingPage = () => {
             {landingT.hero.subtitle}
           </Text>
 
-          {/* Hero CTAs */}
-          <View style={styles.heroCTAs}>
-            <TouchableOpacity 
-              style={styles.heroPrimaryButton}
-              onPress={handleGetStarted}
-            >
-              <Text style={styles.heroPrimaryText}>
-                {user ? t('tabs.dashboard') : landingT.nav.getStarted}
-              </Text>
-              <ChevronRight color="#fff" size={16} strokeWidth={3} />
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.heroSecondaryButton}
-              onPress={handleLogin}
-            >
-              <Text style={styles.heroSecondaryText}>
-                {user ? t('common.welcomeBack') || 'Go to App' : landingT.nav.login}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {/* Hero CTAs - Only visible if guest */}
+          {!user && (
+            <View style={styles.heroCTAs}>
+              <TouchableOpacity 
+                style={styles.heroPrimaryButton}
+                onPress={handleGetStarted}
+              >
+                <Text style={styles.heroPrimaryText}>
+                  {landingT.nav.getStarted}
+                </Text>
+                <ChevronRight color="#fff" size={16} strokeWidth={3} />
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.heroSecondaryButton}
+                onPress={handleLogin}
+              >
+                <Text style={styles.heroSecondaryText}>
+                  {landingT.nav.login}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Dashboard Preview (Image from Unsplash) */}
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
   langDropdown: {
     position: 'absolute',
     top: 40,
-    left: 0,
+    right: 0,
     width: 100,
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -539,7 +541,7 @@ const styles = StyleSheet.create({
   },
   featuresSection: {
     paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingVertical: 30,
     backgroundColor: '#fff',
   },
   sectionTitle: {
@@ -548,7 +550,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     textAlign: 'center',
     letterSpacing: -0.5,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionSubtitle: {
     fontSize: 15,
@@ -556,7 +558,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   featuresHorizontalScroll: {
     paddingHorizontal: 20,
@@ -601,7 +603,7 @@ const styles = StyleSheet.create({
   },
   globalAdvantage: {
     paddingHorizontal: 24,
-    paddingVertical: 50,
+    paddingVertical: 30,
     backgroundColor: '#EFF6FF',
     alignItems: 'center',
   },
@@ -612,7 +614,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
     elevation: 10,
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 10 },
@@ -624,7 +626,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#0F172A',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
     letterSpacing: -1,
   },
   globalSubtitle: {
@@ -632,7 +634,7 @@ const styles = StyleSheet.create({
     color: '#475569',
     textAlign: 'center',
     lineHeight: 28,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   globalSubtitleAccent: {
     color: '#2563EB',
@@ -664,7 +666,7 @@ const styles = StyleSheet.create({
   },
   securitySection: {
     paddingHorizontal: 24,
-    paddingVertical: 50,
+    paddingVertical: 30,
     backgroundColor: '#0F172A',
   },
   securityBadge: {
@@ -690,17 +692,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     lineHeight: 38,
     letterSpacing: -1,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   securitySubtitle: {
     fontSize: 14,
     color: '#94A3B8',
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   securityPoints: {
     gap: 20,
-    marginBottom: 60,
+    marginBottom: 30,
   },
   securityPoint: {
     flexDirection: 'row',
@@ -800,22 +802,22 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: 'center',
-    paddingVertical: 30,
+    paddingVertical: 20,
     backgroundColor: '#FAFBFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
   footerLogo: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '900',
     color: '#9333EA',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   footerCopyright: {
     fontSize: 12,
     color: '#94A3B8',
     fontWeight: '500',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   footerLinks: {
     flexDirection: 'row',

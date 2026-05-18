@@ -74,14 +74,10 @@ const Login = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Decorative Background Elements */}
-      <View style={styles.bgCircle1} />
-      <View style={styles.bgCircle2} />
-
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + SPACING.sm, paddingBottom: insets.bottom + SPACING.sm },
+          { paddingTop: insets.top + 6, paddingBottom: insets.bottom + 16 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -91,11 +87,12 @@ const Login = () => {
           activeOpacity={0.7}
           onPress={() => navigation.goBack()}
         >
-          <ArrowLeft size={24} color={COLORS.onSurfaceVariant} />
+          <ArrowLeft size={24} color="#191C1E" />
         </TouchableOpacity>
 
-        {/* Brand Identity */}
-        <View style={styles.header}>
+        <View style={styles.centerWrapper}>
+          {/* Brand Identity */}
+          <View style={styles.header}>
           <TouchableOpacity 
             style={styles.logoContainer}
             onPress={() => navigation.navigate('Landing')}
@@ -109,7 +106,7 @@ const Login = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
-            Sign in to continue your journey with your mentor.
+            Sign in to continue your journey
           </Text>
         </View>
 
@@ -117,13 +114,12 @@ const Login = () => {
         <View style={styles.formContainer}>
           {/* Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>EMAIL ADDRESS</Text>
             <View style={styles.inputWrapper}>
-              <Mail size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <Mail size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="name@example.com"
-                placeholderTextColor={COLORS.outline}
+                placeholder="Email Address"
+                placeholderTextColor="#777587"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
@@ -134,13 +130,12 @@ const Login = () => {
 
           {/* Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>PASSWORD</Text>
             <View style={styles.inputWrapper}>
-              <Lock size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <Lock size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
-                style={[styles.input, { paddingRight: 50 }]}
-                placeholder="••••••••"
-                placeholderTextColor={COLORS.outline}
+                style={[styles.input, { paddingRight: 40 }]}
+                placeholder="Password"
+                placeholderTextColor="#777587"
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(val) => handleInputChange(setPassword, val)}
@@ -150,9 +145,9 @@ const Login = () => {
                 onPress={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={COLORS.outline} />
+                  <EyeOff size={20} color="#777587" />
                 ) : (
-                  <Eye size={20} color={COLORS.outline} />
+                  <Eye size={20} color="#777587" />
                 )}
               </TouchableOpacity>
             </View>
@@ -174,14 +169,13 @@ const Login = () => {
             style={styles.signInButton}
             onPress={handleLogin}
             disabled={loading}
-            activeOpacity={0.8}
+            activeOpacity={0.9}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.onPrimary} />
+              <ActivityIndicator color="#fff" />
             ) : (
               <View style={styles.signInButtonContent}>
                 <Text style={styles.signInText}>Sign In</Text>
-                <ArrowRight size={20} color={COLORS.onPrimary} />
               </View>
             )}
           </TouchableOpacity>
@@ -189,14 +183,14 @@ const Login = () => {
           {/* Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+            <Text style={styles.dividerText}>or</Text>
             <View style={styles.dividerLine} />
           </View>
 
           {/* Google Sign In */}
           <TouchableOpacity 
             style={styles.googleButton} 
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             onPress={() => dispatch(googleLoginRequest())}
             disabled={loading}
           >
@@ -215,9 +209,10 @@ const Login = () => {
               style={styles.signUpLink} 
               onPress={() => navigation.navigate('CreateAccount')}
             >
-              Sign up now
+              Sign up
             </Text>
           </Text>
+        </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -227,187 +222,191 @@ const Login = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FB',
-  },
-  bgCircle1: {
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(79, 70, 229, 0.05)',
-  },
-  bgCircle2: {
-    position: 'absolute',
-    bottom: -100,
-    left: -100,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(98, 73, 178, 0.05)',
+    backgroundColor: '#F7F9FB', // Luminous Scholar Background
   },
   scrollContent: {
-    paddingHorizontal: SPACING.xl,
-    alignItems: 'center',
+    paddingHorizontal: 20,
     flexGrow: 1,
+  },
+  centerWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingBottom: 20,
   },
   backButton: {
     alignSelf: 'flex-start',
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
+    padding: 8,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: 12,
+    width: '100%',
   },
   logoContainer: {
-    padding: SPACING.xs,
-    marginBottom: SPACING.sm,
+    padding: 6,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
   },
   logo: {
-    height: 64,
-    width: 64,
+    height: 40,
+    width: 40,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.onSurface,
-    textAlign: 'center',
-    letterSpacing: -1,
-    marginBottom: SPACING.sm,
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#191C1E',
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
   subtitle: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.onSurfaceVariant,
-    textAlign: 'center',
-    maxWidth: 240,
-    lineHeight: 20,
+    fontSize: 14,
+    color: '#505F76',
+    fontWeight: '500',
   },
   formContainer: {
     width: '100%',
+    maxWidth: 400,
   },
   inputGroup: {
-    marginBottom: SPACING.lg,
-  },
-  label: {
-    ...TYPOGRAPHY.label,
-    fontSize: 10,
-    letterSpacing: 2,
-    fontWeight: '700',
-    color: COLORS.onSurfaceVariant,
-    marginBottom: SPACING.sm,
-    paddingLeft: SPACING.md,
+    marginBottom: 12,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceContainerHighest,
-    borderRadius: ROUNDNESS.full,
-    paddingHorizontal: SPACING.md,
-    height: 64,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    height: 48,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
   },
   inputIcon: {
-    fontSize: 20,
-    color: COLORS.outline,
-    marginRight: SPACING.sm,
+    marginRight: 12,
   },
   input: {
     flex: 1,
     height: '100%',
-    color: COLORS.onSurface,
+    color: '#191C1E',
     fontSize: 14,
+    fontWeight: '500',
   },
   visibilityButton: {
-    position: 'absolute',
-    right: 20,
+    padding: 8,
+    marginRight: -8,
   },
   forgotButton: {
     alignSelf: 'flex-end',
-    marginTop: SPACING.sm,
-    paddingRight: SPACING.md,
+    marginTop: 8,
+    paddingRight: 4,
   },
   forgotText: {
-    color: COLORS.primary,
+    color: '#4F46E5',
     fontWeight: '600',
     fontSize: 13,
   },
   errorText: {
-    color: '#ba1a1a',
-    fontSize: 12,
+    color: '#ba1a1a', 
+    marginBottom: 12, 
     textAlign: 'center',
-    marginBottom: SPACING.md,
+    fontSize: 12,
+    fontWeight: '600',
   },
   signInButton: {
-    height: 64,
-    borderRadius: ROUNDNESS.full,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#4F46E5',
+    borderRadius: 26,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SPACING.md,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 40,
+    marginTop: 12,
     elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
   },
   signInButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
   },
   signInText: {
-    color: COLORS.onPrimary,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: SPACING.xl,
+    marginVertical: 16,
+    paddingHorizontal: 20,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(119, 117, 135, 0.1)',
+    backgroundColor: '#E0E3E5',
   },
   dividerText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.onSurfaceVariant,
-    marginHorizontal: SPACING.md,
-    letterSpacing: 2,
+    fontSize: 13,
+    color: '#777587',
+    fontWeight: '500',
+    marginHorizontal: 12,
   },
   googleButton: {
-    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: 'rgba(119, 117, 135, 0.2)',
-    borderRadius: ROUNDNESS.full,
-    gap: 12,
+    height: 52,
+    backgroundColor: '#fff',
+    borderRadius: 26,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   googleIcon: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
+    marginRight: 12,
   },
   googleButtonText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.onSurface,
+    fontWeight: '700',
+    color: '#191C1E',
   },
   footer: {
-    paddingVertical: SPACING.xxl,
+    marginTop: 20,
+    alignItems: 'center',
+    paddingVertical: 16,
   },
   footerText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.onSurfaceVariant,
+    fontSize: 14,
+    color: '#505F76',
+    fontWeight: '500',
   },
   signUpLink: {
-    color: COLORS.primary,
-    fontWeight: '700',
+    color: '#4F46E5',
+    fontWeight: '800',
   },
 });
 

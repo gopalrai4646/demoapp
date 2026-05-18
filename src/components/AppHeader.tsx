@@ -40,7 +40,7 @@ export const AppHeader = () => {
           {/* Left: Logo Only */}
           <TouchableOpacity 
             style={styles.logoContainer}
-            onPress={() => navigation.navigate('Dashboard')}
+            onPress={() => navigation.navigate('Landing')}
             activeOpacity={0.7}
           >
             <Image

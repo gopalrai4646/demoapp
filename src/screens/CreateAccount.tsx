@@ -119,7 +119,7 @@ const CreateAccount = () => {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + SPACING.sm, paddingBottom: insets.bottom + SPACING.sm },
+          { paddingTop: insets.top + 6, paddingBottom: insets.bottom + 16 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -129,7 +129,7 @@ const CreateAccount = () => {
           activeOpacity={0.7}
           onPress={() => navigation.goBack()}
         >
-          <ArrowLeft size={24} color={COLORS.onSurfaceVariant} />
+          <ArrowLeft size={24} color="#191C1E" />
         </TouchableOpacity>
 
         <View style={styles.header}>
@@ -144,13 +144,12 @@ const CreateAccount = () => {
               resizeMode="contain"
             />
           </TouchableOpacity>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join thousands of learners today</Text>
+          <Text style={styles.title}>Join Mentora</Text>
+          <Text style={styles.subtitle}>Create your account to get started</Text>
         </View>
 
         <View style={styles.formContainer}>
           {/* Join As Segmented Control */}
-          <Text style={styles.label}>Join as</Text>
           <View style={styles.segmentedControl}>
             <TouchableOpacity
               style={[
@@ -158,10 +157,10 @@ const CreateAccount = () => {
                 role === 'User' && styles.segmentButtonActive,
               ]}
               onPress={() => setRole('User')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <User size={16} color={role === 'User' ? COLORS.primary : COLORS.onSurfaceVariant} style={{ marginRight: 8 }} />
+                <User size={16} color={role === 'User' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
                 <Text
                   style={[
                     styles.segmentText,
@@ -178,10 +177,10 @@ const CreateAccount = () => {
                 role === 'Admin' && styles.segmentButtonActive,
               ]}
               onPress={() => setRole('Admin')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <ShieldCheck size={16} color={role === 'Admin' ? COLORS.primary : COLORS.onSurfaceVariant} style={{ marginRight: 8 }} />
+                <ShieldCheck size={16} color={role === 'Admin' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
                 <Text
                   style={[
                     styles.segmentText,
@@ -200,30 +199,33 @@ const CreateAccount = () => {
               style={styles.photoCircle} 
               onPress={handlePickImage}
               disabled={isUploading}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               {isUploading ? (
-                <ActivityIndicator color={COLORS.primary} />
+                <ActivityIndicator color="#4F46E5" />
               ) : photoURL ? (
                 <Image source={{ uri: photoURL }} style={styles.photoPreview} />
               ) : (
-                <Camera size={24} color={COLORS.onSurfaceVariant} />
+                <>
+                  <View style={styles.photoOverlay}>
+                    <Camera size={24} color="#4F46E5" />
+                  </View>
+                </>
               )}
             </TouchableOpacity>
             <Text style={styles.photoLabel}>
-              {photoURL ? 'Change Photo' : 'Profile Photo'}
+              {photoURL ? 'Tap to change' : 'Upload photo'}
             </Text>
           </View>
 
           {/* Inputs */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Full Name</Text>
             <View style={styles.inputWrapper}>
-              <UserCircle size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <UserCircle size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="John Doe"
-                placeholderTextColor={COLORS.outline}
+                placeholder="Full Name"
+                placeholderTextColor="#777587"
                 value={name}
                 onChangeText={(val) => handleInputChange(setName, val)}
               />
@@ -231,13 +233,12 @@ const CreateAccount = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Address</Text>
             <View style={styles.inputWrapper}>
-              <Mail size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <Mail size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="name@example.com"
-                placeholderTextColor={COLORS.outline}
+                placeholder="Email Address"
+                placeholderTextColor="#777587"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
@@ -247,13 +248,12 @@ const CreateAccount = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone Number</Text>
             <View style={styles.inputWrapper}>
-              <Phone size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <Phone size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="+1 234 567 890"
-                placeholderTextColor={COLORS.outline}
+                placeholder="Phone Number"
+                placeholderTextColor="#777587"
                 keyboardType="phone-pad"
                 value={phone}
                 onChangeText={(val) => handleInputChange(setPhone, val)}
@@ -262,13 +262,12 @@ const CreateAccount = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrapper}>
-              <Lock size={20} color={COLORS.outline} style={styles.inputIcon} />
+              <Lock size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={COLORS.outline}
+                placeholder="Password"
+                placeholderTextColor="#777587"
                 secureTextEntry
                 value={password}
                 onChangeText={(val) => handleInputChange(setPassword, val)}
@@ -278,18 +277,18 @@ const CreateAccount = () => {
 
           {/* Error Message */}
           {error ? (
-            <Text style={{ color: '#ff4444', marginBottom: SPACING.md, textAlign: 'center' }}>{error}</Text>
+            <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
           {/* Primary Button */}
           <TouchableOpacity 
             style={[styles.primaryButton, loading && { opacity: 0.7 }]} 
-            activeOpacity={0.8}
+            activeOpacity={0.9}
             onPress={handleSignUp}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.onPrimary} />
+              <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.primaryButtonText}>Create Account</Text>
             )}
@@ -298,14 +297,14 @@ const CreateAccount = () => {
           {/* Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Or continue with</Text>
+            <Text style={styles.dividerText}>or</Text>
             <View style={styles.dividerLine} />
           </View>
 
           {/* Google Button */}
           <TouchableOpacity 
             style={styles.googleButton} 
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             onPress={() => dispatch(googleLoginRequest())}
             disabled={loading}
           >
@@ -337,185 +336,229 @@ const CreateAccount = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#F7F9FB', // Luminous Scholar Background
   },
   scrollContent: {
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: 20,
     alignItems: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    marginBottom: 12,
+    width: '100%',
   },
   logoContainer: {
-    padding: SPACING.xs,
-    marginBottom: SPACING.md,
+    padding: 6,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
   },
   logo: {
-    height: 48,
-    width: 48,
+    height: 40,
+    width: 40,
   },
   title: {
-    ...TYPOGRAPHY.headline,
     fontSize: 28,
-    marginBottom: SPACING.xs,
+    fontWeight: '900',
+    color: '#191C1E',
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
   subtitle: {
-    ...TYPOGRAPHY.subHeadline,
+    fontSize: 14,
+    color: '#505F76',
+    fontWeight: '500',
   },
   formContainer: {
     width: '100%',
     maxWidth: 400,
   },
-  label: {
-    ...TYPOGRAPHY.label,
-    fontSize: 10,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    fontWeight: '700',
-    marginBottom: SPACING.sm,
-    marginTop: SPACING.md,
-    paddingLeft: SPACING.md,
-  },
   segmentedControl: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surfaceContainerLow,
-    borderRadius: ROUNDNESS.full,
-    padding: SPACING.xs,
-    marginBottom: SPACING.md,
+    backgroundColor: '#ECEEF0',
+    borderRadius: 30,
+    padding: 4,
+    marginBottom: 12,
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: SPACING.sm,
+    paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: ROUNDNESS.full,
+    borderRadius: 24,
   },
   segmentButtonActive: {
-    backgroundColor: COLORS.secondaryContainer,
+    backgroundColor: '#4F46E5',
+    elevation: 4,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   segmentText: {
-    ...TYPOGRAPHY.label,
-    color: COLORS.onSurfaceVariant,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#464555',
   },
   segmentTextActive: {
-    color: COLORS.primary,
-    fontWeight: '600',
+    color: '#fff',
   },
   photoContainer: {
     alignItems: 'center',
-    marginVertical: SPACING.lg,
+    marginBottom: 12,
   },
   photoCircle: {
     width: 64,
     height: 64,
-    borderRadius: ROUNDNESS.full,
-    backgroundColor: COLORS.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: COLORS.surfaceContainerHigh,
+    borderRadius: 32,
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SPACING.sm,
+    marginBottom: 6,
+    elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     overflow: 'hidden',
+  },
+  photoOverlay: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(79, 70, 229, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   photoPreview: {
     width: '100%',
     height: '100%',
-    borderRadius: ROUNDNESS.full,
-  },
-  cameraIcon: {
-    fontSize: 20,
-    color: COLORS.onSurfaceVariant,
+    borderRadius: 32,
   },
   photoLabel: {
-    ...TYPOGRAPHY.label,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4F46E5',
   },
   inputGroup: {
-    marginBottom: SPACING.md,
+    marginBottom: 12,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceContainerHighest,
-    borderRadius: ROUNDNESS.full,
-    paddingHorizontal: SPACING.lg,
-    height: 56,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    height: 48,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
   },
   inputIcon: {
-    marginRight: SPACING.sm,
+    marginRight: 12,
   },
   input: {
     flex: 1,
     height: '100%',
-    color: COLORS.onSurface,
+    color: '#191C1E',
     fontSize: 14,
+    fontWeight: '500',
   },
   backButton: {
     alignSelf: 'flex-start',
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
+    padding: 8,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   errorText: {
-    color: '#ff4444', 
-    marginBottom: SPACING.md, 
+    color: '#ba1a1a', 
+    marginBottom: 12, 
     textAlign: 'center',
     fontSize: 12,
+    fontWeight: '600',
   },
   primaryButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: ROUNDNESS.full,
-    paddingVertical: SPACING.md,
+    backgroundColor: '#4F46E5',
+    borderRadius: 26,
+    height: 52,
     alignItems: 'center',
-    marginTop: SPACING.xl,
-    height: 60,
     justifyContent: 'center',
+    marginTop: 12,
+    elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
   },
   primaryButtonText: {
-    ...TYPOGRAPHY.cardTitle,
-    color: COLORS.onPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: SPACING.lg,
+    marginVertical: 16,
+    paddingHorizontal: 20,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.surfaceContainerHigh,
+    backgroundColor: '#E0E3E5',
   },
   dividerText: {
-    ...TYPOGRAPHY.label,
-    marginHorizontal: SPACING.md,
+    fontSize: 13,
+    color: '#777587',
+    fontWeight: '500',
+    marginHorizontal: 12,
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.surfaceContainerHigh,
-    borderRadius: ROUNDNESS.md,
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.surface,
-    gap: 12,
+    height: 52,
+    backgroundColor: '#fff',
+    borderRadius: 26,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   googleIcon: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
+    marginRight: 12,
   },
   googleButtonText: {
-    ...TYPOGRAPHY.cardTitle,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#191C1E',
   },
   footer: {
-    marginTop: SPACING.xl,
+    marginTop: 20,
     alignItems: 'center',
   },
   footerText: {
-    ...TYPOGRAPHY.body,
-    fontSize: 13,
+    fontSize: 14,
+    color: '#505F76',
+    fontWeight: '500',
   },
   linkText: {
-    color: COLORS.primary,
-    fontWeight: '600',
+    color: '#4F46E5',
+    fontWeight: '800',
   },
 });
 
