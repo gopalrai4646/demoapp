@@ -452,5 +452,36 @@
       "twitter": "Twitter",
       "linkedin": "LinkedIn"
     }
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back",
+    "signInSub": "Sign in to continue your journey",
+    "emailPlaceholder": "Email Address",
+    "passwordPlaceholder": "Password",
+    "forgotPassword": "Forgot Password?",
+    "signIn": "Sign In",
+    "or": "or",
+    "googleSignIn": "Sign in with Google",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "createAccount": "Create Account",
+    "signUpSub": "Join Mentora to master your craft",
+    "fullNamePlaceholder": "Full Name",
+    "phonePlaceholder": "Phone Number",
+    "confirmPasswordPlaceholder": "Confirm Password",
+    "signUpBtn": "Create Account",
+    "googleSignUp": "Sign in with Google",
+    "alreadyHaveAccount": "Already have an account?",
+    "login": "Sign in",
+    "enterEmailPass": "Please enter both email and password.",
+    "enterValidEmail": "Please enter a valid email address.",
+    "fillAllFields": "Please fill in all required fields.",
+    "passwordLength": "Password should be at least 6 characters.",
+    "passwordsMatch": "Passwords do not match.",
+    "joinAsUser": "User",
+    "joinAsAdmin": "Admin",
+    "tapToChange": "Tap to change",
+    "uploadPhoto": "Upload photo",
+    "uploadError": "Upload Error"
   }
 }

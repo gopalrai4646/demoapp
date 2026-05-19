@@ -23,6 +23,7 @@ import { BRANDING, MENTORA_LOGO } from '../constants/Branding';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
 import { 
   User, 
   ShieldCheck, 
@@ -38,6 +39,7 @@ const CreateAccount = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { loading, error } = useSelector((state: RootState) => state.auth);
 
   const [role, setRole] = useState<'User' | 'Admin'>('User');
@@ -76,7 +78,7 @@ const CreateAccount = () => {
           const uploadedUrl = await uploadToCloudinary(uri);
           setPhotoURL(uploadedUrl);
         } catch (err: any) {
-          Alert.alert('Upload Error', err.message || 'Failed to upload photo');
+          Alert.alert(t('auth.uploadError'), err.message || 'Failed to upload photo');
         } finally {
           setIsUploading(false);
         }
@@ -86,18 +88,18 @@ const CreateAccount = () => {
 
   const handleSignUp = () => {
     if (!email || !password || !name) {
-      Alert.alert('Error', 'Please fill in all required fields.');
+      Alert.alert('Error', t('auth.fillAllFields'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address.');
+      Alert.alert('Error', t('auth.enterValidEmail'));
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password should be at least 6 characters.');
+      Alert.alert('Error', t('auth.passwordLength'));
       return;
     }
     
@@ -144,8 +146,8 @@ const CreateAccount = () => {
               resizeMode="contain"
             />
           </TouchableOpacity>
-          <Text style={styles.title}>Join Mentora</Text>
-          <Text style={styles.subtitle}>Create your account to get started</Text>
+          <Text style={styles.title}>{t('auth.createAccount')}</Text>
+          <Text style={styles.subtitle}>{t('auth.signUpSub')}</Text>
         </View>
 
         <View style={styles.formContainer}>
@@ -167,7 +169,7 @@ const CreateAccount = () => {
                     role === 'User' && styles.segmentTextActive,
                   ]}
                 >
-                  User
+                  {t('auth.joinAsUser')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -187,7 +189,7 @@ const CreateAccount = () => {
                     role === 'Admin' && styles.segmentTextActive,
                   ]}
                 >
-                  Admin
+                  {t('auth.joinAsAdmin')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -214,7 +216,7 @@ const CreateAccount = () => {
               )}
             </TouchableOpacity>
             <Text style={styles.photoLabel}>
-              {photoURL ? 'Tap to change' : 'Upload photo'}
+              {photoURL ? t('auth.tapToChange') : t('auth.uploadPhoto')}
             </Text>
           </View>
 
@@ -224,7 +226,7 @@ const CreateAccount = () => {
               <UserCircle size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Full Name"
+                placeholder={t('auth.fullNamePlaceholder')}
                 placeholderTextColor="#777587"
                 value={name}
                 onChangeText={(val) => handleInputChange(setName, val)}
@@ -237,7 +239,7 @@ const CreateAccount = () => {
               <Mail size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Email Address"
+                placeholder={t('auth.emailPlaceholder')}
                 placeholderTextColor="#777587"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -252,7 +254,7 @@ const CreateAccount = () => {
               <Phone size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Phone Number"
+                placeholder={t('auth.phonePlaceholder')}
                 placeholderTextColor="#777587"
                 keyboardType="phone-pad"
                 value={phone}
@@ -266,7 +268,7 @@ const CreateAccount = () => {
               <Lock size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Password"
+                placeholder={t('auth.passwordPlaceholder')}
                 placeholderTextColor="#777587"
                 secureTextEntry
                 value={password}
@@ -290,14 +292,14 @@ const CreateAccount = () => {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.primaryButtonText}>Create Account</Text>
+              <Text style={styles.primaryButtonText}>{t('auth.signUpBtn')}</Text>
             )}
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>{t('auth.or')}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -312,18 +314,18 @@ const CreateAccount = () => {
               source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }}
               style={styles.googleIcon}
             />
-            <Text style={styles.googleButtonText}>Sign in with Google</Text>
+            <Text style={styles.googleButtonText}>{t('auth.googleSignUp')}</Text>
           </TouchableOpacity>
 
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Already have an account?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <Text 
                 style={styles.linkText} 
                 onPress={() => navigation.navigate('Login')}
               >
-                Sign in
+                {t('auth.login')}
               </Text>
             </Text>
           </View>

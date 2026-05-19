@@ -242,7 +242,9 @@ const LandingPage = () => {
                 <View style={styles.securityPointIcon}>
                   <ShieldCheck color="#4ADE80" size={16} />
                 </View>
-                <Text style={styles.securityPointText}>{point}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.securityPointText}>{point}</Text>
+                </View>
               </View>
             ))}
           </View>
@@ -261,9 +263,10 @@ const LandingPage = () => {
                 <View style={styles.statusItemIcon}>
                   <RefreshCcw color="#60A5FA" size={16} />
                 </View>
-                <Text style={styles.statusItemLabel}>{landingT.security.updates}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.statusItemLabel}>{landingT.security.updates}</Text>
+                </View>
               </View>
-              <Text style={styles.statusItemTag}>{landingT.security.live?.toUpperCase()}</Text>
             </View>
 
             <View style={styles.statusItem}>
@@ -271,9 +274,10 @@ const LandingPage = () => {
                 <View style={styles.statusItemIcon}>
                   <Lock color="#60A5FA" size={16} />
                 </View>
-                <Text style={styles.statusItemLabel}>{landingT.security.encryption}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.statusItemLabel}>{landingT.security.encryption}</Text>
+                </View>
               </View>
-              <Text style={styles.statusItemTag}>{landingT.security.active?.toUpperCase()}</Text>
             </View>
           </View>
         </View>
@@ -428,6 +432,7 @@ const styles = StyleSheet.create({
   },
   heroCTAs: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
@@ -480,7 +485,8 @@ const styles = StyleSheet.create({
   velocityCard: {
     position: 'absolute',
     top: -20,
-    left: 4,
+    left: 16,
+    maxWidth: '85%',
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 24,
@@ -708,6 +714,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    width: '100%',
   },
   securityPointIcon: {
     width: 36,
@@ -721,6 +728,7 @@ const styles = StyleSheet.create({
     color: '#E2E8F0',
     fontSize: 16,
     fontWeight: '700',
+    flex: 1,
   },
   statusDashboard: {
     backgroundColor: 'rgba(30, 41, 59, 0.5)',
@@ -774,11 +782,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#334155',
+    width: '100%',
   },
   statusItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    flex: 1,
+    marginRight: 8,
   },
   statusItemIcon: {
     padding: 8,
@@ -789,6 +800,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
+    flex: 1,
   },
   statusItemTag: {
     color: '#60A5FA',

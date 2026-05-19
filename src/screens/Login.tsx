@@ -20,7 +20,7 @@ import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { BRANDING, MENTORA_LOGO } from '../constants/Branding';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeft, 
   Mail, 
@@ -34,6 +34,7 @@ const Login = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { loading, error } = useSelector((state: RootState) => state.auth);
 
   const [email, setEmail] = useState('');
@@ -56,13 +57,13 @@ const Login = () => {
 
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
+      Alert.alert('Error', t('auth.enterEmailPass'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address.');
+      Alert.alert('Error', t('auth.enterValidEmail'));
       return;
     }
 
@@ -104,9 +105,9 @@ const Login = () => {
               resizeMode="contain"
             />
           </TouchableOpacity>
-          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.title}>{t('auth.welcomeBack')}</Text>
           <Text style={styles.subtitle}>
-            Sign in to continue your journey
+            {t('auth.signInSub')}
           </Text>
         </View>
 
@@ -118,7 +119,7 @@ const Login = () => {
               <Mail size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Email Address"
+                placeholder={t('auth.emailPlaceholder')}
                 placeholderTextColor="#777587"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -134,7 +135,7 @@ const Login = () => {
               <Lock size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { paddingRight: 40 }]}
-                placeholder="Password"
+                placeholder={t('auth.passwordPlaceholder')}
                 placeholderTextColor="#777587"
                 secureTextEntry={!showPassword}
                 value={password}
@@ -155,7 +156,7 @@ const Login = () => {
               style={styles.forgotButton}
               onPress={() => navigation.navigate('ResetPassword')}
             >
-              <Text style={styles.forgotText}>Forgot Password?</Text>
+              <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -175,7 +176,7 @@ const Login = () => {
               <ActivityIndicator color="#fff" />
             ) : (
               <View style={styles.signInButtonContent}>
-                <Text style={styles.signInText}>Sign In</Text>
+                <Text style={styles.signInText}>{t('auth.signIn')}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -183,7 +184,7 @@ const Login = () => {
           {/* Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>{t('auth.or')}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -198,18 +199,18 @@ const Login = () => {
               source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }}
               style={styles.googleIcon}
             />
-            <Text style={styles.googleButtonText}>Sign in with Google</Text>
+            <Text style={styles.googleButtonText}>{t('auth.googleSignIn')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Don't have an account?{' '}
+            {t('auth.noAccount')}{' '}
             <Text 
               style={styles.signUpLink} 
               onPress={() => navigation.navigate('CreateAccount')}
             >
-              Sign up
+              {t('auth.signUp')}
             </Text>
           </Text>
         </View>

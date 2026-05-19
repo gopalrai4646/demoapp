@@ -390,5 +390,98 @@
     "english": "Englisch",
     "german": "Deutsch",
     "french": "Französisch"
+  },
+  "landing": {
+    "nav": {
+      "mentora": "Mentora",
+      "login": "Anmelden",
+      "getStarted": "Loslegen"
+    },
+    "hero": {
+      "badge": "EVOLUTION DES LERNENS",
+      "title_1": "Mentora: Meistere dein Handwerk",
+      "title_with": "mit",
+      "title_2": "Präzision",
+      "subtitle": "Die ultimative Plattform für Profis. Strategische Ausbildung trifft auf immersive Technologie in einer Oase für Wachstum.",
+      "velocity": "Aktuelle Geschwindigkeit",
+      "accuracy": "+128% Genauigkeit"
+    },
+    "features": {
+      "title": "Präzisionstechnik für Wachstum",
+      "subtitle": "Von Wissenschaftlern entworfen, für Leistungsträger gebaut. Jedes Pixel dient einem pädagogischen Zweck.",
+      "feature_1": {
+        "title": "Analyse-Dashboard",
+        "desc": "Echtzeit-Telemetrie deines Fortschritts. Visualisiere kognitive Behaltensraten mit Millisekunden-Präzision."
+      },
+      "feature_2": {
+        "title": "Immersiver Videoplayer",
+        "desc": "Unterstützt von Cloudinary für nahtloses 4K-Streaming. Fokus auf adaptive Bitrate."
+      },
+      "feature_3": {
+        "title": "Strategische Trainingspläne",
+        "desc": "KI-kuratierte Pfade, die sich deinem Tempo anpassen. Entwicklung im Einklang mit dir."
+      },
+      "feature_4": {
+        "title": "Admin-Kommandozentrale",
+        "desc": "Zentralisierte Kontrolle für Teams. Verwalte Lizenzen und überwache die Leistung in Echtzeit."
+      }
+    },
+    "advantage": {
+      "title": "Globaler Vorteil",
+      "subtitle_1": "Barrieren abbauen durch sprachliche Präzision. Unsere Plattform bietet",
+      "subtitle_2": "Native Übersetzungen, damit technische Nuancen nie verloren gehen.",
+      "langs": ["Englisch (Global)", "Deutsch (Nativ)", "Französisch (Nativ)"]
+    },
+    "security": {
+      "badge": "Unternehmensklasse",
+      "title": "Sicherheit durch Design",
+      "subtitle": "Erlebe ein einheitliches, kompaktes Layout, bei dem Leistung auf Schutz trifft. Wir priorisieren deine Datenintegrität über alles andere.",
+      "zeroTrust": "Zero-Trust-Architektur",
+      "automatedScanning": "Automatisiertes Schwachstellen-Scanning",
+      "systemStatus": "Systemstatus",
+      "secure": "Sicher",
+      "updates": "Reibungslose Updates",
+      "live": "Live",
+      "encryption": "256-Bit-Verschlüsselung",
+      "active": "Aktiv"
+    },
+    "footer": {
+      "copyright": "© 2026 Mentora. Der leuchtende Gelehrte.",
+      "terms": "Nutzungsbedingungen",
+      "privacy": "Datenschutz",
+      "twitter": "Twitter",
+      "linkedin": "LinkedIn"
+    }
+  },
+  "auth": {
+    "welcomeBack": "Willkommen zurück",
+    "signInSub": "Melde dich an, um fortzufahren",
+    "emailPlaceholder": "E-Mail-Adresse",
+    "passwordPlaceholder": "Passwort",
+    "forgotPassword": "Passwort vergessen?",
+    "signIn": "Anmelden",
+    "or": "oder",
+    "googleSignIn": "Mit Google anmelden",
+    "noAccount": "Noch kein Konto?",
+    "signUp": "Registrieren",
+    "createAccount": "Konto erstellen",
+    "signUpSub": "Tritt Mentora bei, um dein Handwerk zu meistern",
+    "fullNamePlaceholder": "Vollständiger Name",
+    "phonePlaceholder": "Telefonnummer",
+    "confirmPasswordPlaceholder": "Passwort bestätigen",
+    "signUpBtn": "Konto erstellen",
+    "googleSignUp": "Mit Google anmelden",
+    "alreadyHaveAccount": "Bereits ein Konto?",
+    "login": "Anmelden",
+    "enterEmailPass": "Bitte gib E-Mail und Passwort ein.",
+    "enterValidEmail": "Bitte gib eine gültige E-Mail-Adresse ein.",
+    "fillAllFields": "Bitte fülle alle erforderlichen Felder aus.",
+    "passwordLength": "Das Passwort sollte mindestens 6 Zeichen lang sein.",
+    "passwordsMatch": "Die Passwörter stimmen nicht überein.",
+    "joinAsUser": "Benutzer",
+    "joinAsAdmin": "Admin",
+    "tapToChange": "Zum Ändern tippen",
+    "uploadPhoto": "Foto hochladen",
+    "uploadError": "Upload-Fehler"
   }
 }

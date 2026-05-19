@@ -390,5 +390,98 @@
     "english": "Anglais",
     "german": "Allemand",
     "french": "Français"
+  },
+  "landing": {
+    "nav": {
+      "mentora": "Mentora",
+      "login": "Connexion",
+      "getStarted": "Commencer"
+    },
+    "hero": {
+      "badge": "ÉVOLUTION DE L'APPRENTISSAGE",
+      "title_1": "Mentora : Maîtrisez votre art",
+      "title_with": "avec",
+      "title_2": "Précision",
+      "subtitle": "La plateforme ultime à haute densité pour les professionnels. La formation stratégique rencontre la technologie immersive dans un sanctuaire numérique de croissance.",
+      "velocity": "Vitesse Actuelle",
+      "accuracy": "+128% de Précision"
+    },
+    "features": {
+      "title": "Ingénierie de Précision pour la Croissance",
+      "subtitle": "Conçu par des universitaires, construit pour les performeurs. Chaque pixel sert un objectif pédagogique.",
+      "feature_1": {
+        "title": "Tableau de Bord Analytique",
+        "desc": "Télémétrie en temps réel de vos progrès. Visualisez les taux de rétention cognitive avec une précision millimétrique."
+      },
+      "feature_2": {
+        "title": "Lecteur Vidéo Immersif",
+        "desc": "Propulsé par Cloudinary pour un streaming 4K transparent. Priorité au débit adaptatif."
+      },
+      "feature_3": {
+        "title": "Plans de Formation Stratégiques",
+        "desc": "Parcours édités par IA qui s'adaptent à votre rythme. Évoluez au gré de vos besoins."
+      },
+      "feature_4": {
+        "title": "Centre de Commandement Administrateur",
+        "desc": "Contrôle centralisé pour les équipes. Gérez les licences et surveillez les performances en temps réel."
+      }
+    },
+    "advantage": {
+      "title": "Avantage Global",
+      "subtitle_1": "Briser les barrières grâce à la précision linguistique. Notre plateforme propose",
+      "subtitle_2": "Des Traductions Natives, garantissant que les nuances techniques ne soient jamais perdues.",
+      "langs": ["Anglais (Global)", "Allemand (Natif)", "Français (Natif)"]
+    },
+    "security": {
+      "badge": "Niveau Entreprise",
+      "title": "Sécurité dès la Conception",
+      "subtitle": "Découvrez une mise en page unifiée et compacte où la performance rencontre la protection. Nous priorisons l'intégrité de vos données avant tout.",
+      "zeroTrust": "Architecture Zero-trust",
+      "automatedScanning": "Analyse automatisée des vulnérabilités",
+      "systemStatus": "Statut du Système",
+      "secure": "Sécurisé",
+      "updates": "Mises à Jour Fluides",
+      "live": "En Direct",
+      "encryption": "Chiffrement 256-bits",
+      "active": "Actif"
+    },
+    "footer": {
+      "copyright": "© 2026 Mentora. L'Érudit Lumineux.",
+      "terms": "Conditions",
+      "privacy": "Confidentialité",
+      "twitter": "Twitter",
+      "linkedin": "LinkedIn"
+    }
+  },
+  "auth": {
+    "welcomeBack": "Bon retour",
+    "signInSub": "Connectez-vous pour continuer votre parcours",
+    "emailPlaceholder": "Adresse e-mail",
+    "passwordPlaceholder": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié?",
+    "signIn": "Se connecter",
+    "or": "ou",
+    "googleSignIn": "Se connecter avec Google",
+    "noAccount": "Vous n'avez pas de compte?",
+    "signUp": "S'inscrire",
+    "createAccount": "Créer un compte",
+    "signUpSub": "Rejoignez Mentora pour maîtriser votre art",
+    "fullNamePlaceholder": "Nom complet",
+    "phonePlaceholder": "Numéro de téléphone",
+    "confirmPasswordPlaceholder": "Confirmer le mot de passe",
+    "signUpBtn": "Créer un compte",
+    "googleSignUp": "Se connecter avec Google",
+    "alreadyHaveAccount": "Vous avez déjà un compte?",
+    "login": "Se connecter",
+    "enterEmailPass": "Veuillez saisir votre e-mail et votre mot de passe.",
+    "enterValidEmail": "Veuillez saisir une adresse e-mail valide.",
+    "fillAllFields": "Veuillez remplir tous les champs obligatoires.",
+    "passwordLength": "Le mot de passe doit comporter au moins 6 caractères.",
+    "passwordsMatch": "Les mots de passe ne correspondent pas.",
+    "joinAsUser": "Utilisateur",
+    "joinAsAdmin": "Admin",
+    "tapToChange": "Appuyez pour modifier",
+    "uploadPhoto": "Télécharger une photo",
+    "uploadError": "Erreur de téléchargement"
   }
 }
