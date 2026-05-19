@@ -140,7 +140,7 @@ const UserCoursesScreen = () => {
 
           <View style={styles.progressHeader}>
             <Text style={[styles.progressLabel, isCompleted && { color: '#4caf50' }]}>
-              {isCompleted ? t('userCourses.finalGrade') : t('userCourses.progress')}
+              {t('common.yourProgress')}
             </Text>
             <Text style={[styles.progressValue, { color: isCompleted ? '#4caf50' : COLORS.primary }]}>
               {pct}%

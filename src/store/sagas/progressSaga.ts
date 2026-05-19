@@ -109,8 +109,12 @@ function* handleUpdateProgress(action: ReturnType<typeof updateProgressRequest>)
     const updates: any = {
       courseId,
       userId,
-      [`watchedDurations.${videoId}`]: watchedDuration,
-      [`dailyActivity.${today}`]: firestore.FieldValue.arrayUnion(videoId),
+      watchedDurations: {
+        [videoId]: watchedDuration,
+      },
+      dailyActivity: {
+        [today]: firestore.FieldValue.arrayUnion(videoId),
+      },
       lastUpdated: new Date().toISOString(),
     };
 

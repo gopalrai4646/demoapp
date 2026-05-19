@@ -607,7 +607,7 @@ const CoursePlayerScreen = () => {
                 <View 
                   style={[
                     styles.progressBarContainer,
-                    isFullscreen && { bottom: 16, left: 16, right: 16 }
+                    isFullscreen && { bottom: 6, left: 16, right: 16 }
                   ]}
                   onLayout={(e) => setProgressBarWidth(e.nativeEvent.layout.width)}
                   onStartShouldSetResponder={() => true}
