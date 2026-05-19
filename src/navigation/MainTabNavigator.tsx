@@ -14,7 +14,6 @@ import UserCourseStack from './UserCourseStack';
 import UserTrainingPlanStack from './UserTrainingPlanStack';
 import AdminUsersScreen from '../screens/AdminUsersScreen';
 import AdminStaffRolesScreen from '../screens/AdminStaffRolesScreen';
-import LandingPage from '../screens/LandingPage';
 import { MainTabParamList } from './types';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
 import { 
@@ -32,9 +31,16 @@ import { hasModuleAccess, Permission } from '../constants/permissions';
 const Tab = createMaterialTopTabNavigator<MainTabParamList>();
 
 const CustomTabBar = ({ state, descriptors, navigation, insets, t, isAdmin }: any) => {
+  const activeRoute = state.routes[state.index];
+  const activeOptions = descriptors[activeRoute.key]?.options;
+  
+  if (activeOptions?.tabBarStyle?.display === 'none') {
+    return null;
+  }
+
   return (
     <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-      {state.routes.filter((r: any) => r.name !== 'Landing').map((route: any, index: number) => {
+      {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const label =
           options.tabBarLabel !== undefined
@@ -213,13 +219,6 @@ const MainTabNavigator = () => {
           tabBarIcon: ({ color }) => (
             isAdmin ? <Settings size={24} color={color} /> : <GraduationCap size={24} color={color} />
           ),
-        }}
-      />
-      <Tab.Screen
-        name="Landing"
-        component={LandingPage}
-        options={{
-          tabBarLabel: 'Landing',
         }}
       />
     </Tab.Navigator>

@@ -18,9 +18,9 @@ const AuthStack = () => {
       }}
     >
       <Stack.Screen name="Landing" component={LandingPage} />
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="CreateAccount" component={CreateAccount} />
-      <Stack.Screen name="ResetPassword" component={ResetPassword} />
+      <Stack.Screen name="Login" component={Login} options={{ gestureEnabled: false }} />
+      <Stack.Screen name="CreateAccount" component={CreateAccount} options={{ gestureEnabled: false }} />
+      <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ gestureEnabled: false }} />
     </Stack.Navigator>
   );
 };

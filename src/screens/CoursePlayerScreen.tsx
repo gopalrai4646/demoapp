@@ -11,11 +11,11 @@ import {
   ActivityIndicator,
   Platform,
   TouchableWithoutFeedback,
-  Animated,
 } from 'react-native';
 import Video, { OnProgressData, ResizeMode } from 'react-native-video';
-import Slider from '@react-native-community/slider';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import Orientation from 'react-native-orientation-locker';
+import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { 
@@ -27,9 +27,16 @@ import {
   BookOpen,
   Award,
   Pause,
-  Maximize,
-  Minimize
+  Settings,
+  SkipBack,
+  SkipForward,
+  Maximize2,
+  Minimize2,
+  ChevronDown,
+  Subtitles,
+  Tv
 } from 'lucide-react-native';
+import { Modal } from 'react-native';
 import { fetchProgressRequest, updateProgressRequest, updateRatingRequest } from '../store/slices/progressSlice';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
 import CourseRatingModal from '../components/CourseRatingModal';
@@ -57,14 +64,44 @@ const CoursePlayerScreen = () => {
   const [isLoadStarted, setIsLoadStarted] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
-
-  // Custom Player State
-  const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [hasDismissedRating, setHasDismissedRating] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(true);
+
+  // YouTube Custom Control States
+  const [showControls, setShowControls] = useState(true);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [selectedQuality, setSelectedQuality] = useState<string>('Auto');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsMenu, setSettingsMenu] = useState<'main' | 'speed' | 'quality'>('main');
+  const [progressBarWidth, setProgressBarWidth] = useState(0);
+  const isSeekingRef = useRef(false);
+
+  const controlsTimeoutRef = useRef<any>(null);
+
+  // Reset controls hide timer
+  const resetControlsTimeout = useCallback(() => {
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    if (!paused) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3500);
+    }
+  }, [paused]);
+
+  const toggleControls = () => {
+    setShowControls(prev => !prev);
+  };
+
+  useEffect(() => {
+    resetControlsTimeout();
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, [paused, showControls, resetControlsTimeout]);
 
   // Reset player state when switching to a different video
   useEffect(() => {
@@ -75,64 +112,56 @@ const CoursePlayerScreen = () => {
     setPaused(false);
     setCurrentTime(0);
     setDuration(0);
+    setShowControls(true);
   }, [activeVideoId]);
   
   const videoRef = useRef<any>(null);
   const lastSyncRef = useRef<number>(0);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const controlsTimeoutRef = useRef<any>(null);
-  const lastTapRef = useRef<number>(0);
 
-  const hideControls = useCallback(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => setShowControls(false));
-  }, [fadeAnim]);
-
-  const resetControlsTimeout = useCallback(() => {
-    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    setShowControls(true);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-    
-    controlsTimeoutRef.current = setTimeout(() => {
-      if (!paused && !isBuffering) hideControls();
-    }, 3000);
-  }, [fadeAnim, paused, isBuffering, hideControls]);
-
-  const handleDoubleTap = (e: any) => {
-    const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-    const { locationX } = e.nativeEvent;
-    const screenWidth = Dimensions.get('window').width;
-
-    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // It's a double tap
-      if (locationX < screenWidth / 2) {
-        // Left side - Seek back
-        videoRef.current?.seek(Math.max(0, currentTime - 10));
-      } else {
-        // Right side - Seek forward
-        videoRef.current?.seek(Math.min(duration, currentTime + 10));
-      }
-      resetControlsTimeout();
-    } else {
-      lastTapRef.current = now;
-      resetControlsTimeout();
-    }
-  };
-
+  // Reset orientation and system navigation bar on unmount
   useEffect(() => {
-    resetControlsTimeout();
     return () => {
-      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      Orientation?.lockToPortrait?.();
+      if (Platform.OS === 'android') {
+        SystemNavigationBar.navigationShow();
+      }
     };
-  }, [paused, isBuffering, resetControlsTimeout]);
+  }, []);
+
+  // Hide tab bar and disable navigation gestures completely for the course player screen
+  useEffect(() => {
+    const parent = navigation.getParent();
+    const grandparent = parent?.getParent();
+
+    // Lock gestures for this entire screen
+    navigation.setOptions({ gestureEnabled: false } as any);
+    parent?.setOptions({ swipeEnabled: false, gestureEnabled: false } as any);
+    grandparent?.setOptions({ swipeEnabled: false, gestureEnabled: false } as any);
+
+    if (isFullscreen) {
+      parent?.setOptions({ tabBarStyle: { display: 'none' }, swipeEnabled: false, gestureEnabled: false } as any);
+      grandparent?.setOptions({ tabBarStyle: { display: 'none' }, swipeEnabled: false, gestureEnabled: false } as any);
+      if (Platform.OS === 'android') {
+        SystemNavigationBar.navigationHide();
+      }
+    } else {
+      parent?.setOptions({ tabBarStyle: undefined, swipeEnabled: false, gestureEnabled: false } as any);
+      grandparent?.setOptions({ tabBarStyle: undefined, swipeEnabled: false, gestureEnabled: false } as any);
+      if (Platform.OS === 'android') {
+        SystemNavigationBar.navigationShow();
+      }
+    }
+
+    return () => {
+      // Restore gestures and swiping on exit
+      navigation.setOptions({ gestureEnabled: true } as any);
+      parent?.setOptions({ tabBarStyle: undefined, swipeEnabled: true, gestureEnabled: true } as any);
+      grandparent?.setOptions({ tabBarStyle: undefined, swipeEnabled: true, gestureEnabled: true } as any);
+      if (Platform.OS === 'android') {
+        SystemNavigationBar.navigationShow();
+      }
+    };
+  }, [isFullscreen, navigation]);
 
   const course = useMemo(() => courses.find(c => c.id === courseId), [courses, courseId]);
   const isEnrolled = useMemo(() => user?.enrolledCourses?.includes(courseId), [user, courseId]);
@@ -149,8 +178,13 @@ const CoursePlayerScreen = () => {
   }, [course]);
 
   const activeVideoIndex = useMemo(() => {
-    return parseInt(activeVideoId.replace('video_', '')) || 0;
-  }, [activeVideoId]);
+    if (!videoList.length || !activeVideoId) return 0;
+    if (activeVideoId.startsWith('video_')) {
+      const idx = parseInt(activeVideoId.replace('video_', ''));
+      if (!isNaN(idx) && idx >= 0 && idx < videoList.length) return idx;
+    }
+    return 0;
+  }, [activeVideoId, videoList]);
 
   const activeVideo = useMemo(() => {
     // 1. Try to get from videoList
@@ -192,32 +226,16 @@ const CoursePlayerScreen = () => {
       };
     }
 
-    // Detect video type and optimize Cloudinary URLs for Android
     const lowerUrl = fixedUrl.toLowerCase();
-    let type: string | undefined;
     let finalUrl = fixedUrl;
 
     if (lowerUrl.includes('.m3u8')) {
-      type = 'm3u8';
-    } else if (lowerUrl.includes('.mp4') || lowerUrl.includes('/video/upload/')) {
-      type = 'mp4';
-      // If Cloudinary URL, force H264 codec and 720p for maximum hardware compatibility
-      if (lowerUrl.includes('cloudinary.com') && lowerUrl.includes('/video/upload/')) {
-        const parts = fixedUrl.split('/video/upload/');
-        if (parts.length === 2 && !parts[1].includes('vc_')) { // Don't override if already has transformations
-          finalUrl = `${parts[0]}/video/upload/f_mp4,vc_h264,w_1280,q_auto/${parts[1]}`;
-        }
-      }
-    } else if (lowerUrl.includes('.mov')) {
-      type = 'mov';
-    } else if (lowerUrl.includes('.webm')) {
-      type = 'webm';
-    }
-
-    const source: any = { uri: finalUrl };
-    if (type) source.type = type;
-
-    return { source, unsupportedReason: null };
+      return { source: { uri: finalUrl, type: 'm3u8' }, unsupportedReason: null };
+    } 
+    
+    // For mp4, mov, webm, just pass the uri without 'type' and without Cloudinary forced transformations
+    // since forced transformations like q_auto can sometimes cause codec issues on emulators
+    return { source: { uri: finalUrl }, unsupportedReason: null };
   }, [activeVideo?.url]);
 
   useEffect(() => {
@@ -244,7 +262,9 @@ const CoursePlayerScreen = () => {
   }, [courseProgress, videoList]);
 
   const handleVideoProgress = (data: OnProgressData) => {
-    setCurrentTime(data.currentTime);
+    if (!isSeekingRef.current) {
+      setCurrentTime(data.currentTime);
+    }
     if (data.seekableDuration > 0) setDuration(data.seekableDuration);
 
     if (!user?.uid || !activeVideoId) return;
@@ -282,6 +302,7 @@ const CoursePlayerScreen = () => {
       videoRef.current?.seek(savedTime);
     }
     setIsReady(true);
+    setVideoError(null);
   };
 
   const overallPct = calculateOverallProgress();
@@ -338,150 +359,322 @@ const CoursePlayerScreen = () => {
     );
   }
 
+  // Auto-advance to next video
+  const handleVideoEnd = useCallback(() => {
+    if (!autoPlay || !videoList.length) return;
+    const nextIndex = activeVideoIndex + 1;
+    if (nextIndex < videoList.length) {
+      setActiveVideoId(`video_${nextIndex}`);
+    }
+  }, [autoPlay, videoList, activeVideoIndex]);
+
+  // Get next video info for "Up Next" display
+  const nextVideo = useMemo(() => {
+    if (!videoList.length) return null;
+    const nextIndex = activeVideoIndex + 1;
+    return nextIndex < videoList.length ? videoList[nextIndex] : null;
+  }, [videoList, activeVideoIndex]);
+
+  const hasPrev = activeVideoIndex > 0;
+  const hasNext = activeVideoIndex < videoList.length - 1;
+
+  const playPrevVideo = () => {
+    if (hasPrev) {
+      setActiveVideoId(`video_${activeVideoIndex - 1}`);
+    }
+  };
+
+  const playNextVideo = () => {
+    if (hasNext) {
+      setActiveVideoId(`video_${activeVideoIndex + 1}`);
+    }
+  };
+
+  const handleProgressBarGrant = (e: any) => {
+    resetControlsTimeout();
+    if (!duration) return;
+    isSeekingRef.current = true;
+    
+    const screenWidth = Dimensions.get('window').width;
+    const startX = isFullscreen ? 16 : 0;
+    const usableWidth = isFullscreen ? (screenWidth - 32) : screenWidth;
+    
+    const touchX = e.nativeEvent.pageX;
+    const pct = Math.max(0, Math.min(1, (touchX - startX) / usableWidth));
+    const seekTime = pct * duration;
+    
+    setCurrentTime(seekTime);
+  };
+
+  const handleProgressBarMove = (e: any) => {
+    resetControlsTimeout();
+    if (!duration) return;
+    
+    const screenWidth = Dimensions.get('window').width;
+    const startX = isFullscreen ? 16 : 0;
+    const usableWidth = isFullscreen ? (screenWidth - 32) : screenWidth;
+    
+    const touchX = e.nativeEvent.pageX;
+    const pct = Math.max(0, Math.min(1, (touchX - startX) / usableWidth));
+    const seekTime = pct * duration;
+    
+    setCurrentTime(seekTime);
+  };
+
+  const handleProgressBarRelease = (e: any) => {
+    resetControlsTimeout();
+    
+    if (duration) {
+      const screenWidth = Dimensions.get('window').width;
+      const startX = isFullscreen ? 16 : 0;
+      const usableWidth = isFullscreen ? (screenWidth - 32) : screenWidth;
+      
+      const touchX = e.nativeEvent.pageX;
+      const pct = Math.max(0, Math.min(1, (touchX - startX) / usableWidth));
+      const seekTime = pct * duration;
+      
+      videoRef.current?.seek(seekTime);
+      setCurrentTime(seekTime);
+    }
+    
+    setTimeout(() => {
+      isSeekingRef.current = false;
+    }, 300);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+    <SafeAreaView style={[
+      styles.container,
+      !isFullscreen && { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0 }
+    ]}>
+      <StatusBar 
+        barStyle={isFullscreen ? 'light-content' : 'dark-content'} 
+        backgroundColor={isFullscreen ? '#000' : '#fff'} 
+        hidden={isFullscreen} 
+      />
       
       {/* Video Player Section */}
-      <TouchableWithoutFeedback onPress={handleDoubleTap}>
-        <View style={[styles.playerContainer, isFullscreen && styles.fullscreenContainer]}>
-          {normalizedVideo.source ? (
-            <View style={styles.videoWrapper}>
-              <Video
-                ref={videoRef}
-                source={normalizedVideo.source}
-                style={StyleSheet.absoluteFill}
-                resizeMode={ResizeMode.CONTAIN}
-                paused={paused}
-                playInBackground={false}
-                playWhenInactive={false}
-                ignoreSilentSwitch="ignore"
-                useTextureView={false} // SurfaceView is better for custom overlays if background is transparent
-                onLoadStart={() => {
-                  setIsLoadStarted(true);
-                  setIsBuffering(true);
-                }}
-                onReadyForDisplay={() => {
-                  setIsBuffering(false);
-                  setPaused(false);
-                }}
-                onBuffer={({ isBuffering: buffering }: any) => {
-                  setIsBuffering(buffering);
-                }}
-                onProgress={handleVideoProgress}
-                onLoad={(data: any) => {
-                  handleVideoLoad(data);
-                  setIsBuffering(false);
-                }}
-                onError={(e: any) => {
-                  console.log('[CoursePlayer] VIDEO ERROR:', JSON.stringify(e));
-                  setVideoError(`Unable to play this video.`);
-                  setIsBuffering(false);
-                }}
-              />
+      <View style={[styles.playerContainer, isFullscreen && styles.fullscreenContainer]}>
+        {normalizedVideo.source ? (
+          <View style={styles.videoWrapper}>
+            <Video
+              ref={videoRef}
+              source={normalizedVideo.source}
+              style={StyleSheet.absoluteFill}
+              resizeMode="contain"
+              paused={paused}
+              rate={playbackRate}
+              useTextureView={true}
+              selectedVideoTrack={
+                (selectedQuality === 'Auto'
+                  ? { type: 'auto' }
+                  : { type: 'resolution', value: parseInt(selectedQuality) }) as any
+              }
+              onProgress={handleVideoProgress}
+              onLoad={(data: any) => {
+                handleVideoLoad(data);
+                setIsBuffering(false);
+              }}
+              onBuffer={({ isBuffering }: { isBuffering: boolean }) => {
+                setIsBuffering(isBuffering);
+              }}
+              onError={(e: any) => {
+                console.log('[CoursePlayer] VIDEO ERROR:', JSON.stringify(e));
+                setVideoError(`Unable to play this video.`);
+                setIsBuffering(false);
+              }}
+              onEnd={handleVideoEnd}
+            />
 
-              {/* YouTube-like Controls Overlay */}
-              {showControls && (
-                <Animated.View style={[styles.controlsOverlay, { opacity: fadeAnim }]}>
-                  {/* Top Bar: Back Button */}
-                  <View style={styles.topControls}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-                      <ChevronLeft color="#fff" size={28} />
-                    </TouchableOpacity>
-                  </View>
+            {/* Tap to show controls when hidden */}
+            {!showControls && (
+              <TouchableWithoutFeedback onPress={toggleControls}>
+                <View style={StyleSheet.absoluteFill} />
+              </TouchableWithoutFeedback>
+            )}
 
-                  {/* Center: Play/Pause/Buffer */}
-                  <View style={styles.centerControls} pointerEvents="box-none">
-                    {isBuffering ? (
-                      <ActivityIndicator size="large" color="#FF0000" />
-                    ) : (
-                      <TouchableOpacity 
-                        style={styles.playPauseButton}
-                        onPress={() => {
-                          setPaused(!paused);
-                          resetControlsTimeout();
-                        }}
-                      >
-                        {paused ? (
-                          <Play color="#fff" size={32} fill="#fff" />
-                        ) : (
-                          <Pause color="#fff" size={32} fill="#fff" />
-                        )}
-                      </TouchableOpacity>
-                    )}
-                  </View>
+            {/* Custom YouTube Overlay Controls */}
+            {showControls && (
+              <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+                {/* Dark Vignette Overlay - Tapping this hides the controls */}
+                <TouchableWithoutFeedback onPress={toggleControls}>
+                  <View style={styles.vignetteOverlay} />
+                </TouchableWithoutFeedback>
 
-                  {/* Bottom Bar: Slider & Time */}
-                  <View style={styles.bottomControls}>
-                    <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
-                    <Slider
-                      style={styles.slider}
-                      minimumValue={0}
-                      maximumValue={duration > 0 ? duration : 100}
-                      value={currentTime}
-                      minimumTrackTintColor="#FF0000"
-                      maximumTrackTintColor="rgba(255,255,255,0.4)"
-                      thumbTintColor="#FF0000"
-                      onSlidingStart={() => {
-                        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-                      }}
-                      onSlidingComplete={(val) => {
-                        videoRef.current?.seek(val);
+                {/* Top Controls Row */}
+                <View style={styles.ytTopRow}>
+                  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topBackBtn}>
+                    <ChevronDown color="#fff" size={26} />
+                  </TouchableOpacity>
+
+                  <View style={styles.ytTopRight}>
+                    <TouchableOpacity 
+                      style={[styles.ytAutoplayToggle, autoPlay && styles.ytAutoplayToggleActive]} 
+                      onPress={() => {
+                        setAutoPlay(!autoPlay);
                         resetControlsTimeout();
                       }}
-                    />
-                    <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                      activeOpacity={0.8}
+                    >
+                      <View style={[
+                        styles.ytAutoplayDot, 
+                        autoPlay && styles.ytAutoplayDotActive,
+                        { alignSelf: autoPlay ? 'flex-end' : 'flex-start' }
+                      ]} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      style={styles.ytTopIconBtn} 
+                      onPress={() => {
+                        setSettingsMenu('main');
+                        setShowSettingsModal(true);
+                      }}
+                    >
+                      <Settings color="#fff" size={24} />
+                    </TouchableOpacity>
                   </View>
-                </Animated.View>
-              )}
-
-              {/* Error Overlay */}
-              {videoError ? (
-                <View style={styles.errorOverlay}>
-                  <Info color="#ffb4ab" size={32} />
-                  <Text style={styles.videoErrorText}>{videoError}</Text>
                 </View>
-              ) : null}
-            </View>
-          ) : (
-            <View style={styles.videoPlaceholder}>
-              <ActivityIndicator color="#fff" />
-              <Text style={styles.placeholderText}>
-                {!course ? t('coursePlayer.loadingCourse') : t('coursePlayer.lessonUnavailable')}
-              </Text>
-              <Text style={[styles.debugText, { textAlign: 'center', marginHorizontal: 20 }]}>
-                {normalizedVideo.unsupportedReason || t('coursePlayer.noVideoUrl')}
-              </Text>
-            </View>
-          )}
-        </View>
-      </TouchableWithoutFeedback>
 
-      <ScrollView stickyHeaderIndices={[2]} showsVerticalScrollIndicator={false}>
-        {/* Course Info */}
-        <View style={styles.infoSection}>
-          <Text style={styles.courseTitle}>{course.title}</Text>
-          <Text style={styles.courseMeta}>{t('coursePlayer.courseMeta', { instructor: course.instructor, count: videoList.length })}</Text>
-        </View>
+                {/* Center Controls (Prev, Play/Pause, Next) */}
+                <View style={styles.ytCenterRow} pointerEvents="box-none">
+                  <TouchableOpacity 
+                    style={[styles.centerCtrlCircle, !hasPrev && styles.disabledCtrl]} 
+                    disabled={!hasPrev}
+                    onPress={() => {
+                      playPrevVideo();
+                      resetControlsTimeout();
+                    }}
+                  >
+                    <SkipBack color="#fff" size={22} fill={hasPrev ? "#fff" : "none"} />
+                  </TouchableOpacity>
 
-        {/* Progress Card */}
-        <View style={styles.progressCard}>
-          <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>{t('coursePlayer.courseProgress')}</Text>
-            <Text style={[styles.progressVal, overallPct === 100 && { color: '#4caf50' }]}>
-              {overallPct}%
+                  <TouchableOpacity 
+                    style={styles.centerPlayCircle} 
+                    onPress={() => {
+                      setPaused(!paused);
+                      resetControlsTimeout();
+                    }}
+                  >
+                    {paused ? (
+                      <Play color="#fff" size={32} fill="#fff" style={{ marginLeft: 4 }} />
+                    ) : (
+                      <Pause color="#fff" size={32} fill="#fff" />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.centerCtrlCircle, !hasNext && styles.disabledCtrl]} 
+                    disabled={!hasNext}
+                    onPress={() => {
+                      playNextVideo();
+                      resetControlsTimeout();
+                    }}
+                  >
+                    <SkipForward color="#fff" size={22} fill={hasNext ? "#fff" : "none"} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Bottom Controls Row (Time label pill, Fullscreen button) */}
+                <View style={styles.ytBottomRow} pointerEvents="box-none">
+                  <View style={styles.ytTimePill}>
+                    <Text style={styles.ytTimeText}>
+                      {formatTime(currentTime)} / {formatTime(duration)}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity 
+                    style={styles.ytFullscreenBtn} 
+                    onPress={() => {
+                      resetControlsTimeout();
+                      if (isFullscreen) {
+                        Orientation?.lockToPortrait?.();
+                        setIsFullscreen(false);
+                      } else {
+                        Orientation?.lockToLandscape?.();
+                        setIsFullscreen(true);
+                      }
+                    }}
+                  >
+                    {isFullscreen ? (
+                      <Minimize2 color="#fff" size={20} />
+                    ) : (
+                      <Maximize2 color="#fff" size={20} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* Scrubber Seekbar slightly up from bottom in fullscreen */}
+                <View 
+                  style={[
+                    styles.progressBarContainer,
+                    isFullscreen && { bottom: 16, left: 16, right: 16 }
+                  ]}
+                  onLayout={(e) => setProgressBarWidth(e.nativeEvent.layout.width)}
+                  onStartShouldSetResponder={() => true}
+                  onMoveShouldSetResponder={() => true}
+                  onResponderGrant={handleProgressBarGrant}
+                  onResponderMove={handleProgressBarMove}
+                  onResponderRelease={handleProgressBarRelease}
+                >
+                  <View style={styles.progressTrack} pointerEvents="none">
+                    <View style={[styles.progressFill, { width: `${(currentTime / (duration || 1)) * 100}%` }]} />
+                    <View style={[styles.progressThumb, { left: `${(currentTime / (duration || 1)) * 100}%` }]} />
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Error Overlay */}
+            {videoError ? (
+              <View style={styles.errorOverlay}>
+                <Info color="#ffb4ab" size={32} />
+                <Text style={styles.videoErrorText}>{videoError}</Text>
+              </View>
+            ) : null}
+
+            {/* Buffering ActivityIndicator */}
+            {isBuffering && (
+              <View style={styles.bufferingOverlay}>
+                <ActivityIndicator color="#FF0000" size="large" />
+              </View>
+            )}
+          </View>
+        ) : (
+          <View style={styles.videoPlaceholder}>
+            <ActivityIndicator color="#fff" />
+            <Text style={styles.placeholderText}>
+              {!course ? t('coursePlayer.loadingCourse') : t('coursePlayer.lessonUnavailable')}
+            </Text>
+            <Text style={[styles.debugText, { textAlign: 'center', marginHorizontal: 20 }]}>
+              {normalizedVideo.unsupportedReason || t('coursePlayer.noVideoUrl')}
             </Text>
           </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressIndicator, { width: `${overallPct}%`, backgroundColor: overallPct === 100 ? '#4caf50' : COLORS.primary }]} />
-          </View>
-          {overallPct === 100 && (
-            <View style={styles.completedBadge}>
-              <Award size={14} color="#4caf50" />
-              <Text style={styles.completedText}>{t('coursePlayer.courseCompleted')}</Text>
-            </View>
-          )}
+        )}
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+        {/* YouTube-style Video Info */}
+        <View style={styles.videoInfoSection}>
+          <Text style={styles.videoTitle} numberOfLines={2}>{activeVideo?.title || course.title}</Text>
+          <Text style={styles.videoMeta}>
+            {course.instructor} • {t('coursePlayer.courseMeta', { instructor: '', count: videoList.length }).trim()}
+          </Text>
         </View>
+
+        {/* Progress Bar (thin red line like YouTube) */}
+        <View style={styles.ytProgressTrack}>
+          <View style={[styles.ytProgressIndicator, { width: `${overallPct}%` }]} />
+        </View>
+
+
+
+        {/* Completion Banner */}
+        {overallPct === 100 && (
+          <View style={styles.completionBanner}>
+            <Award size={20} color="#fff" />
+            <Text style={styles.completionText}>{t('coursePlayer.courseCompleted')} — {overallPct}%</Text>
+          </View>
+        )}
 
         {/* Tab Switcher */}
         <View style={styles.tabBar}>
@@ -489,14 +682,14 @@ const CoursePlayerScreen = () => {
             style={[styles.tab, activeTab === 'lessons' && styles.activeTab]}
             onPress={() => setActiveTab('lessons')}
           >
-            <BookOpen size={18} color={activeTab === 'lessons' ? COLORS.primary : COLORS.secondary} />
+            <BookOpen size={16} color={activeTab === 'lessons' ? '#FF0000' : '#606060'} />
             <Text style={[styles.tabText, activeTab === 'lessons' && styles.activeTabText]}>{t('coursePlayer.lessonsTab')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'about' && styles.activeTab]}
             onPress={() => setActiveTab('about')}
           >
-            <Info size={18} color={activeTab === 'about' ? COLORS.primary : COLORS.secondary} />
+            <Info size={16} color={activeTab === 'about' ? '#FF0000' : '#606060'} />
             <Text style={[styles.tabText, activeTab === 'about' && styles.activeTabText]}>{t('coursePlayer.aboutTab')}</Text>
           </TouchableOpacity>
         </View>
@@ -517,30 +710,38 @@ const CoursePlayerScreen = () => {
                     key={vidId}
                     style={[styles.lessonItem, isActive && styles.activeLessonItem]}
                     onPress={() => setActiveVideoId(vidId)}
+                    activeOpacity={0.7}
                   >
+                    {/* Lesson Number */}
+                    <Text style={[styles.lessonNumber, isActive && styles.activeLessonNumber]}>
+                      {index + 1}
+                    </Text>
+                    {/* Icon */}
                     <View style={[
                       styles.lessonIcon, 
                       isCompleted ? styles.completedIcon : isActive ? styles.activeIcon : styles.inactiveIcon
                     ]}>
                       {isCompleted ? (
                         <CheckCircle2 size={16} color="#fff" />
+                      ) : isActive ? (
+                        <Pause size={12} color="#fff" fill="#fff" />
                       ) : (
-                        <Play size={14} color={isActive ? "#fff" : COLORS.secondary} fill={isActive ? "#fff" : "none"} />
+                        <Play size={12} color="#606060" fill="#606060" />
                       )}
                     </View>
+                    {/* Info */}
                     <View style={styles.lessonInfo}>
-                      <Text style={[styles.lessonTitle, isActive && styles.activeLessonTitle]}>
+                      <Text style={[styles.lessonTitle, isActive && styles.activeLessonTitle]} numberOfLines={2}>
                         {video.title}
                       </Text>
                       <View style={styles.lessonMeta}>
                         {video.duration ? <Text style={styles.lessonDuration}>{Math.floor(video.duration/60)}:{String(video.duration%60).padStart(2, '0')}</Text> : null}
-                        {vidPct > 0 && !isCompleted && <Text style={styles.lessonPct}>{t('coursePlayer.watchedPct', { pct: vidPct })}</Text>}
+                        {vidPct > 0 && !isCompleted && <Text style={styles.lessonPct}>{vidPct}%</Text>}
                       </View>
-                      {vidPct > 0 && !isCompleted && (
-                        <View style={styles.smallTrack}>
-                          <View style={[styles.smallIndicator, { width: `${vidPct}%` }]} />
-                        </View>
-                      )}
+                      {/* Red progress bar like YouTube */}
+                      <View style={styles.lessonProgressTrack}>
+                        <View style={[styles.lessonProgressFill, { width: `${isCompleted ? 100 : vidPct}%`, backgroundColor: isCompleted ? '#4caf50' : '#FF0000' }]} />
+                      </View>
                     </View>
                   </TouchableOpacity>
                 );
@@ -563,6 +764,99 @@ const CoursePlayerScreen = () => {
         }}
         onSubmit={handleRatingSubmit}
       />
+
+      {/* YouTube-style Settings Modal */}
+      <Modal
+        visible={showSettingsModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSettingsModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setShowSettingsModal(false)}
+        >
+          <View style={styles.modalContent}>
+            {/* Header Drag Bar */}
+            <View style={styles.modalDragBar} />
+            
+            {settingsMenu === 'main' && (
+              <View>
+                <Text style={styles.modalTitle}>Settings</Text>
+                
+                <TouchableOpacity 
+                  style={styles.modalItem}
+                  onPress={() => setSettingsMenu('quality')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.modalItemLeft}>
+                    <Tv color="#0f0f0f" size={20} />
+                    <Text style={styles.modalItemText}>Quality</Text>
+                  </View>
+                  <Text style={styles.modalItemValue}>{selectedQuality}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.modalItem}
+                  onPress={() => setSettingsMenu('speed')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.modalItemLeft}>
+                    <Play color="#0f0f0f" size={20} fill="#0f0f0f" />
+                    <Text style={styles.modalItemText}>Playback speed</Text>
+                  </View>
+                  <Text style={styles.modalItemValue}>
+                    {playbackRate === 1.0 ? 'Normal' : `${playbackRate}x`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {settingsMenu === 'quality' && (
+              <View>
+                <Text style={styles.modalTitle}>Quality</Text>
+                {['Auto', '1080p', '720p', '480p', '360p'].map((q) => (
+                  <TouchableOpacity 
+                    key={q}
+                    style={styles.modalSubItem}
+                    onPress={() => {
+                      setSelectedQuality(q);
+                      setShowSettingsModal(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.modalSubItemText, selectedQuality === q && styles.modalSubItemTextActive]}>
+                      {q}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {settingsMenu === 'speed' && (
+              <View>
+                <Text style={styles.modalTitle}>Playback speed</Text>
+                {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((rate) => (
+                  <TouchableOpacity 
+                    key={rate}
+                    style={styles.modalSubItem}
+                    onPress={() => {
+                      setPlaybackRate(rate);
+                      setShowSettingsModal(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.modalSubItemText, playbackRate === rate && styles.modalSubItemTextActive]}>
+                      {rate === 1.0 ? 'Normal' : `${rate}x`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -597,53 +891,193 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  controlsOverlay: {
+  vignetteOverlay: {
     ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'space-between',
-    padding: 10,
   },
-  topControls: {
+  ytTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 40 : 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 44 : 12,
+    alignItems: 'center',
   },
-  centerControls: {
+  topBackBtn: {
+    padding: 4,
+  },
+  ytTopRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  ytAutoplayToggle: {
+    width: 38,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  ytAutoplayToggleActive: {
+    backgroundColor: '#fff',
+  },
+  ytAutoplayDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#aaa',
+  },
+  ytAutoplayDotActive: {
+    backgroundColor: '#0f0f0f',
+  },
+  ytTopIconBtn: {
+    padding: 6,
+  },
+  ytCenterRow: {
     ...StyleSheet.absoluteFill,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 28,
+  },
+  centerCtrlCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  bottomControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingBottom: 10,
-  },
-  iconButton: {
-    padding: 8,
-  },
-  playPauseButton: {
+  centerPlayCircle: {
     width: 64,
     height: 64,
     borderRadius: 32,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  disabledCtrl: {
+    opacity: 0.25,
+  },
+  ytBottomRow: {
+    position: 'absolute',
+    bottom: 18,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ytTimePill: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  ytTimeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  ytFullscreenBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  timeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-    minWidth: 40,
-    textAlign: 'center',
+  progressBarContainer: {
+    position: 'absolute',
+    bottom: 8,
+    left: 0,
+    right: 0,
+    height: 36,
+    justifyContent: 'center',
+    zIndex: 10,
   },
-  slider: {
+  progressTrack: {
+    height: 3,
+    backgroundColor: 'rgba(255,255,255,0.24)',
+    width: '100%',
+    position: 'relative',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#FF0000',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+  },
+  progressThumb: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF0000',
+    position: 'absolute',
+    top: -4.5,
+    marginLeft: -6,
+  },
+  modalBackdrop: {
     flex: 1,
-    marginHorizontal: 10,
-    height: 40,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    paddingTop: 8,
+  },
+  modalDragBar: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#e0e0e0',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f0f0f',
+    marginBottom: 16,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+  },
+  modalItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modalItemText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0f0f0f',
+  },
+  modalItemValue: {
+    fontSize: 13,
+    color: '#606060',
+    fontWeight: '500',
+  },
+  modalSubItem: {
+    paddingVertical: 14,
+  },
+  modalSubItemText: {
+    fontSize: 14,
+    color: '#0f0f0f',
+    fontWeight: '500',
+  },
+  modalSubItemTextActive: {
+    color: '#FF0000',
+    fontWeight: '700',
   },
   errorOverlay: {
     ...StyleSheet.absoluteFill,
@@ -706,61 +1140,126 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  infoSection: {
-    padding: SPACING.lg,
+  videoInfoSection: {
+    padding: SPACING.md,
+    backgroundColor: '#fff',
   },
-  courseTitle: {
+  videoTitle: {
     ...TYPOGRAPHY.headline,
-    fontSize: 24,
-    color: COLORS.onSurface,
+    fontSize: 20,
+    color: '#0f0f0f',
+    lineHeight: 26,
+    marginBottom: 6,
   },
-  courseMeta: {
-    ...TYPOGRAPHY.subHeadline,
-    color: COLORS.secondary,
-    marginTop: 4,
+  videoMeta: {
+    ...TYPOGRAPHY.label,
+    color: '#606060',
+    fontSize: 13,
   },
-  progressCard: {
-    marginHorizontal: SPACING.lg,
-    padding: 16,
-    backgroundColor: COLORS.surfaceContainer,
-    borderRadius: 20,
-    marginBottom: SPACING.lg,
+  ytProgressTrack: {
+    height: 2,
+    backgroundColor: '#e0e0e0',
+    width: '100%',
   },
-  progressRow: {
+  ytProgressIndicator: {
+    height: '100%',
+    backgroundColor: '#FF0000',
+  },
+  upNextBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    alignItems: 'center',
+    padding: SPACING.md,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outlineVariant,
   },
-  progressLabel: {
+  upNextLeft: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  upNextLabel: {
     ...TYPOGRAPHY.label,
+    color: '#606060',
+    fontSize: 12,
     fontWeight: '700',
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
-  progressVal: {
-    ...TYPOGRAPHY.label,
-    fontWeight: '800',
-    color: COLORS.primary,
+  upNextTitle: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '600',
+    color: '#0f0f0f',
   },
-  progressTrack: {
-    height: 8,
-    backgroundColor: COLORS.outlineVariant,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressIndicator: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  completedBadge: {
+  upNextRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    gap: 6,
+    gap: 12,
   },
-  completedText: {
-    fontSize: 10,
+  playNextBtn: {
+    backgroundColor: '#0f0f0f',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+  },
+  playNextBtnText: {
+    color: '#fff',
+    fontSize: 11,
     fontWeight: '800',
-    color: '#4caf50',
+  },
+  autoPlayToggle: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#00000010',
+    padding: 2,
+    justifyContent: 'center',
+  },
+  autoPlayToggleActive: {
+    backgroundColor: '#CC0000',
+  },
+  autoPlayDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+  },
+  autoPlayDotActive: {
+    alignSelf: 'flex-end',
+  },
+  completionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4caf50',
+    padding: 12,
+    justifyContent: 'center',
+    gap: 8,
+  },
+  completionText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 13,
     letterSpacing: 0.5,
+  },
+  lessonCounterBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  lessonCounterText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
   },
   tabBar: {
     flexDirection: 'row',
@@ -859,6 +1358,27 @@ const styles = StyleSheet.create({
   smallIndicator: {
     height: '100%',
     backgroundColor: COLORS.primary,
+  },
+  lessonNumber: {
+    ...TYPOGRAPHY.label,
+    color: '#606060',
+    width: 24,
+    textAlign: 'center',
+    marginRight: 8,
+  },
+  activeLessonNumber: {
+    color: '#FF0000',
+    fontWeight: '800',
+  },
+  lessonProgressTrack: {
+    height: 2,
+    backgroundColor: '#e0e0e0',
+    marginTop: 6,
+    width: '100%',
+  },
+  lessonProgressFill: {
+    height: '100%',
+    backgroundColor: '#FF0000',
   },
   aboutContainer: {
     padding: SPACING.lg,
