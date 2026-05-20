@@ -351,6 +351,8 @@
     "startCourse": "Start Course"
   },
   "coursePlayer": {
+    "title": "Course Player",
+    "autoplay": "Autoplay",
     "lesson": "Lesson",
     "loadingCourse": "Loading Course...",
     "lessonUnavailable": "Lesson unavailable",

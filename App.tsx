@@ -16,6 +16,7 @@ import { COLORS } from './src/constants/Theme';
 import RootNavigator from './src/navigation/RootNavigator';
 import ImpersonationBanner from './src/components/ImpersonationBanner';
 import './src/i18n';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const StatusBarBackground = () => {
   const insets = useSafeAreaInsets();
@@ -37,6 +38,11 @@ const StatusBarBackground = () => {
 };
 
 export const navigationRef = createNavigationContainerRef();
+
+GoogleSignin.configure({
+  webClientId: '146404897369-4h5do7cgdo0hi4csl5t48nr9u3tqfkan.apps.googleusercontent.com',
+  offlineAccess: true,
+});
 
 const AppContent = () => {
   const [currentRoute, setCurrentRoute] = useState<string>();

@@ -287,11 +287,7 @@ function* handleLogout(): any {
 
 function* handleGoogleLogin(): any {
   try {
-    // Basic Google Sign-In configuration
-    GoogleSignin.configure({
-      webClientId: '146404897369-4h5do7cgdo0hi4csl5t48nr9u3tqfkan.apps.googleusercontent.com',
-      offlineAccess: true,
-    });
+    // Basic Google Sign-In configuration (Moved to App.tsx)
 
     // Check if device has Play Services
     yield call([GoogleSignin, 'hasPlayServices']);

@@ -351,6 +351,8 @@
     "startCourse": "Démarrer le cours"
   },
   "coursePlayer": {
+    "title": "Course Player",
+    "autoplay": "Lecture automatique",
     "lesson": "Leçon",
     "loadingCourse": "Chargement du cours...",
     "lessonUnavailable": "Leçon indisponible",

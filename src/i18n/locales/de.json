@@ -351,6 +351,8 @@
     "startCourse": "Kurs starten"
   },
   "coursePlayer": {
+    "title": "Course Player",
+    "autoplay": "Autoplay",
     "lesson": "Lektion",
     "loadingCourse": "Kurs wird geladen...",
     "lessonUnavailable": "Lektion nicht verfügbar",

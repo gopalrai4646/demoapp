@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Platform,
   TouchableWithoutFeedback,
+  Switch,
 } from 'react-native';
 import Video, { OnProgressData, ResizeMode } from 'react-native-video';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -25,7 +26,7 @@ import {
   ChevronLeft, 
   Info, 
   BookOpen,
-  Award,
+  Trophy,
   Pause,
   Settings,
   SkipBack,
@@ -34,7 +35,11 @@ import {
   Minimize2,
   ChevronDown,
   Subtitles,
-  Tv
+  Tv,
+  ArrowLeft,
+  MoreVertical,
+  Check,
+  RefreshCw
 } from 'lucide-react-native';
 import { Modal } from 'react-native';
 import { fetchProgressRequest, updateProgressRequest, updateRatingRequest } from '../store/slices/progressSlice';
@@ -452,6 +457,18 @@ const CoursePlayerScreen = () => {
         backgroundColor={isFullscreen ? '#000' : '#fff'} 
         hidden={isFullscreen} 
       />
+
+      {/* Top Header Section (Standard Header) */}
+      {!isFullscreen && (
+        <View style={styles.topHeader}>
+          <View style={styles.headerLeftContainer}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
+              <ArrowLeft color="#1E1B4B" size={24} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t('coursePlayer.title') || 'Course Player'}</Text>
+          </View>
+        </View>
+      )}
       
       {/* Video Player Section */}
       <View style={[styles.playerContainer, isFullscreen && styles.fullscreenContainer]}>
@@ -486,6 +503,13 @@ const CoursePlayerScreen = () => {
               onEnd={handleVideoEnd}
             />
 
+            {/* Always visible thin progress bar at the bottom of the video when controls are hidden */}
+            {!showControls && (
+              <View style={styles.alwaysVisibleTrack}>
+                <View style={[styles.alwaysVisibleFill, { width: `${(currentTime / (duration || 1)) * 100}%` }]} />
+              </View>
+            )}
+
             {/* Tap to show controls when hidden */}
             {!showControls && (
               <TouchableWithoutFeedback onPress={toggleControls}>
@@ -503,49 +527,32 @@ const CoursePlayerScreen = () => {
 
                 {/* Top Controls Row */}
                 <View style={styles.ytTopRow}>
-                  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topBackBtn}>
-                    <ChevronDown color="#fff" size={26} />
+                  <Text style={styles.ytTimeText}>
+                    {formatTime(currentTime)} / {formatTime(duration)}
+                  </Text>
+
+                  <TouchableOpacity 
+                    style={styles.ytTopIconBtn} 
+                    onPress={() => {
+                      setSettingsMenu('main');
+                      setShowSettingsModal(true);
+                    }}
+                  >
+                    <Settings color="#fff" size={24} />
                   </TouchableOpacity>
-
-                  <View style={styles.ytTopRight}>
-                    <TouchableOpacity 
-                      style={[styles.ytAutoplayToggle, autoPlay && styles.ytAutoplayToggleActive]} 
-                      onPress={() => {
-                        setAutoPlay(!autoPlay);
-                        resetControlsTimeout();
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[
-                        styles.ytAutoplayDot, 
-                        autoPlay && styles.ytAutoplayDotActive,
-                        { alignSelf: autoPlay ? 'flex-end' : 'flex-start' }
-                      ]} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                      style={styles.ytTopIconBtn} 
-                      onPress={() => {
-                        setSettingsMenu('main');
-                        setShowSettingsModal(true);
-                      }}
-                    >
-                      <Settings color="#fff" size={24} />
-                    </TouchableOpacity>
-                  </View>
                 </View>
 
                 {/* Center Controls (Prev, Play/Pause, Next) */}
                 <View style={styles.ytCenterRow} pointerEvents="box-none">
                   <TouchableOpacity 
-                    style={[styles.centerCtrlCircle, !hasPrev && styles.disabledCtrl]} 
+                    style={[styles.centerCtrlIcon, !hasPrev && styles.disabledCtrl]} 
                     disabled={!hasPrev}
                     onPress={() => {
                       playPrevVideo();
                       resetControlsTimeout();
                     }}
                   >
-                    <SkipBack color="#fff" size={22} fill={hasPrev ? "#fff" : "none"} />
+                    <SkipBack color="#fff" size={28} fill={hasPrev ? "#fff" : "none"} />
                   </TouchableOpacity>
 
                   <TouchableOpacity 
@@ -563,27 +570,21 @@ const CoursePlayerScreen = () => {
                   </TouchableOpacity>
 
                   <TouchableOpacity 
-                    style={[styles.centerCtrlCircle, !hasNext && styles.disabledCtrl]} 
+                    style={[styles.centerCtrlIcon, !hasNext && styles.disabledCtrl]} 
                     disabled={!hasNext}
                     onPress={() => {
                       playNextVideo();
                       resetControlsTimeout();
                     }}
                   >
-                    <SkipForward color="#fff" size={22} fill={hasNext ? "#fff" : "none"} />
+                    <SkipForward color="#fff" size={28} fill={hasNext ? "#fff" : "none"} />
                   </TouchableOpacity>
                 </View>
 
-                {/* Bottom Controls Row (Time label pill, Fullscreen button) */}
+                {/* Bottom Controls Row (Fullscreen button on the bottom left) */}
                 <View style={styles.ytBottomRow} pointerEvents="box-none">
-                  <View style={styles.ytTimePill}>
-                    <Text style={styles.ytTimeText}>
-                      {formatTime(currentTime)} / {formatTime(duration)}
-                    </Text>
-                  </View>
-
                   <TouchableOpacity 
-                    style={styles.ytFullscreenBtn} 
+                    style={styles.ytFullscreenIconBtn} 
                     onPress={() => {
                       resetControlsTimeout();
                       if (isFullscreen) {
@@ -596,9 +597,9 @@ const CoursePlayerScreen = () => {
                     }}
                   >
                     {isFullscreen ? (
-                      <Minimize2 color="#fff" size={20} />
+                      <Minimize2 color="#fff" size={22} />
                     ) : (
-                      <Maximize2 color="#fff" size={20} />
+                      <Maximize2 color="#fff" size={22} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -653,26 +654,26 @@ const CoursePlayerScreen = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-        {/* YouTube-style Video Info */}
+        {/* Title & Metadata Section */}
         <View style={styles.videoInfoSection}>
           <Text style={styles.videoTitle} numberOfLines={2}>{activeVideo?.title || course.title}</Text>
           <Text style={styles.videoMeta}>
-            {course.instructor} • {t('coursePlayer.courseMeta', { instructor: '', count: videoList.length }).trim()}
+            {course.title} • by {course.instructor ? `${course.instructor} • ` : ''}{videoList.length} {videoList.length === 1 ? 'Lesson' : 'Lessons'}
           </Text>
         </View>
 
-        {/* Progress Bar (thin red line like YouTube) */}
+        {/* Thin progress track right below video section */}
         <View style={styles.ytProgressTrack}>
           <View style={[styles.ytProgressIndicator, { width: `${overallPct}%` }]} />
         </View>
 
-
-
-        {/* Completion Banner */}
+        {/* Completion Banner (Emerald Green Rounded Button Banner) */}
         {overallPct === 100 && (
           <View style={styles.completionBanner}>
-            <Award size={20} color="#fff" />
-            <Text style={styles.completionText}>{t('coursePlayer.courseCompleted')} — {overallPct}%</Text>
+            <Trophy size={18} color="#fff" />
+            <Text style={styles.completionText}>
+              {t('coursePlayer.courseCompleted').toUpperCase()} — {overallPct}%
+            </Text>
           </View>
         )}
 
@@ -682,14 +683,14 @@ const CoursePlayerScreen = () => {
             style={[styles.tab, activeTab === 'lessons' && styles.activeTab]}
             onPress={() => setActiveTab('lessons')}
           >
-            <BookOpen size={16} color={activeTab === 'lessons' ? '#FF0000' : '#606060'} />
+            <BookOpen size={16} color={activeTab === 'lessons' ? COLORS.primary : '#64748B'} />
             <Text style={[styles.tabText, activeTab === 'lessons' && styles.activeTabText]}>{t('coursePlayer.lessonsTab')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'about' && styles.activeTab]}
             onPress={() => setActiveTab('about')}
           >
-            <Info size={16} color={activeTab === 'about' ? '#FF0000' : '#606060'} />
+            <Info size={16} color={activeTab === 'about' ? COLORS.primary : '#64748B'} />
             <Text style={[styles.tabText, activeTab === 'about' && styles.activeTabText]}>{t('coursePlayer.aboutTab')}</Text>
           </TouchableOpacity>
         </View>
@@ -716,33 +717,35 @@ const CoursePlayerScreen = () => {
                     <Text style={[styles.lessonNumber, isActive && styles.activeLessonNumber]}>
                       {index + 1}
                     </Text>
-                    {/* Icon */}
-                    <View style={[
-                      styles.lessonIcon, 
-                      isCompleted ? styles.completedIcon : isActive ? styles.activeIcon : styles.inactiveIcon
-                    ]}>
-                      {isCompleted ? (
-                        <CheckCircle2 size={16} color="#fff" />
-                      ) : isActive ? (
-                        <Pause size={12} color="#fff" fill="#fff" />
+                    
+                    {/* Circle Mint Green Checkbox or Active / Inactive Play Circle */}
+                    <View style={styles.iconContainer}>
+                      {isCompleted || isActive ? (
+                        <View style={styles.completedIconContainer}>
+                          <Check size={14} color="#059669" strokeWidth={3.5} />
+                        </View>
                       ) : (
-                        <Play size={12} color="#606060" fill="#606060" />
+                        <View style={styles.inactiveIconContainer}>
+                          <Play size={12} color="#64748B" fill="#64748B" style={{ marginLeft: 2 }} />
+                        </View>
                       )}
                     </View>
-                    {/* Info */}
+
+                    {/* Lesson Info */}
                     <View style={styles.lessonInfo}>
                       <Text style={[styles.lessonTitle, isActive && styles.activeLessonTitle]} numberOfLines={2}>
                         {video.title}
                       </Text>
                       <View style={styles.lessonMeta}>
-                        {video.duration ? <Text style={styles.lessonDuration}>{Math.floor(video.duration/60)}:{String(video.duration%60).padStart(2, '0')}</Text> : null}
+                        {video.duration ? (
+                          <Text style={[styles.lessonDuration, isActive && styles.activeLessonDuration]}>
+                            {Math.floor(video.duration/60)}:{String(video.duration%60).padStart(2, '0')}
+                          </Text>
+                        ) : null}
                         {vidPct > 0 && !isCompleted && <Text style={styles.lessonPct}>{vidPct}%</Text>}
                       </View>
-                      {/* Red progress bar like YouTube */}
-                      <View style={styles.lessonProgressTrack}>
-                        <View style={[styles.lessonProgressFill, { width: `${isCompleted ? 100 : vidPct}%`, backgroundColor: isCompleted ? '#4caf50' : '#FF0000' }]} />
-                      </View>
                     </View>
+
                   </TouchableOpacity>
                 );
               })}
@@ -755,6 +758,7 @@ const CoursePlayerScreen = () => {
           )}
         </View>
       </ScrollView>
+      
       <CourseRatingModal
         isVisible={showRatingModal}
         courseName={course?.title || ''}
@@ -784,6 +788,20 @@ const CoursePlayerScreen = () => {
             {settingsMenu === 'main' && (
               <View>
                 <Text style={styles.modalTitle}>Settings</Text>
+
+                <View style={styles.modalItem}>
+                  <View style={styles.modalItemLeft}>
+                    <RefreshCw color="#0f0f0f" size={20} />
+                    <Text style={styles.modalItemText}>{t('coursePlayer.autoplay') || 'Autoplay'}</Text>
+                  </View>
+                  <Switch
+                    value={autoPlay}
+                    onValueChange={(val) => setAutoPlay(val)}
+                    trackColor={{ false: '#d1d5db', true: '#c7d2fe' }}
+                    thumbColor={autoPlay ? '#4f46e5' : '#f3f4f6'}
+                    ios_backgroundColor="#d1d5db"
+                  />
+                </View>
                 
                 <TouchableOpacity 
                   style={styles.modalItem}
@@ -866,6 +884,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  topHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  headerLeftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerBackBtn: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E1B4B', // Navy blue
+  },
+  headerMoreBtn: {
+    padding: 4,
+  },
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -902,34 +946,6 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 44 : 12,
     alignItems: 'center',
   },
-  topBackBtn: {
-    padding: 4,
-  },
-  ytTopRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  ytAutoplayToggle: {
-    width: 38,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  ytAutoplayToggleActive: {
-    backgroundColor: '#fff',
-  },
-  ytAutoplayDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#aaa',
-  },
-  ytAutoplayDotActive: {
-    backgroundColor: '#0f0f0f',
-  },
   ytTopIconBtn: {
     padding: 6,
   },
@@ -940,19 +956,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 28,
   },
-  centerCtrlCircle: {
+  centerCtrlIcon: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   centerPlayCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.45)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -965,47 +981,39 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-  },
-  ytTimePill: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 12,
   },
   ytTimeText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
-  ytFullscreenBtn: {
+  ytFullscreenIconBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   progressBarContainer: {
     position: 'absolute',
-    bottom: 8,
+    bottom: 0,
     left: 0,
     right: 0,
-    height: 36,
-    justifyContent: 'center',
+    height: 16,
+    justifyContent: 'flex-end',
     zIndex: 10,
   },
   progressTrack: {
-    height: 3,
+    height: 4,
     backgroundColor: 'rgba(255,255,255,0.24)',
     width: '100%',
     position: 'relative',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF0000',
+    backgroundColor: '#ef4444',
     position: 'absolute',
     left: 0,
     top: 0,
@@ -1014,10 +1022,24 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF0000',
+    backgroundColor: '#ef4444',
+    borderColor: '#ffffff',
+    borderWidth: 1.5,
     position: 'absolute',
-    top: -4.5,
+    top: -4,
     marginLeft: -6,
+  },
+  alwaysVisibleTrack: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  alwaysVisibleFill: {
+    height: '100%',
+    backgroundColor: '#ef4444',
   },
   modalBackdrop: {
     flex: 1,
@@ -1086,9 +1108,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  videoPlayer: {
-    flex: 1,
-  },
   videoPlaceholder: {
     flex: 1,
     justifyContent: 'center',
@@ -1104,15 +1123,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 4,
   },
-  videoErrorOverlay: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 12,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    borderRadius: 8,
-    padding: 8,
-  },
   videoErrorText: {
     color: '#ffb4ab',
     fontSize: 12,
@@ -1123,150 +1133,62 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  bufferingText: {
-    color: '#fff',
-    fontSize: 13,
-    marginTop: 10,
-    fontWeight: '600',
-  },
-  floatingBackButton: {
-    position: 'absolute',
-    top: 20,
-    left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   videoInfoSection: {
     padding: SPACING.md,
     backgroundColor: '#fff',
   },
   videoTitle: {
     ...TYPOGRAPHY.headline,
-    fontSize: 20,
-    color: '#0f0f0f',
-    lineHeight: 26,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1E1B4B', // Navy blue
+    lineHeight: 28,
     marginBottom: 6,
   },
   videoMeta: {
     ...TYPOGRAPHY.label,
-    color: '#606060',
+    color: '#64748B', // Slate gray
     fontSize: 13,
   },
   ytProgressTrack: {
     height: 2,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e2e8f0',
     width: '100%',
   },
   ytProgressIndicator: {
     height: '100%',
     backgroundColor: '#FF0000',
   },
-  upNextBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: SPACING.md,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.outlineVariant,
-  },
-  upNextLeft: {
-    flex: 1,
-    paddingRight: 16,
-  },
-  upNextLabel: {
-    ...TYPOGRAPHY.label,
-    color: '#606060',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  upNextTitle: {
-    ...TYPOGRAPHY.body,
-    fontWeight: '600',
-    color: '#0f0f0f',
-  },
-  upNextRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  playNextBtn: {
-    backgroundColor: '#0f0f0f',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-  },
-  playNextBtnText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  autoPlayToggle: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#00000010',
-    padding: 2,
-    justifyContent: 'center',
-  },
-  autoPlayToggleActive: {
-    backgroundColor: '#CC0000',
-  },
-  autoPlayDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-  },
-  autoPlayDotActive: {
-    alignSelf: 'flex-end',
-  },
   completionBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4caf50',
-    padding: 12,
+    backgroundColor: '#00693E', // Forest Green
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginVertical: 12,
     justifyContent: 'center',
     gap: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
   },
   completionText: {
     color: '#fff',
     fontWeight: '800',
-    fontSize: 13,
+    fontSize: 14,
     letterSpacing: 0.5,
-  },
-  lessonCounterBadge: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  lessonCounterText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
   },
   tabBar: {
     flexDirection: 'row',
     paddingHorizontal: SPACING.lg,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: '#f1f5f9',
     backgroundColor: '#fff',
+    marginTop: 4,
   },
   tab: {
     flexDirection: 'row',
@@ -1278,48 +1200,64 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   activeTab: {
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: COLORS.primary, // Navy active underline
   },
   tabText: {
     ...TYPOGRAPHY.label,
-    color: COLORS.secondary,
+    color: '#64748B',
     fontWeight: '700',
   },
   activeTabText: {
-    color: COLORS.primary,
+    color: COLORS.primary, // Navy active text
   },
   tabContent: {
     paddingTop: SPACING.md,
   },
   lessonList: {
     paddingHorizontal: SPACING.md,
+    paddingBottom: 24,
   },
   lessonItem: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
     alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderLeftWidth: 4,
+    borderLeftColor: 'transparent',
   },
   activeLessonItem: {
-    backgroundColor: COLORS.primaryContainer + '40', // 25% opacity
+    backgroundColor: '#E0E7FF', // Lavender/light blue background
+    borderLeftColor: COLORS.primary, // Solid left border
   },
-  lessonIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  iconContainer: {
     marginRight: 12,
   },
-  inactiveIcon: {
-    backgroundColor: COLORS.outlineVariant,
+  completedIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#D1FAE5', // Light mint green background
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  activeIcon: {
+  activeIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  completedIcon: {
-    backgroundColor: '#4caf50',
+  inactiveIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   lessonInfo: {
     flex: 1,
@@ -1327,7 +1265,7 @@ const styles = StyleSheet.create({
   lessonTitle: {
     ...TYPOGRAPHY.body,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: '#1E1B4B', // Navy blue
   },
   activeLessonTitle: {
     color: COLORS.primary,
@@ -1341,44 +1279,37 @@ const styles = StyleSheet.create({
   },
   lessonDuration: {
     fontSize: 12,
-    color: COLORS.secondary,
+    color: '#64748B',
+  },
+  activeLessonDuration: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   lessonPct: {
     fontSize: 12,
     color: COLORS.primary,
     fontWeight: '600',
   },
-  smallTrack: {
-    height: 2,
-    backgroundColor: COLORS.outlineVariant,
-    marginTop: 6,
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  smallIndicator: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-  },
   lessonNumber: {
     ...TYPOGRAPHY.label,
-    color: '#606060',
+    color: '#64748B',
     width: 24,
     textAlign: 'center',
     marginRight: 8,
+    fontSize: 15,
   },
   activeLessonNumber: {
-    color: '#FF0000',
+    color: '#ef4444', // Red for active number
     fontWeight: '800',
   },
-  lessonProgressTrack: {
-    height: 2,
-    backgroundColor: '#e0e0e0',
-    marginTop: 6,
-    width: '100%',
-  },
-  lessonProgressFill: {
-    height: '100%',
-    backgroundColor: '#FF0000',
+  activeDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.primary, // Indigo dot
   },
   aboutContainer: {
     padding: SPACING.lg,
