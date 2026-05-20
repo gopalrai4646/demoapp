@@ -1,17 +1,32 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import AuthStack from './AuthStack';
 import MainTabNavigator from './MainTabNavigator';
 
 const RootNavigator = () => {
-  const { user, loading } = useSelector((state: RootState) => state.auth);
+  const { user, initializing } = useSelector((state: RootState) => state.auth);
 
-  // If we wanted to show a splash screen while loading the initial session,
-  // we could do it here. For now, we'll just show the AuthStack if no user.
+  if (initializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2563EB" />
+      </View>
+    );
+  }
   
   return user ? <MainTabNavigator /> : <AuthStack />;
 };
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FAFBFF',
+  },
+});
 
 export default RootNavigator;

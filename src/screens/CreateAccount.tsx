@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import firestore from '@react-native-firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
 import { signupRequest, googleLoginRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
@@ -49,6 +50,22 @@ const CreateAccount = () => {
   const [password, setPassword] = useState('');
   const [photoURL, setPhotoURL] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [hasAdmin, setHasAdmin] = useState(false);
+
+  // Check if an admin already exists in the database
+  useEffect(() => {
+    const checkAdminExists = async () => {
+      try {
+        const adminSnapshot = await firestore().collection('users').where('role', '==', 'admin').limit(1).get();
+        if (!adminSnapshot.empty) {
+          setHasAdmin(true);
+        }
+      } catch (err) {
+        console.error('Failed to check for existing admin:', err);
+      }
+    };
+    checkAdminExists();
+  }, []);
   
   // Clear error on unmount
   useEffect(() => {
@@ -152,48 +169,50 @@ const CreateAccount = () => {
 
         <View style={styles.formContainer}>
           {/* Join As Segmented Control */}
-          <View style={styles.segmentedControl}>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                role === 'User' && styles.segmentButtonActive,
-              ]}
-              onPress={() => setRole('User')}
-              activeOpacity={0.8}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <User size={16} color={role === 'User' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
-                <Text
-                  style={[
-                    styles.segmentText,
-                    role === 'User' && styles.segmentTextActive,
-                  ]}
-                >
-                  {t('auth.joinAsUser')}
-                </Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                role === 'Admin' && styles.segmentButtonActive,
-              ]}
-              onPress={() => setRole('Admin')}
-              activeOpacity={0.8}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <ShieldCheck size={16} color={role === 'Admin' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
-                <Text
-                  style={[
-                    styles.segmentText,
-                    role === 'Admin' && styles.segmentTextActive,
-                  ]}
-                >
-                  {t('auth.joinAsAdmin')}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+          {!hasAdmin && (
+            <View style={styles.segmentedControl}>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  role === 'User' && styles.segmentButtonActive,
+                ]}
+                onPress={() => setRole('User')}
+                activeOpacity={0.8}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <User size={16} color={role === 'User' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      role === 'User' && styles.segmentTextActive,
+                    ]}
+                  >
+                    {t('auth.joinAsUser')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  role === 'Admin' && styles.segmentButtonActive,
+                ]}
+                onPress={() => setRole('Admin')}
+                activeOpacity={0.8}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <ShieldCheck size={16} color={role === 'Admin' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      role === 'Admin' && styles.segmentTextActive,
+                    ]}
+                  >
+                    {t('auth.joinAsAdmin')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Profile Photo */}
           <View style={styles.photoContainer}>

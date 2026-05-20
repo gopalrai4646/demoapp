@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import { Search, BookOpen, CheckCircle2, RotateCw, PauseCircle } from 'lucide-re
 import { fetchProgressRequest } from '../store/slices/progressSlice';
 import { AppHeader } from '../components/AppHeader';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { UserCourseStackParamList } from '../navigation/types';
 
@@ -35,10 +35,21 @@ const UserCoursesScreen = () => {
 
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchCoursesRequest());
   }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Clean up when screen loses focus
+      return () => {
+        setIsSearchVisible(false);
+        setSearchQuery('');
+      };
+    }, [])
+  );
 
   // Progress Calculation Logic
   const getCourseProgress = (course: any) => {
@@ -165,21 +176,29 @@ const UserCoursesScreen = () => {
       <FlatList
         ListHeaderComponent={
           <>
-            <View style={[styles.header, { paddingTop: SPACING.xl }]}>
-              <Text style={styles.title}>{t('userCourses.myCourses')}</Text>
-              <Text style={styles.subtitle}>{t('userCourses.trackProgress')}</Text>
+            <View style={[styles.header, { paddingTop: SPACING.xl, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+              <View>
+                <Text style={styles.title}>{t('userCourses.myCourses')}</Text>
+                <Text style={styles.subtitle}>{t('userCourses.trackProgress')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsSearchVisible(!isSearchVisible)} style={{ padding: 8 }}>
+                <Search size={24} color={COLORS.onSurface} />
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.searchContainer}>
-              <Search size={18} color={COLORS.secondary} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={t('userCourses.searchPlaceholder')}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholderTextColor={COLORS.outline}
-              />
-            </View>
+            {isSearchVisible && (
+              <View style={styles.searchContainer}>
+                <Search size={18} color={COLORS.secondary} style={styles.searchIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder={t('userCourses.searchPlaceholder')}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholderTextColor={COLORS.outline}
+                  autoFocus
+                />
+              </View>
+            )}
 
             <View style={styles.tabWrapper}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer}>
@@ -327,8 +346,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 32,
-    marginBottom: SPACING.lg,
+    borderRadius: 20,
+    marginBottom: SPACING.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -338,7 +357,7 @@ const styles = StyleSheet.create({
   },
   thumbnailContainer: {
     width: '100%',
-    height: 180,
+    height: 140,
     backgroundColor: COLORS.surfaceContainerLow,
   },
   thumbnail: {
@@ -375,7 +394,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   cardContent: {
-    padding: 24,
+    padding: 16,
   },
   courseTitle: {
     ...TYPOGRAPHY.headline,
@@ -385,7 +404,7 @@ const styles = StyleSheet.create({
   },
   instructorName: {
     ...TYPOGRAPHY.subHeadline,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   progressHeader: {
     flexDirection: 'row',

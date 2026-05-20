@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, Dimensions, Alert, ActivityIndicator, StatusBar } from 'react-native';
 import { COLORS, SPACING, ROUNDNESS, TYPOGRAPHY } from '../constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AdminTrainingPlanStackParamList } from '../navigation/types';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { useTranslation } from 'react-i18next';
@@ -40,10 +40,20 @@ export const AdminTrainingPlanList = () => {
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchTrainingPlansRequest());
   }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsSearchVisible(false);
+        setSearchQuery('');
+      };
+    }, [])
+  );
 
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
@@ -133,26 +143,34 @@ export const AdminTrainingPlanList = () => {
       
       <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
         <Text style={TYPOGRAPHY.headline}>{t('adminPlans.managePlans')}</Text>
-        {canCreate && (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
-          >
-            <Plus size={24} color={COLORS.onPrimary} />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => setIsSearchVisible(!isSearchVisible)} style={{ padding: 8, marginRight: canCreate ? 8 : 0 }}>
+            <Search size={24} color={COLORS.onSurface} />
           </TouchableOpacity>
-        )}
+          {canCreate && (
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('AdminTrainingPlanDetails', {})}
+            >
+              <Plus size={24} color={COLORS.onPrimary} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('adminPlans.searchPlaceholder')}
-          placeholderTextColor={COLORS.outline}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+      {isSearchVisible && (
+        <View style={styles.searchContainer}>
+          <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('adminPlans.searchPlaceholder')}
+            placeholderTextColor={COLORS.outline}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+        </View>
+      )}
 
       {loading && trainingPlans.length === 0 ? (
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />

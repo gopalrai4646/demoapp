@@ -5,18 +5,21 @@
  * @format
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar, Platform, View } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Provider, useSelector } from 'react-redux';
+import { Provider, useSelector, useDispatch } from 'react-redux';
 import { store } from './src/store';
 import { RootState } from './src/store';
+import { restoreSessionRequest, setInitializing } from './src/store/slices/authSlice';
+import auth from '@react-native-firebase/auth';
 import { COLORS } from './src/constants/Theme';
 import RootNavigator from './src/navigation/RootNavigator';
 import ImpersonationBanner from './src/components/ImpersonationBanner';
 import './src/i18n';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { useSessionManager } from './src/hooks/useSessionManager';
 
 const StatusBarBackground = () => {
   const insets = useSafeAreaInsets();
@@ -45,9 +48,22 @@ GoogleSignin.configure({
 });
 
 const AppContent = () => {
+  useSessionManager();
+  const dispatch = useDispatch();
   const [currentRoute, setCurrentRoute] = useState<string>();
   const isImpersonating = useSelector((state: RootState) => state.auth.isImpersonating);
   const isSpecialScreen = currentRoute === 'CoursePlayer' || currentRoute === 'UserTrainingPlanDetails';
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged((user) => {
+      if (user) {
+        dispatch(restoreSessionRequest(user));
+      } else {
+        dispatch(setInitializing(false));
+      }
+    });
+    return unsubscribe;
+  }, [dispatch]);
 
   return (
     <SafeAreaProvider>

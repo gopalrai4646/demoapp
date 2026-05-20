@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchUsersRequest, deleteUserRequest } from '../store/slices/userSlice';
@@ -50,11 +51,21 @@ const AdminUsersScreen = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchUsersRequest());
     dispatch(fetchCoursesRequest());
   }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsSearchVisible(false);
+        setSearchTerm('');
+      };
+    }, [])
+  );
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
@@ -268,6 +279,9 @@ const AdminUsersScreen = () => {
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
           <Text style={styles.title}>{t('adminUsers.management')}</Text>
+          <TouchableOpacity onPress={() => setIsSearchVisible(!isSearchVisible)} style={{ padding: 8 }}>
+            <Search size={24} color={COLORS.onSurface} />
+          </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
         <ScrollView contentContainerStyle={styles.listContent}>
@@ -284,19 +298,25 @@ const AdminUsersScreen = () => {
           <>
             <View style={[styles.header, { paddingTop: insets.top || SPACING.md }]}>
               <Text style={styles.title}>{t('adminUsers.management')}</Text>
+              <TouchableOpacity onPress={() => setIsSearchVisible(!isSearchVisible)} style={{ padding: 8 }}>
+                <Search size={24} color={COLORS.onSurface} />
+              </TouchableOpacity>
             </View>
             <Text style={styles.subtitle}>{t('adminUsers.subtitle')}</Text>
             
-            <View style={styles.searchContainer}>
-                <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
-                <TextInput
-                  placeholder={t('adminUsers.searchPlaceholder')}
-                  style={styles.searchInput}
-                  value={searchTerm}
-                  onChangeText={setSearchTerm}
-                  placeholderTextColor={COLORS.outline}
-                />
-            </View>
+            {isSearchVisible && (
+              <View style={styles.searchContainer}>
+                  <Search size={20} color={COLORS.outline} style={styles.searchIcon} />
+                  <TextInput
+                    placeholder={t('adminUsers.searchPlaceholder')}
+                    style={styles.searchInput}
+                    value={searchTerm}
+                    onChangeText={setSearchTerm}
+                    placeholderTextColor={COLORS.outline}
+                    autoFocus
+                  />
+              </View>
+            )}
 
             <View style={styles.viewModeToggleWrapper}>
               <View style={styles.viewModeToggle}>

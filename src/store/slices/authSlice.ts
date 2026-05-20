@@ -22,6 +22,7 @@ interface AuthState {
     permissions: string[];
   } | null;
   isImpersonating?: boolean;
+  initializing: boolean;
 }
 
 const initialState: AuthState = {
@@ -33,6 +34,7 @@ const initialState: AuthState = {
   isNewUser: false,
   originalAdmin: null,
   isImpersonating: false,
+  initializing: true,
 };
 
 const authSlice = createSlice({
@@ -99,6 +101,12 @@ const authSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    restoreSessionRequest: (state, _action: PayloadAction<any>) => {
+      state.initializing = true;
+    },
+    setInitializing: (state, action: PayloadAction<boolean>) => {
+      state.initializing = action.payload;
     },
     enrollCourseRequest: (state, _action: PayloadAction<string>) => {
       state.loading = true;
@@ -193,6 +201,8 @@ export const {
   impersonateUserSuccess,
   stopImpersonationRequest,
   stopImpersonationSuccess,
+  restoreSessionRequest,
+  setInitializing,
 } = authSlice.actions;
 
 export default authSlice.reducer;

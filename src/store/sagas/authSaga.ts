@@ -26,6 +26,8 @@ import {
   impersonateUserSuccess,
   stopImpersonationRequest,
   stopImpersonationSuccess,
+  restoreSessionRequest,
+  setInitializing,
 } from '../slices/authSlice';
 import { enrollUserInCourseSuccess } from '../slices/courseSlice';
 import { ENV } from '../../config/env';
@@ -620,6 +622,53 @@ function* handleForgotPassword(action: ReturnType<typeof forgotPasswordRequest>)
   }
 }
 
+function* handleRestoreSession(action: ReturnType<typeof restoreSessionRequest>): any {
+  try {
+    const user = action.payload;
+    if (user) {
+      const userRef = firestore().collection('users').doc(user.uid);
+      const userDoc: any = yield call([userRef, 'get'] as any);
+      const userExists = typeof userDoc.exists === 'function' ? userDoc.exists() : userDoc.exists;
+      
+      if (userExists) {
+        const userData = userDoc.data();
+        let staffPermissions: string[] = [];
+        if (userData.role === 'staff' && userData.staffRoleId) {
+          staffPermissions = yield call(fetchStaffPermissions, userData.staffRoleId);
+        }
+        
+        yield put(authSuccess({ 
+          user: { 
+            uid: user.uid, 
+            email: user.email, 
+            displayName: user.displayName || userData.displayName,
+            enrolledCourses: userData.enrolledCourses || [], 
+            savedCourses: userData.savedCourses || [], 
+            assignedTrainingPlans: userData.assignedTrainingPlans || [],
+            photoURL: userData.photoURL || user.photoURL,
+            phoneNumber: userData.phoneNumber || user.phoneNumber || null
+          }, 
+          role: userData.role || 'student',
+          permissions: staffPermissions,
+          isNewUser: false 
+        }));
+        
+        if (userSyncTask) yield cancel(userSyncTask);
+        userSyncTask = yield fork(syncUserSession, user.uid);
+      } else {
+        yield put(logoutSuccess());
+      }
+    } else {
+      yield put(logoutSuccess());
+    }
+  } catch (error: any) {
+    console.error('Failed to restore session:', error);
+    yield put(logoutSuccess());
+  } finally {
+    yield put(setInitializing(false));
+  }
+}
+
 export function* watchAuth() {
   yield takeLatest(loginRequest.type, handleLogin);
   yield takeLatest(signupRequest.type, handleSignup);
@@ -632,6 +681,7 @@ export function* watchAuth() {
   yield takeLatest(saveCourseRequest.type, handleSaveCourse);
   yield takeLatest(impersonateUserRequest.type, handleImpersonateUser);
   yield takeLatest(stopImpersonationRequest.type, handleStopImpersonation);
+  yield takeLatest(restoreSessionRequest.type, handleRestoreSession);
 }
 
 export function* authSaga() {

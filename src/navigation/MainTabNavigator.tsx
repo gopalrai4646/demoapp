@@ -134,7 +134,7 @@ const MainTabNavigator = () => {
         />
       )}
       screenOptions={{
-        swipeEnabled: true,
+        swipeEnabled: false,
         lazy: true,
       }}
     >

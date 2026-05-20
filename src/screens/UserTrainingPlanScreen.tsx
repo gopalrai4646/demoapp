@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 32,
-    marginBottom: SPACING.lg,
+    borderRadius: 20,
+    marginBottom: SPACING.md,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 180,
+    height: 140,
     position: 'relative',
   },
   image: {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     color: '#2563eb',
   },
   infoContainer: {
-    padding: 24,
+    padding: 16,
   },
   planName: {
     ...TYPOGRAPHY.headline,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   description: {
     ...TYPOGRAPHY.subHeadline,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
