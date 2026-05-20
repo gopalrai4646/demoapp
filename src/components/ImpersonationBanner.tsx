@@ -30,7 +30,7 @@ const ImpersonationBanner = () => {
       <View style={styles.content}>
         <View style={styles.userInfo}>
           <UserCircle size={20} color="#FFFFFF" strokeWidth={2.5} />
-          <Text style={styles.text}>
+          <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
             IMPERSONATING: <Text style={styles.userName}>{user?.displayName?.toUpperCase() || 'USER'}</Text>
           </Text>
         </View>
@@ -70,9 +70,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   userInfo: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginRight: SPACING.md,
   },
   text: {
     color: '#FFFFFF',
@@ -80,6 +82,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0.8,
     fontFamily: Platform.OS === 'ios' ? 'Inter-Black' : 'sans-serif-black',
+    flexShrink: 1,
   },
   userName: {
     textDecorationLine: 'underline',

@@ -116,6 +116,8 @@ const MainTabNavigator = () => {
   // Staff only see them if admin granted matching module permissions.
   // Admins always see everything.
   const isStudent = !isAdmin && !isStaff;
+  const canSeeAdminDashboard = isAdmin || (isStaff && hasModuleAccess(permissions as Permission[], 'dashboard'));
+  const canSeeDashboard = isStudent || canSeeAdminDashboard;
   const canSeeCourses = isAdmin || isStudent || (isStaff && hasModuleAccess(permissions as Permission[], 'courses'));
   const canSeePlans = isAdmin || isStudent || (isStaff && hasModuleAccess(permissions as Permission[], 'training_plans'));
   const canSeeUsers = isAdmin || (isStaff && hasModuleAccess(permissions as Permission[], 'users'));
@@ -136,16 +138,18 @@ const MainTabNavigator = () => {
         lazy: true,
       }}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={isAdmin || isStaff ? AdminDashboardScreen : Dashboard}
-        options={{
-          tabBarLabel: isAdmin || isStaff ? t('tabs.reports') : t('tabs.dashboard'),
-          tabBarIcon: ({ color }) => (
-            isAdmin || isStaff ? <BarChart2 size={24} color={color} /> : <LayoutDashboard size={24} color={color} />
-          ),
-        }}
-      />
+      {canSeeDashboard && (
+        <Tab.Screen
+          name="Dashboard"
+          component={canSeeAdminDashboard ? AdminDashboardScreen : Dashboard}
+          options={{
+            tabBarLabel: canSeeAdminDashboard ? t('tabs.reports') : t('tabs.dashboard'),
+            tabBarIcon: ({ color }) => (
+              canSeeAdminDashboard ? <BarChart2 size={24} color={color} /> : <LayoutDashboard size={24} color={color} />
+            ),
+          }}
+        />
+      )}
       {canSeeCourses && (
         <Tab.Screen
           name="Courses"

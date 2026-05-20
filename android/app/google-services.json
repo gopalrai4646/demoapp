@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "146404897369-jj2p1eiier8d7o7dr0cmgjan5s72clii.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gopal.lmsapp",
+            "certificate_hash": "c07abe3071f33410cc5689ef85bb446f6a0d0d23"
+          }
+        },
+        {
           "client_id": "146404897369-m8671so9o8qkhnsbqi40b4mc1sd3jm9c.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -42,7 +50,7 @@
               "client_id": "146404897369-l5grsg0bdcibu72tq5827mv3663ou6ov.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.gopal.lmsapp"
+                "bundle_id": "com.demoapp"
               }
             }
           ]
