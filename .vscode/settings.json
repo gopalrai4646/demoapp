@@ -1,3 +1,24 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/android/build": true,
+        "**/android/.cxx": true,
+        "**/android/buildOutput_*": true,
+        "**/ios/build": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/android/build": true,
+        "**/android/.cxx": true,
+        "**/android/buildOutput_*": true,
+        "**/ios/build": true
+    },
+    "files.watcherExclude": {
+        "**/node_modules/*/**": true,
+        "**/android/build/**": true,
+        "**/android/.cxx/**": true,
+        "**/android/buildOutput_*/**": true,
+        "**/ios/build/**": true
+    }
 }
