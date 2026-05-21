@@ -484,6 +484,14 @@
     "joinAsAdmin": "Admin",
     "tapToChange": "Tap to change",
     "uploadPhoto": "Upload photo",
-    "uploadError": "Upload Error"
+    "uploadError": "Upload Error",
+    "resetPasswordTitle": "Reset Password",
+    "resetPasswordSub": "Enter your email and we'll send you a link to reset your password.",
+    "emailAddressLabel": "EMAIL ADDRESS",
+    "sendResetLink": "Send Reset Link",
+    "returnToLogin": "Return to login",
+    "backToSignIn": "Back to Sign In",
+    "successCheckEmail": "Success! Check your email for a password reset link.",
+    "enterEmailError": "Please enter your email address."
   }
 }

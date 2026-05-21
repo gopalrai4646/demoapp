@@ -33,6 +33,7 @@ import { enrollUserInCourseSuccess } from '../slices/courseSlice';
 import { ENV } from '../../config/env';
 import { clearProgress } from '../slices/progressSlice';
 import { clearUsers } from '../slices/userSlice';
+import i18n from '../../i18n';
 
 /**
  * Fetches the permissions array for a staff member by looking up their
@@ -615,6 +616,7 @@ function* handleStopImpersonation(): any {
 function* handleForgotPassword(action: ReturnType<typeof forgotPasswordRequest>): any {
   try {
     const { email } = action.payload;
+    auth().languageCode = i18n.language;
     yield call([auth(), auth().sendPasswordResetEmail], email);
     yield put(authSuccess({ user: null })); 
   } catch (error: any) {

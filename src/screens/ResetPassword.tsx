@@ -16,17 +16,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { forgotPasswordRequest, clearError } from '../store/slices/authSlice';
 import { RootState } from '../store';
-import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { BRANDING, MENTORA_LOGO } from '../constants/Branding';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
+import { 
+  ArrowLeft, 
+  Mail,
+  CheckCircle2
+} from 'lucide-react-native';
 
 const ResetPassword = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state: RootState) => state.auth);
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -58,13 +64,13 @@ const ResetPassword = () => {
 
   const handleReset = () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address.');
+      Alert.alert(t('common.error'), t('auth.enterEmailError'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address.');
+      Alert.alert(t('common.error'), t('auth.enterValidEmail'));
       return;
     }
 
@@ -77,98 +83,97 @@ const ResetPassword = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Decorative Background Elements */}
-      <View style={styles.bgCircle1} />
-      <View style={styles.bgCircle2} />
-
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + SPACING.sm, paddingBottom: insets.bottom + SPACING.sm },
+          { paddingTop: insets.top + 6, paddingBottom: insets.bottom + 16 },
         ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Back Button */}
         <TouchableOpacity 
           style={styles.backButton} 
-          onPress={() => navigation.goBack()}
           activeOpacity={0.7}
+          onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <ArrowLeft size={24} color="#191C1E" />
         </TouchableOpacity>
 
-        {/* Brand Identity */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.logoContainer}
-            onPress={() => navigation.navigate('Landing')}
-            activeOpacity={0.7}
-          >
-            <Image
-              source={MENTORA_LOGO}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          <Text style={styles.title}>Reset Password</Text>
-          <Text style={styles.subtitle}>
-            Enter your email and we'll send you a link to reset your password.
-          </Text>
-        </View>
-
-        {/* Reset Form / Success State */}
-        <View style={styles.formContainer}>
-          {isSubmitted ? (
-            <View style={styles.successContainer}>
-              <View style={styles.successIndicator} />
-              <Text style={styles.successText}>
-                Success! Check your email for a password reset link.
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>EMAIL ADDRESS</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>✉</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="name@example.com"
-                  placeholderTextColor={COLORS.outline}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={email}
-                  onChangeText={handleInputChange}
-                />
-              </View>
-              {error ? (
-                <Text style={styles.errorText}>{error}</Text>
-              ) : null}
-            </View>
-          )}
-
-          {!isSubmitted && (
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={handleReset}
-              disabled={loading}
-              activeOpacity={0.8}
+        <View style={styles.centerWrapper}>
+          {/* Brand Identity */}
+          <View style={styles.header}>
+            <TouchableOpacity 
+              style={styles.logoContainer}
+              onPress={() => navigation.navigate('Landing')}
+              activeOpacity={0.7}
             >
-              {loading ? (
-                <ActivityIndicator color={COLORS.onPrimary} />
-              ) : (
-                <Text style={styles.resetButtonText}>Send Reset Link</Text>
-              )}
+              <Image
+                source={MENTORA_LOGO}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
-          )}
-
-          <TouchableOpacity 
-            style={styles.footerLink}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.linkText}>
-              {isSubmitted ? 'Return to login' : 'Back to Sign In'}
+            <Text style={styles.title}>{t('auth.resetPasswordTitle')}</Text>
+            <Text style={styles.subtitle}>
+              {t('auth.resetPasswordSub')}
             </Text>
-          </TouchableOpacity>
+          </View>
+
+          {/* Reset Form / Success State */}
+          <View style={styles.formContainer}>
+            {isSubmitted ? (
+              <View style={styles.successContainer}>
+                <CheckCircle2 size={24} color="#2E7D32" style={styles.successIcon} />
+                <Text style={styles.successText}>
+                  {t('auth.successCheckEmail')}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.inputGroup}>
+                <View style={styles.inputWrapper}>
+                  <Mail size={20} color="#777587" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('auth.emailPlaceholder')}
+                    placeholderTextColor="#777587"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={handleInputChange}
+                  />
+                </View>
+              </View>
+            )}
+
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : null}
+
+            {!isSubmitted && (
+              <TouchableOpacity
+                style={styles.resetButton}
+                onPress={handleReset}
+                disabled={loading}
+                activeOpacity={0.9}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <View style={styles.resetButtonContent}>
+                    <Text style={styles.resetButtonText}>{t('auth.sendResetLink')}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.footer}>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.footerText}>
+                {isSubmitted ? t('auth.returnToLogin') : t('auth.backToSignIn')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -180,155 +185,151 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F7F9FB',
   },
-  bgCircle1: {
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(79, 70, 229, 0.05)',
-  },
-  bgCircle2: {
-    position: 'absolute',
-    bottom: -100,
-    left: -100,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(98, 73, 178, 0.05)',
-  },
   scrollContent: {
-    paddingHorizontal: SPACING.xl,
-    alignItems: 'center',
+    paddingHorizontal: 20,
     flexGrow: 1,
+  },
+  centerWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingBottom: 20,
   },
   backButton: {
     alignSelf: 'flex-start',
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  backIcon: {
-    fontSize: 24,
-    color: COLORS.onSurfaceVariant,
+    padding: 8,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: 12,
+    width: '100%',
   },
   logoContainer: {
-    padding: SPACING.xs,
-    marginBottom: SPACING.sm,
+    padding: 6,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
   },
   logo: {
-    height: 64,
-    width: 64,
+    height: 40,
+    width: 40,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.onSurface,
-    textAlign: 'center',
-    letterSpacing: -1,
-    marginBottom: SPACING.sm,
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#191C1E',
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
   subtitle: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.onSurfaceVariant,
+    fontSize: 14,
+    color: '#505F76',
+    fontWeight: '500',
     textAlign: 'center',
-    maxWidth: 280,
-    lineHeight: 22,
   },
   formContainer: {
     width: '100%',
     maxWidth: 400,
   },
   inputGroup: {
-    marginBottom: SPACING.lg,
-  },
-  label: {
-    ...TYPOGRAPHY.label,
-    fontSize: 10,
-    letterSpacing: 2,
-    fontWeight: '700',
-    color: COLORS.onSurfaceVariant,
-    marginBottom: SPACING.sm,
-    paddingLeft: SPACING.md,
+    marginBottom: 12,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceContainerHighest,
-    borderRadius: ROUNDNESS.full,
-    paddingHorizontal: SPACING.md,
-    height: 64,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    height: 48,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
   },
   inputIcon: {
-    fontSize: 20,
-    color: COLORS.outline,
-    marginRight: SPACING.sm,
+    marginRight: 12,
   },
   input: {
     flex: 1,
     height: '100%',
-    color: COLORS.onSurface,
+    color: '#191C1E',
     fontSize: 14,
+    fontWeight: '500',
   },
   errorText: {
-    color: '#ba1a1a',
-    fontSize: 12,
+    color: '#ba1a1a', 
+    marginBottom: 12, 
     textAlign: 'center',
-    marginTop: SPACING.sm,
+    fontSize: 12,
+    fontWeight: '600',
   },
   successContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E8F5E9',
-    borderRadius: ROUNDNESS.md,
-    padding: SPACING.md,
-    marginBottom: SPACING.xl,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    elevation: 2,
   },
-  successIndicator: {
-    width: 4,
-    height: '100%',
-    backgroundColor: '#2E7D32',
-    marginRight: SPACING.md,
-    borderRadius: 2,
+  successIcon: {
+    marginRight: 12,
   },
   successText: {
     flex: 1,
     color: '#1B5E20',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     lineHeight: 20,
   },
   resetButton: {
-    height: 64,
-    borderRadius: ROUNDNESS.full,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#4F46E5',
+    borderRadius: 26,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SPACING.md,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 40,
+    marginTop: 12,
     elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  },
+  resetButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   resetButtonText: {
-    color: COLORS.onPrimary,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
-  footerLink: {
+  footer: {
+    marginTop: 20,
     alignItems: 'center',
-    marginTop: SPACING.xxl,
-    padding: SPACING.sm,
+    paddingVertical: 16,
   },
-  linkText: {
-    color: COLORS.primary,
-    fontWeight: '700',
-    fontSize: 15,
+  footerText: {
+    fontSize: 14,
+    color: '#4F46E5',
+    fontWeight: '800',
   },
 });
 

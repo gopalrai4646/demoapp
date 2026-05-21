@@ -484,6 +484,14 @@
     "joinAsAdmin": "Admin",
     "tapToChange": "Appuyez pour modifier",
     "uploadPhoto": "Télécharger une photo",
-    "uploadError": "Erreur de téléchargement"
+    "uploadError": "Erreur de téléchargement",
+    "resetPasswordTitle": "Réinitialiser le mot de passe",
+    "resetPasswordSub": "Entrez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+    "emailAddressLabel": "ADRESSE E-MAIL",
+    "sendResetLink": "Envoyer le lien",
+    "returnToLogin": "Retour à la connexion",
+    "backToSignIn": "Retour à la connexion",
+    "successCheckEmail": "Succès ! Vérifiez vos e-mails pour obtenir un lien de réinitialisation.",
+    "enterEmailError": "Veuillez entrer votre adresse e-mail."
   }
 }

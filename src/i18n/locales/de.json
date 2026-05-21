@@ -484,6 +484,14 @@
     "joinAsAdmin": "Admin",
     "tapToChange": "Zum Ändern tippen",
     "uploadPhoto": "Foto hochladen",
-    "uploadError": "Upload-Fehler"
+    "uploadError": "Upload-Fehler",
+    "resetPasswordTitle": "Passwort zurücksetzen",
+    "resetPasswordSub": "Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.",
+    "emailAddressLabel": "E-MAIL ADRESSE",
+    "sendResetLink": "Link senden",
+    "returnToLogin": "Zurück zum Login",
+    "backToSignIn": "Zurück zur Anmeldung",
+    "successCheckEmail": "Erfolg! Überprüfen Sie Ihre E-Mails auf einen Link zum Zurücksetzen des Passworts.",
+    "enterEmailError": "Bitte geben Sie Ihre E-Mail-Adresse ein."
   }
 }
