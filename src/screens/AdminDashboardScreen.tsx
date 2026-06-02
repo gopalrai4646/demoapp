@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Modal,
+  Linking,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useNavigation } from '@react-navigation/native';
@@ -584,6 +585,7 @@ const AdminDashboardScreen = () => {
             icon={DollarSign} 
             color="#ef4444" 
             bg="#fef2f2" 
+            onPress={() => Linking.openURL('https://dashboard.razorpay.com/app/payments')}
           />
         )}
         {(role === 'admin' || (permissions as string[]).includes('top_training_plans')) && (

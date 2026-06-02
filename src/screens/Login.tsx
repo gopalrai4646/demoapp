@@ -29,10 +29,13 @@ import {
   EyeOff, 
   ArrowRight 
 } from 'lucide-react-native';
+import { AuthStackParamList } from '../navigation/types';
+
+type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
 const Login = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<LoginScreenNavigationProp>();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { loading, error } = useSelector((state: RootState) => state.auth);

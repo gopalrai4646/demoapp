@@ -16,6 +16,7 @@ import { fetchCoursesRequest } from '../store/slices/courseSlice';
 import { fetchTrainingPlansRequest } from '../store/slices/trainingPlanSlice';
 import { fetchUsersRequest } from '../store/slices/userSlice';
 import { saveCourseRequest, enrollCourseRequest } from '../store/slices/authSlice';
+import { initiatePaymentRequest } from '../store/slices/paymentSlice';
 import { RootState } from '../store';
 import { BookOpen, Search, GraduationCap } from 'lucide-react-native';
 import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
@@ -403,10 +404,10 @@ const Dashboard: React.FC = () => {
 
                     <TouchableOpacity
                       style={[styles.viewCourseBtn, { backgroundColor: '#4f46e5' }]}
-                      onPress={() => dispatch(enrollCourseRequest(course.id))}
+                      onPress={() => dispatch(initiatePaymentRequest({ courseId: course.id, amount: course.price ?? 999 }))}
                     >
                       <GraduationCap size={18} color="#fff" />
-                      <Text style={styles.viewCourseBtnText}>{t('common.enrollNow')}</Text>
+                      <Text style={styles.viewCourseBtnText}>{course.price === 0 ? t('common.enrollNow') || 'Enroll Now' : 'Buy Now'}</Text>
                     </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
@@ -483,10 +484,10 @@ const Dashboard: React.FC = () => {
                       ) : (
                         <TouchableOpacity
                           style={[styles.viewCourseBtn, { backgroundColor: '#4f46e5', marginTop: 12 }]}
-                          onPress={() => dispatch(enrollCourseRequest(course.id))}
+                          onPress={() => dispatch(initiatePaymentRequest({ courseId: course.id, amount: course.price ?? 999 }))}
                         >
                           <GraduationCap size={18} color="#fff" />
-                          <Text style={styles.viewCourseBtnText}>{t('common.enrollNow')}</Text>
+                          <Text style={styles.viewCourseBtnText}>{course.price === 0 ? t('common.enrollNow') || 'Enroll Now' : 'Buy Now'}</Text>
                         </TouchableOpacity>
                       )}
                     </View>
