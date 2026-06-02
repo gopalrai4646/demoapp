@@ -1,20 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import AuthStack from './AuthStack';
 import MainTabNavigator from './MainTabNavigator';
+import SplashScreen from '../screens/SplashScreen';
 
 const RootNavigator = () => {
   const { user, initializing } = useSelector((state: RootState) => state.auth);
+  const [isSplashComplete, setIsSplashComplete] = useState(false);
 
-  if (initializing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
-      </View>
-    );
+  const handleSplashComplete = () => {
+    setIsSplashComplete(true);
+  };
+
+  if (initializing || !isSplashComplete) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
   }
   
   return user ? <MainTabNavigator /> : <AuthStack />;
