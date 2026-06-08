@@ -9,6 +9,7 @@ import { createCourseRequest, updateCourseRequest, Course, VideoItem } from '../
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { AdminCourseStackParamList } from '../navigation/types';
+import { VALIDATION_LIMITS } from '../constants/validation';
 import { 
   X, 
   Camera, 
@@ -45,6 +46,7 @@ const AdminCourseDetails = () => {
   const [isPublic, setIsPublic] = useState(true);
   const [thumbnail, setThumbnail] = useState('');
   const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [formErrors, setFormErrors] = useState<{title?: string; description?: string; instructor?: string; price?: string; thumbnail?: string; videos?: string}>({});
   
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [uploadingVideos, setUploadingVideos] = useState<number[]>([]); // Array of indices currently uploading
@@ -80,10 +82,15 @@ const AdminCourseDetails = () => {
     });
 
     if (result.assets && result.assets[0].uri) {
+      if (result.assets[0].fileSize && result.assets[0].fileSize > VALIDATION_LIMITS.IMAGE.MAX_SIZE_BYTES) {
+        Alert.alert(t('adminCourseDetails.uploadError'), `Image must be under ${VALIDATION_LIMITS.IMAGE.MAX_SIZE_MB}MB`);
+        return;
+      }
       setUploadingThumbnail(true);
       try {
         const url = await uploadToCloudinary(result.assets[0].uri, 'image');
         setThumbnail(url);
+        setFormErrors(prev => ({ ...prev, thumbnail: undefined }));
       } catch (error: any) {
         Alert.alert(t('adminCourseDetails.uploadError'), error.message);
       } finally {
@@ -115,8 +122,54 @@ const AdminCourseDetails = () => {
   };
 
   const handleSave = () => {
-    if (!title || !description || !instructor || !price) {
-      Alert.alert(t('adminCourseDetails.error'), t('adminCourseDetails.fillRequiredFields'));
+    let hasError = false;
+    const errors: {title?: string; description?: string; instructor?: string; price?: string; thumbnail?: string; videos?: string} = {};
+
+    if (!title.trim()) {
+      errors.title = t('adminCourseDetails.titleRequired', "Course title is required.");
+      hasError = true;
+    } else if (title.length < VALIDATION_LIMITS.COURSE.TITLE_MIN_LENGTH) {
+      errors.title = t('adminCourseDetails.titleMinLength', `Title must be at least ${VALIDATION_LIMITS.COURSE.TITLE_MIN_LENGTH} characters.`);
+      hasError = true;
+    }
+
+    if (!description.trim()) {
+      errors.description = t('adminCourseDetails.descRequired', "Description is required.");
+      hasError = true;
+    } else if (description.length < VALIDATION_LIMITS.COURSE.DESCRIPTION_MIN_LENGTH) {
+      errors.description = t('adminCourseDetails.descMinLength', `Description must be at least ${VALIDATION_LIMITS.COURSE.DESCRIPTION_MIN_LENGTH} characters.`);
+      hasError = true;
+    }
+
+    if (!instructor.trim()) {
+      errors.instructor = t('adminCourseDetails.instructorRequired', "Instructor is required.");
+      hasError = true;
+    } else if (instructor.length < VALIDATION_LIMITS.COURSE.INSTRUCTOR_MIN_LENGTH) {
+      errors.instructor = t('adminCourseDetails.instructorMinLength', `Instructor name must be at least ${VALIDATION_LIMITS.COURSE.INSTRUCTOR_MIN_LENGTH} characters.`);
+      hasError = true;
+    }
+
+    if (!price.trim() || isNaN(parseFloat(price))) {
+      errors.price = t('adminCourseDetails.priceInvalid', "Valid price is required.");
+      hasError = true;
+    }
+
+    if (!thumbnail) {
+      errors.thumbnail = t('adminCourseDetails.thumbnailRequired', "Please upload a course thumbnail.");
+      hasError = true;
+    }
+
+    if (videos.length === 0) {
+      errors.videos = t('adminCourseDetails.videosRequired', "Please add at least one lesson.");
+      hasError = true;
+    } else if (videos.some(v => !v.title.trim())) {
+      errors.videos = t('adminCourseDetails.videoTitleRequired', "All lessons must have a title.");
+      hasError = true;
+    }
+
+    setFormErrors(errors);
+
+    if (hasError) {
       return;
     }
 
@@ -153,11 +206,17 @@ const AdminCourseDetails = () => {
       duration: 0,
     };
     setVideos([...videos, newLesson]);
+    if (formErrors.videos) setFormErrors(prev => ({ ...prev, videos: undefined }));
   };
 
   const handleDeleteLesson = (index: number) => {
     const updatedVideos = videos.filter((_, i) => i !== index);
     setVideos(updatedVideos);
+    if (formErrors.videos && updatedVideos.length === 0) {
+       // Maintain error if empty
+    } else if (formErrors.videos && updatedVideos.every(v => v.title.trim())) {
+       setFormErrors(prev => ({ ...prev, videos: undefined }));
+    }
   };
 
   const renderHeader = () => (
@@ -190,12 +249,20 @@ const AdminCourseDetails = () => {
         <View style={styles.formGroup}>
           <Text style={styles.label}>{t('adminCourseDetails.courseTitle')}</Text>
           <TextInput 
-            style={styles.input}
+            style={[styles.input, formErrors.title ? styles.inputError : null]}
             value={title}
-            onChangeText={setTitle}
+            onChangeText={(val) => {
+               setTitle(val);
+               if (formErrors.title) setFormErrors(prev => ({ ...prev, title: undefined }));
+            }}
             placeholder={t('adminCourseDetails.enterTitle')}
             placeholderTextColor={COLORS.outline}
+            maxLength={VALIDATION_LIMITS.COURSE.TITLE_MAX_LENGTH}
           />
+          <View style={styles.inputFooter}>
+            <Text style={styles.errorText}>{formErrors.title || ''}</Text>
+            <Text style={styles.charCount}>{title.length}/{VALIDATION_LIMITS.COURSE.TITLE_MAX_LENGTH}</Text>
+          </View>
         </View>
 
         <TouchableOpacity 
@@ -217,46 +284,69 @@ const AdminCourseDetails = () => {
             </View>
           )}
         </TouchableOpacity>
+        {formErrors.thumbnail && <Text style={[styles.errorText, { marginTop: 4, marginLeft: 4 }]}>{formErrors.thumbnail}</Text>}
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>{t('adminCourseDetails.courseDescription')}</Text>
           <TextInput 
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, formErrors.description ? styles.inputError : null]}
             value={description}
-            onChangeText={setDescription}
+            onChangeText={(val) => {
+              setDescription(val);
+              if (formErrors.description) setFormErrors(prev => ({ ...prev, description: undefined }));
+            }}
             placeholder={t('adminCourseDetails.enterDescription')}
             placeholderTextColor={COLORS.outline}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+            maxLength={VALIDATION_LIMITS.COURSE.DESCRIPTION_MAX_LENGTH}
           />
+          <View style={styles.inputFooter}>
+            <Text style={styles.errorText}>{formErrors.description || ''}</Text>
+            <Text style={styles.charCount}>{description.length}/{VALIDATION_LIMITS.COURSE.DESCRIPTION_MAX_LENGTH}</Text>
+          </View>
         </View>
 
         <View style={styles.row}>
           <View style={[styles.formGroup, { flex: 1, marginRight: SPACING.md }]}>
             <Text style={styles.label}>{t('adminCourseDetails.instructor')}</Text>
-            <View style={styles.inputDropdown}>
+            <View style={[styles.inputDropdown, formErrors.instructor ? styles.inputError : null]}>
                <TextInput 
                 style={[styles.dropdownText, { flex: 1, height: 20, padding: 0 }]}
                 value={instructor}
-                onChangeText={setInstructor}
+                onChangeText={(val) => {
+                  setInstructor(val);
+                  if (formErrors.instructor) setFormErrors(prev => ({ ...prev, instructor: undefined }));
+                }}
                 placeholder={t('adminCourseDetails.instructorName')}
                 placeholderTextColor={COLORS.outline}
+                maxLength={VALIDATION_LIMITS.COURSE.INSTRUCTOR_MAX_LENGTH}
               />
+            </View>
+            <View style={styles.inputFooter}>
+              <Text style={styles.errorText}>{formErrors.instructor || ''}</Text>
+              <Text style={styles.charCount}>{instructor.length}/{VALIDATION_LIMITS.COURSE.INSTRUCTOR_MAX_LENGTH}</Text>
             </View>
           </View>
           <View style={[styles.formGroup, { flex: 1 }]}>
             <Text style={styles.label}>{t('adminCourseDetails.price')}</Text>
-            <View style={styles.priceInputWrapper}>
+            <View style={[styles.priceInputWrapper, formErrors.price ? styles.inputError : null]}>
               <Text style={styles.currencyIcon}>$</Text>
               <TextInput 
                 style={styles.priceInput}
                 value={price}
-                onChangeText={setPrice}
+                onChangeText={(val) => {
+                  setPrice(val);
+                  if (formErrors.price) setFormErrors(prev => ({ ...prev, price: undefined }));
+                }}
                 keyboardType="numeric"
                 placeholder="0.00"
                 placeholderTextColor={COLORS.outline}
               />
+            </View>
+            <View style={styles.inputFooter}>
+              <Text style={styles.errorText}>{formErrors.price || ''}</Text>
             </View>
           </View>
         </View>
@@ -283,6 +373,7 @@ const AdminCourseDetails = () => {
             <Text style={styles.addLessonText}>{t('adminCourseDetails.addLesson')}</Text>
           </TouchableOpacity>
         </View>
+        {formErrors.videos && <Text style={[styles.errorText, { marginLeft: 4, marginBottom: 8 }]}>{formErrors.videos}</Text>}
 
         {videos.map((lesson, idx) => {
           const isUploading = uploadingVideos.includes(idx);
@@ -306,13 +397,16 @@ const AdminCourseDetails = () => {
                 )}
               </TouchableOpacity>
               <View style={styles.lessonInfo}>
-                 <TextInput 
-                  style={styles.lessonTitle}
+               <TextInput 
+                  style={[styles.lessonTitle, !lesson.title.trim() && formErrors.videos ? { color: COLORS.error } : null]}
                   value={lesson.title}
                   onChangeText={(val) => {
                       const newVids = [...videos];
                       newVids[idx] = { ...newVids[idx], title: val };
                       setVideos(newVids);
+                      if (formErrors.videos && newVids.every(v => v.title.trim())) {
+                         setFormErrors(prev => ({ ...prev, videos: undefined }));
+                      }
                   }}
                   placeholder={t('adminCourseDetails.lessonTitle')}
                 />
@@ -425,6 +519,26 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: COLORS.onSurface,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+    borderWidth: 1,
+  },
+  inputFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+    paddingHorizontal: 4,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 12,
+    flex: 1,
+  },
+  charCount: {
+    color: COLORS.outline,
+    fontSize: 12,
+    marginLeft: 16,
   },
   textArea: {
     height: 100,

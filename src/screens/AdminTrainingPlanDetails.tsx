@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { useTranslation } from 'react-i18next';
+import { VALIDATION_LIMITS } from '../constants/validation';
 
 type NavigationProp = NativeStackNavigationProp<AdminTrainingPlanStackParamList, 'AdminTrainingPlanDetails'>;
 
@@ -38,6 +39,7 @@ export const AdminTrainingPlanDetails = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [courseSearch, setCourseSearch] = useState('');
+  const [formErrors, setFormErrors] = useState<{name?: string; description?: string; image?: string; courses?: string}>({});
 
   const loading = createLoading || updateLoading;
 
@@ -62,10 +64,16 @@ export const AdminTrainingPlanDetails = () => {
     const uri = result.assets[0].uri;
     if (!uri) return;
 
+    if (result.assets[0].fileSize && result.assets[0].fileSize > VALIDATION_LIMITS.IMAGE.MAX_SIZE_BYTES) {
+      Alert.alert(t('adminTrainingPlanDetails.uploadError'), `Image must be under ${VALIDATION_LIMITS.IMAGE.MAX_SIZE_MB}MB`);
+      return;
+    }
+
     setIsUploading(true);
     try {
       const url = await uploadToCloudinary(uri, 'image');
       setImageUri(url);
+      setFormErrors(prev => ({ ...prev, image: undefined }));
     } catch (error: any) {
       console.error('Image upload failed', error);
       Alert.alert(t('adminTrainingPlanDetails.uploadFailed'), error.message || t('adminTrainingPlanDetails.uploadError'));
@@ -75,14 +83,41 @@ export const AdminTrainingPlanDetails = () => {
   };
 
   const handleSave = () => {
-    if (!name.trim() || !description.trim()) {
-      Alert.alert(t('adminTrainingPlanDetails.validationError'), t('adminTrainingPlanDetails.nameDescRequired'));
-      return;
+    let hasError = false;
+    const errors: {name?: string; description?: string; image?: string; courses?: string} = {};
+
+    if (!name.trim()) {
+      errors.name = t('adminTrainingPlanDetails.nameRequired', "Training plan name is required.");
+      hasError = true;
+    } else if (name.length < VALIDATION_LIMITS.TRAINING_PLAN.NAME_MIN_LENGTH) {
+      errors.name = t('adminTrainingPlanDetails.nameMinLength', `Name must be at least ${VALIDATION_LIMITS.TRAINING_PLAN.NAME_MIN_LENGTH} characters.`);
+      hasError = true;
     }
+
+    if (!description.trim()) {
+      errors.description = t('adminTrainingPlanDetails.descRequired', "Description is required.");
+      hasError = true;
+    } else if (description.length < VALIDATION_LIMITS.TRAINING_PLAN.DESCRIPTION_MIN_LENGTH) {
+      errors.description = t('adminTrainingPlanDetails.descMinLength', `Description must be at least ${VALIDATION_LIMITS.TRAINING_PLAN.DESCRIPTION_MIN_LENGTH} characters.`);
+      hasError = true;
+    }
+
+    if (!imageUri) {
+      errors.image = t('adminTrainingPlanDetails.imageRequired', "Please upload a training plan image.");
+      hasError = true;
+    }
+
     if (selectedCourseIds.length === 0) {
-      Alert.alert(t('adminTrainingPlanDetails.validationError'), t('adminTrainingPlanDetails.courseRequired'));
+      errors.courses = t('adminTrainingPlanDetails.coursesRequired', "Please select at least one course.");
+      hasError = true;
+    }
+
+    setFormErrors(errors);
+
+    if (hasError) {
       return;
     }
+
     if (isUploading) {
       Alert.alert(t('adminTrainingPlanDetails.pleaseWait'), t('adminTrainingPlanDetails.uploading'));
       return;
@@ -139,12 +174,20 @@ export const AdminTrainingPlanDetails = () => {
         <View style={styles.formGroup}>
           <Text style={styles.label}>{t('adminTrainingPlanDetails.planName')}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, formErrors.name ? styles.inputError : null]}
             placeholder={t('adminTrainingPlanDetails.enterPlanName')}
             placeholderTextColor={COLORS.outline}
             value={name}
-            onChangeText={setName}
+            onChangeText={(text) => {
+              setName(text);
+              if (formErrors.name) setFormErrors(prev => ({ ...prev, name: undefined }));
+            }}
+            maxLength={VALIDATION_LIMITS.TRAINING_PLAN.NAME_MAX_LENGTH}
           />
+          <View style={styles.inputFooter}>
+            <Text style={styles.errorText}>{formErrors.name || ''}</Text>
+            <Text style={styles.charCount}>{name.length}/{VALIDATION_LIMITS.TRAINING_PLAN.NAME_MAX_LENGTH}</Text>
+          </View>
         </View>
 
         <TouchableOpacity 
@@ -166,19 +209,28 @@ export const AdminTrainingPlanDetails = () => {
             </View>
           )}
         </TouchableOpacity>
+        {formErrors.image && <Text style={[styles.errorText, { marginTop: 4, marginLeft: 4 }]}>{formErrors.image}</Text>}
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>{t('adminTrainingPlanDetails.description')}</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, formErrors.description ? styles.inputError : null]}
             placeholder={t('adminTrainingPlanDetails.enterDescription')}
             placeholderTextColor={COLORS.outline}
             multiline
             numberOfLines={4}
             value={description}
-            onChangeText={setDescription}
+            onChangeText={(text) => {
+              setDescription(text);
+              if (formErrors.description) setFormErrors(prev => ({ ...prev, description: undefined }));
+            }}
+            maxLength={VALIDATION_LIMITS.TRAINING_PLAN.DESCRIPTION_MAX_LENGTH}
             textAlignVertical="top"
           />
+          <View style={styles.inputFooter}>
+            <Text style={styles.errorText}>{formErrors.description || ''}</Text>
+            <Text style={styles.charCount}>{description.length}/{VALIDATION_LIMITS.TRAINING_PLAN.DESCRIPTION_MAX_LENGTH}</Text>
+          </View>
         </View>
 
         <View style={styles.visibilityCard}>
@@ -203,6 +255,7 @@ export const AdminTrainingPlanDetails = () => {
             <Text style={styles.addCourseText}>{t('adminTrainingPlanDetails.addCourse')}</Text>
           </TouchableOpacity>
         </View>
+        {formErrors.courses && <Text style={[styles.errorText, { marginLeft: 4, marginBottom: 8 }]}>{formErrors.courses}</Text>}
 
         {curriculumCourses.map((course, index) => (
           <View key={course.id} style={styles.lessonCard}>
@@ -223,6 +276,11 @@ export const AdminTrainingPlanDetails = () => {
                 const newIds = [...selectedCourseIds];
                 newIds.splice(index, 1);
                 setSelectedCourseIds(newIds);
+                if (formErrors.courses && newIds.length === 0) {
+                  // Maintain error if emptied
+                } else if (formErrors.courses) {
+                   setFormErrors(prev => ({ ...prev, courses: undefined }));
+                }
             }}>
               <Text style={styles.deleteLessonIcon}>✕</Text>
             </TouchableOpacity>
@@ -290,7 +348,10 @@ export const AdminTrainingPlanDetails = () => {
                   </View>
                   <TouchableOpacity 
                     style={styles.modalAddBtn}
-                    onPress={() => setSelectedCourseIds([...selectedCourseIds, item.id])}
+                    onPress={() => {
+                      setSelectedCourseIds([...selectedCourseIds, item.id]);
+                      if (formErrors.courses) setFormErrors(prev => ({ ...prev, courses: undefined }));
+                    }}
                   >
                     <Text style={styles.actionIconPrimary}>{t('adminTrainingPlanDetails.add')}</Text>
                   </TouchableOpacity>
@@ -384,6 +445,26 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: COLORS.onSurface,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+    borderWidth: 1,
+  },
+  inputFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+    paddingHorizontal: 4,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 12,
+    flex: 1,
+  },
+  charCount: {
+    color: COLORS.outline,
+    fontSize: 12,
+    marginLeft: 16,
   },
   textArea: {
     height: 100,

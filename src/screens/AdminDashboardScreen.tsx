@@ -332,7 +332,7 @@ const AdminDashboardScreen = () => {
         <Icon size={20} color={color} />
       </View>
       <Text style={styles.cardLabel}>{title}</Text>
-      <Text style={styles.cardValue}>{value}</Text>
+      <Text style={styles.cardValue} numberOfLines={2} ellipsizeMode="tail">{value}</Text>
       {miniChart && renderMiniChart(color)}
       <Text style={styles.cardSubtext}>{subtext}</Text>
     </TouchableOpacity>
@@ -425,7 +425,7 @@ const AdminDashboardScreen = () => {
           return (
             <View key={item.id} style={styles.heatmapRow}>
               <View style={styles.heatmapInfo}>
-                <Text style={styles.heatmapName}>{item.title}</Text>
+                <Text style={styles.heatmapName} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
                 <Text style={styles.heatmapPercent}>{item.percent}% <Text style={styles.assignedLabel}>{t('adminDashboard.assigned')}</Text></Text>
               </View>
               <View style={styles.progressTrack}>
@@ -781,6 +781,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#334155',
+    flexShrink: 1,
+    marginRight: 8,
   },
   heatmapPercent: {
     fontSize: 13,

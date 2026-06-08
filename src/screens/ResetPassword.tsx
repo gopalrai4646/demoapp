@@ -37,6 +37,7 @@ const ResetPassword = () => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
+  const [formErrors, setFormErrors] = useState<{email?: string; general?: string}>({});
 
   // Clear error on unmount
   useEffect(() => {
@@ -63,14 +64,23 @@ const ResetPassword = () => {
   };
 
   const handleReset = () => {
-    if (!email) {
-      Alert.alert(t('common.error'), t('auth.enterEmailError'));
-      return;
+    setFormErrors({});
+    let hasError = false;
+    const errors: {email?: string} = {};
+
+    if (!email.trim()) {
+      errors.email = t('auth.emailRequired', "Email is required.");
+      hasError = true;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errors.email = t('auth.enterValidEmail', "Please enter a valid email.");
+        hasError = true;
+      }
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert(t('common.error'), t('auth.enterValidEmail'));
+    if (hasError) {
+      setFormErrors(errors);
       return;
     }
 
@@ -130,7 +140,7 @@ const ResetPassword = () => {
               </View>
             ) : (
               <View style={styles.inputGroup}>
-                <View style={styles.inputWrapper}>
+                <View style={[styles.inputWrapper, formErrors.email ? styles.inputWrapperError : null]}>
                   <Mail size={20} color="#777587" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
@@ -139,14 +149,22 @@ const ResetPassword = () => {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     value={email}
-                    onChangeText={handleInputChange}
+                    onChangeText={(val) => {
+                      handleInputChange(val);
+                      if (formErrors.email) setFormErrors(prev => ({ ...prev, email: undefined }));
+                    }}
                   />
                 </View>
+                {formErrors.email && (
+                  <Text style={styles.inlineErrorText}>{formErrors.email}</Text>
+                )}
               </View>
             )}
 
-            {error ? (
-              <Text style={styles.errorText}>{error}</Text>
+            {(error || formErrors.general) ? (
+              <View style={styles.generalErrorContainer}>
+                <Text style={styles.errorText}>{error || formErrors.general}</Text>
+              </View>
             ) : null}
 
             {!isSubmitted && (
@@ -261,6 +279,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 8,
   },
+  inputWrapperError: {
+    borderColor: '#ba1a1a', // rose-500 equivalent
+    borderWidth: 1,
+  },
   inputIcon: {
     marginRight: 12,
   },
@@ -271,12 +293,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  generalErrorContainer: {
+    backgroundColor: 'rgba(244, 63, 94, 0.1)', // rose-50/50 equivalent
+    borderColor: 'rgba(244, 63, 94, 0.2)', // rose-200 equivalent
+    borderWidth: 1,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   errorText: {
     color: '#ba1a1a', 
-    marginBottom: 12, 
-    textAlign: 'center',
+    textAlign: 'left',
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
+  },
+  inlineErrorText: {
+    color: '#ba1a1a', // rose-500
     fontSize: 12,
-    fontWeight: '600',
+    marginTop: 6,
+    fontWeight: '500',
+    marginLeft: 4,
   },
   successContainer: {
     flexDirection: 'row',

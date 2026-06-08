@@ -21,6 +21,7 @@ import { signupRequest, googleLoginRequest, clearError } from '../store/slices/a
 import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { BRANDING, MENTORA_LOGO } from '../constants/Branding';
+import { VALIDATION_LIMITS } from '../constants/validation';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/types';
@@ -51,6 +52,7 @@ const CreateAccount = () => {
   const [photoURL, setPhotoURL] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [hasAdmin, setHasAdmin] = useState(false);
+  const [formErrors, setFormErrors] = useState<{name?: string; email?: string; password?: string; phoneNumber?: string; general?: string}>({});
 
   // Check if an admin already exists in the database
   useEffect(() => {
@@ -104,19 +106,47 @@ const CreateAccount = () => {
   };
 
   const handleSignUp = () => {
-    if (!email || !password || !name) {
-      Alert.alert('Error', t('auth.fillAllFields'));
-      return;
+    setFormErrors({});
+    let hasError = false;
+    const errors: {name?: string; email?: string; password?: string; phoneNumber?: string; general?: string} = {};
+
+    if (!name.trim()) {
+      errors.name = t('auth.nameRequired', "Full name is required.");
+      hasError = true;
+    } else {
+      const nameLength = name.trim().length;
+      if (nameLength < VALIDATION_LIMITS.AUTH.NAME_MIN_LENGTH || nameLength > VALIDATION_LIMITS.AUTH.NAME_MAX_LENGTH) {
+        errors.name = `Full name must be between ${VALIDATION_LIMITS.AUTH.NAME_MIN_LENGTH} and ${VALIDATION_LIMITS.AUTH.NAME_MAX_LENGTH} characters.`;
+        hasError = true;
+      }
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Error', t('auth.enterValidEmail'));
-      return;
+    if (!email.trim()) {
+      errors.email = t('auth.emailRequired', "Email is required.");
+      hasError = true;
+    } else if (!email.toLowerCase().endsWith('@gmail.com')) {
+      errors.email = 'Email must end with @gmail.com.';
+      hasError = true;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', t('auth.passwordLength'));
+    if (!password.trim()) {
+      errors.password = t('auth.passwordRequired', "Password is required.");
+      hasError = true;
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters.";
+      hasError = true;
+    }
+
+    if (phone) {
+      const digitsOnly = phone.replace(/\D/g, '');
+      if (digitsOnly.length !== VALIDATION_LIMITS.AUTH.PHONE_LENGTH) {
+        errors.phoneNumber = `Phone number must be exactly ${VALIDATION_LIMITS.AUTH.PHONE_LENGTH} digits.`;
+        hasError = true;
+      }
+    }
+
+    if (hasError) {
+      setFormErrors(errors);
       return;
     }
     
@@ -241,20 +271,26 @@ const CreateAccount = () => {
 
           {/* Inputs */}
           <View style={styles.inputGroup}>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, formErrors.name ? styles.inputWrapperError : null]}>
               <UserCircle size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder={t('auth.fullNamePlaceholder')}
                 placeholderTextColor="#777587"
                 value={name}
-                onChangeText={(val) => handleInputChange(setName, val)}
+                onChangeText={(val) => {
+                  handleInputChange(setName, val);
+                  if (formErrors.name) setFormErrors(prev => ({ ...prev, name: undefined }));
+                }}
               />
             </View>
+            {formErrors.name && (
+              <Text style={styles.inlineErrorText}>{formErrors.name}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, formErrors.email ? styles.inputWrapperError : null]}>
               <Mail size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -263,13 +299,19 @@ const CreateAccount = () => {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
-                onChangeText={(val) => handleInputChange(setEmail, val)}
+                onChangeText={(val) => {
+                  handleInputChange(setEmail, val);
+                  if (formErrors.email) setFormErrors(prev => ({ ...prev, email: undefined }));
+                }}
               />
             </View>
+            {formErrors.email && (
+              <Text style={styles.inlineErrorText}>{formErrors.email}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, formErrors.phoneNumber ? styles.inputWrapperError : null]}>
               <Phone size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -277,13 +319,19 @@ const CreateAccount = () => {
                 placeholderTextColor="#777587"
                 keyboardType="phone-pad"
                 value={phone}
-                onChangeText={(val) => handleInputChange(setPhone, val)}
+                onChangeText={(val) => {
+                  handleInputChange(setPhone, val);
+                  if (formErrors.phoneNumber) setFormErrors(prev => ({ ...prev, phoneNumber: undefined }));
+                }}
               />
             </View>
+            {formErrors.phoneNumber && (
+              <Text style={styles.inlineErrorText}>{formErrors.phoneNumber}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, formErrors.password ? styles.inputWrapperError : null]}>
               <Lock size={20} color="#777587" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -291,14 +339,22 @@ const CreateAccount = () => {
                 placeholderTextColor="#777587"
                 secureTextEntry
                 value={password}
-                onChangeText={(val) => handleInputChange(setPassword, val)}
+                onChangeText={(val) => {
+                  handleInputChange(setPassword, val);
+                  if (formErrors.password) setFormErrors(prev => ({ ...prev, password: undefined }));
+                }}
               />
             </View>
+            {formErrors.password && (
+              <Text style={styles.inlineErrorText}>{formErrors.password}</Text>
+            )}
           </View>
 
           {/* Error Message */}
-          {error ? (
-            <Text style={styles.errorText}>{error}</Text>
+          {(error || formErrors.general) ? (
+            <View style={styles.generalErrorContainer}>
+              <Text style={styles.errorText}>{error || formErrors.general}</Text>
+            </View>
           ) : null}
 
           {/* Primary Button */}
@@ -480,6 +536,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 8,
   },
+  inputWrapperError: {
+    borderColor: '#ba1a1a', // rose-500 equivalent
+    borderWidth: 1,
+  },
   inputIcon: {
     marginRight: 12,
   },
@@ -502,12 +562,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
+  generalErrorContainer: {
+    backgroundColor: 'rgba(244, 63, 94, 0.1)', // rose-50/50 equivalent
+    borderColor: 'rgba(244, 63, 94, 0.2)', // rose-200 equivalent
+    borderWidth: 1,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   errorText: {
     color: '#ba1a1a', 
-    marginBottom: 12, 
-    textAlign: 'center',
+    textAlign: 'left',
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
+  },
+  inlineErrorText: {
+    color: '#ba1a1a', // rose-500
     fontSize: 12,
-    fontWeight: '600',
+    marginTop: 6,
+    fontWeight: '500',
+    marginLeft: 4,
   },
   primaryButton: {
     backgroundColor: '#4F46E5',

@@ -5,7 +5,7 @@ import { Image } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import firestore from '@react-native-firebase/firestore';
 import CryptoJS from 'crypto-js';
-import { Buffer } from 'buffer';
+import base64 from 'base-64';
 import {
   initiatePaymentRequest,
   paymentSuccess,
@@ -66,7 +66,7 @@ function* handleInitiatePayment(
           'Content-Type': 'application/json',
           Authorization:
             'Basic ' +
-            Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64'),
+            base64.encode(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`),
         },
         body: JSON.stringify({
           amount: amount * 100, // in paise
