@@ -55,11 +55,15 @@ const AppContent = () => {
   const isSpecialScreen = currentRoute === 'CoursePlayer' || currentRoute === 'UserTrainingPlanDetails';
 
   useEffect(() => {
+    let isFirstLoad = true;
     const unsubscribe = auth().onAuthStateChanged((user) => {
-      if (user) {
-        dispatch(restoreSessionRequest(user));
-      } else {
-        dispatch(setInitializing(false));
+      if (isFirstLoad) {
+        isFirstLoad = false;
+        if (user) {
+          dispatch(restoreSessionRequest(user));
+        } else {
+          dispatch(setInitializing(false));
+        }
       }
     });
     return unsubscribe;
