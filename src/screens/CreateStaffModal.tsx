@@ -9,6 +9,7 @@ import { X, Eye, EyeOff, ChevronDown } from 'lucide-react-native';
 import { COLORS, SPACING } from '../constants/Theme';
 import { createStaffUserRequest, clearStaffRoleError } from '../store/slices/staffRoleSlice';
 import { RootState } from '../store';
+import { VALIDATION_LIMITS } from '../constants/validation';
 
 interface Props {
   visible: boolean;
@@ -40,12 +41,24 @@ const CreateStaffModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
   }, [submitting, loading, error]);
 
   const handleSubmit = () => {
-    if (!name.trim() || !email.trim() || password.length < 6 || !roleId) return;
+    if (!valid) return;
     setSubmitting(true);
     dispatch(createStaffUserRequest({ name: name.trim(), email: email.trim().toLowerCase(), password, staffRoleId: roleId }));
   };
 
-  const valid = name.trim().length > 0 && email.trim().length > 0 && password.length >= 6 && roleId.length > 0;
+  let nameError = '';
+  const trimmedName = name.trim();
+  if (trimmedName.length > 0) {
+    if (trimmedName.length < VALIDATION_LIMITS.AUTH.NAME_MIN_LENGTH) nameError = `Name must be at least ${VALIDATION_LIMITS.AUTH.NAME_MIN_LENGTH} characters`;
+    else if (trimmedName.length > VALIDATION_LIMITS.AUTH.NAME_MAX_LENGTH) nameError = `Name cannot exceed ${VALIDATION_LIMITS.AUTH.NAME_MAX_LENGTH} characters`;
+  }
+
+  const valid = trimmedName.length >= VALIDATION_LIMITS.AUTH.NAME_MIN_LENGTH && 
+                trimmedName.length <= VALIDATION_LIMITS.AUTH.NAME_MAX_LENGTH && 
+                email.trim().length > 0 && 
+                password.length >= 6 && 
+                roleId.length > 0;
+                
   const selectedRole = roles.find(r => r.id === roleId);
 
   return (
@@ -60,7 +73,9 @@ const CreateStaffModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
             {error && <View style={s.err}><Text style={s.errTxt}>{error}</Text></View>}
 
             <View style={s.field}><Text style={s.label}>{t('admin.staff.staffName')} *</Text>
-              <TextInput style={s.input} value={name} onChangeText={setName} placeholder="e.g. John Smith" placeholderTextColor={COLORS.outline} /></View>
+              <TextInput style={[s.input, nameError ? s.inputError : null]} value={name} onChangeText={setName} placeholder="e.g. John Smith" placeholderTextColor={COLORS.outline} />
+              {nameError ? <Text style={s.valErr}>{nameError}</Text> : null}
+            </View>
 
             <View style={s.field}><Text style={s.label}>{t('admin.staff.emailAddress')} *</Text>
               <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder="e.g. john@company.com" placeholderTextColor={COLORS.outline} keyboardType="email-address" autoCapitalize="none" /></View>
@@ -123,6 +138,7 @@ const s = StyleSheet.create({
   field: { marginBottom: SPACING.md },
   label: { fontSize: 13, fontWeight: '700', color: COLORS.onSurface, marginBottom: 8 },
   input: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, fontWeight: '500', color: COLORS.onSurface },
+  inputError: { borderColor: '#ef4444' },
   pwWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 14 },
   pwInput: { flex: 1, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, fontWeight: '500', color: COLORS.onSurface },
   eyeBtn: { paddingHorizontal: 14 },

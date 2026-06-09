@@ -22,6 +22,7 @@ import { RootState } from '../store';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { AppHeader } from '../components/AppHeader';
 import { User as UserIcon, Phone as PhoneIcon, Lock, ShieldCheck } from 'lucide-react-native';
+import { VALIDATION_LIMITS } from '../constants/validation';
 
 const Account = () => {
   const insets = useSafeAreaInsets();
@@ -35,6 +36,7 @@ const Account = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [formErrors, setFormErrors] = useState<{name?: string; phone?: string; password?: string; confirmPassword?: string; general?: string}>({});
 
   useEffect(() => {
     if (user) {
@@ -74,32 +76,52 @@ const Account = () => {
   };
 
   const handleSaveChanges = () => {
-    if (!name) {
-      Alert.alert('Error', 'Full Name is required.');
+    setFormErrors({});
+    let hasError = false;
+    const errors: {name?: string; phone?: string; password?: string; confirmPassword?: string; general?: string} = {};
+
+    const nameLength = name.trim().length;
+    if (nameLength < VALIDATION_LIMITS.AUTH.NAME_MIN_LENGTH || nameLength > VALIDATION_LIMITS.AUTH.NAME_MAX_LENGTH) {
+      errors.name = `Full name must be between ${VALIDATION_LIMITS.AUTH.NAME_MIN_LENGTH} and ${VALIDATION_LIMITS.AUTH.NAME_MAX_LENGTH} characters.`;
+      hasError = true;
+    }
+
+    if (phone) {
+      if (!/^\d{10}$/.test(phone)) {
+        errors.phone = `Phone number must be exactly ${VALIDATION_LIMITS.AUTH.PHONE_LENGTH} digits only.`;
+        hasError = true;
+      }
+    }
+
+    if (password) {
+      if (password.length < 6) {
+        errors.password = 'Password should be at least 6 characters.';
+        hasError = true;
+      }
+      if (password !== confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match.';
+        hasError = true;
+      }
+    }
+
+    if (hasError) {
+      setFormErrors(errors);
       return;
     }
 
     // Profile updates
     dispatch(updateProfileRequest({
-      displayName: name,
+      displayName: name.trim(),
       phoneNumber: phone,
       photoURL: photoURL || undefined
     }));
 
     // Password update if provided
     if (password) {
-      if (password !== confirmPassword) {
-        Alert.alert('Error', 'Passwords do not match.');
-        return;
-      }
-      if (password.length < 6) {
-        Alert.alert('Error', 'Password should be at least 6 characters.');
-        return;
-      }
       dispatch(updatePasswordRequest({ password }));
+      setPassword('');
+      setConfirmPassword('');
     }
-    
-    Alert.alert('Success', 'Profile update initiated.');
   };
 
   return (
@@ -150,11 +172,17 @@ const Account = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('account.fullName')}</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, formErrors.name ? styles.inputError : null]}
                 value={name}
-                onChangeText={setName}
+                onChangeText={(val) => {
+                  setName(val);
+                  if (formErrors.name) setFormErrors(prev => ({ ...prev, name: undefined }));
+                }}
                 placeholder={t('account.fullName')}
               />
+              {formErrors.name && (
+                <Text style={styles.inlineErrorText}>{formErrors.name}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
@@ -162,13 +190,19 @@ const Account = () => {
               <View style={styles.phoneInputContainer}>
                 <PhoneIcon size={16} color="#94a3b8" style={styles.phoneIconPosition} />
                 <TextInput
-                  style={[styles.input, { paddingLeft: 40 }]}
+                  style={[styles.input, { paddingLeft: 40 }, formErrors.phone ? styles.inputError : null]}
                   value={phone}
-                  onChangeText={setPhone}
+                  onChangeText={(val) => {
+                    setPhone(val);
+                    if (formErrors.phone) setFormErrors(prev => ({ ...prev, phone: undefined }));
+                  }}
                   placeholder="123456700"
                   keyboardType="phone-pad"
                 />
               </View>
+              {formErrors.phone && (
+                <Text style={styles.inlineErrorText}>{formErrors.phone}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
@@ -192,28 +226,42 @@ const Account = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('account.newPassword')}</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, formErrors.password ? styles.inputError : null]}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(val) => {
+                  setPassword(val);
+                  if (formErrors.password) setFormErrors(prev => ({ ...prev, password: undefined }));
+                }}
                 placeholder={t('account.newPasswordPlaceholder')}
                 secureTextEntry
               />
+              {formErrors.password && (
+                <Text style={styles.inlineErrorText}>{formErrors.password}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('account.confirmPassword')}</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, formErrors.confirmPassword ? styles.inputError : null]}
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={(val) => {
+                  setConfirmPassword(val);
+                  if (formErrors.confirmPassword) setFormErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                }}
                 placeholder={t('account.confirmPasswordPlaceholder')}
                 secureTextEntry
               />
+              {formErrors.confirmPassword && (
+                <Text style={styles.inlineErrorText}>{formErrors.confirmPassword}</Text>
+              )}
             </View>
 
             {/* Error Message */}
-            {error ? (
-              <Text style={styles.errorText}>{error}</Text>
+            {(error || formErrors.general) ? (
+              <View style={styles.generalErrorContainer}>
+                <Text style={styles.errorText}>{error || formErrors.general}</Text>
+              </View>
             ) : null}
 
             {/* Save Button */}
@@ -323,6 +371,10 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     backgroundColor: '#fff',
   },
+  inputError: {
+    borderColor: '#ba1a1a', // rose-500
+    borderWidth: 1,
+  },
   disabledInput: {
     backgroundColor: '#f1f5f9',
     color: '#64748b',
@@ -354,11 +406,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
+  generalErrorContainer: {
+    backgroundColor: 'rgba(244, 63, 94, 0.1)', // rose-50/50 equivalent
+    borderColor: 'rgba(244, 63, 94, 0.2)', // rose-200 equivalent
+    borderWidth: 1,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   errorText: {
-    color: '#ef4444',
-    textAlign: 'center',
-    marginBottom: 12,
+    color: '#ba1a1a', 
+    textAlign: 'left',
     fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
+  },
+  inlineErrorText: {
+    color: '#ba1a1a', // rose-500
+    fontSize: 12,
+    marginTop: 6,
+    fontWeight: '500',
+    marginLeft: 4,
   },
 });
 

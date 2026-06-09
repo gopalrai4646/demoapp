@@ -21,7 +21,7 @@ interface Props {
 const CreateRoleModal: React.FC<Props> = ({ visible, onClose, editingRole = null, onSuccess }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((s: RootState) => s.staffRoles);
+  const { roles, loading, error } = useSelector((s: RootState) => s.staffRoles);
   const [roleName, setRoleName] = useState('');
   const [roleDesc, setRoleDesc] = useState('');
   const [selPerms, setSelPerms] = useState<Permission[]>([]);
@@ -44,13 +44,36 @@ const CreateRoleModal: React.FC<Props> = ({ visible, onClose, editingRole = null
 
   const togglePerm = (p: Permission) => setSelPerms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
   const toggleAll = () => setSelPerms(selPerms.length === ALL_PERMISSIONS.length ? [] : [...ALL_PERMISSIONS]);
+
+  const trimmedName = roleName.trim();
+  const trimmedDesc = roleDesc.trim();
+  const isDuplicate = roles.some(r => 
+      r.name.toLowerCase() === trimmedName.toLowerCase() && 
+      (!editingRole || r.id !== editingRole.id)
+  );
+
+  let nameError = '';
+  if (trimmedName.length > 0) {
+      if (trimmedName.length < 3) nameError = "Role name must be at least 3 characters";
+      else if (trimmedName.length > 50) nameError = "Role name cannot exceed 50 characters";
+      else if (!/^[A-Za-z][A-Za-z0-9\s&-]{2,49}$/.test(trimmedName)) nameError = "Invalid format. Start with a letter. Only letters, numbers, spaces, &, - allowed.";
+      else if (isDuplicate) nameError = "Role already exists";
+  }
+
+  let descError = '';
+  if (trimmedDesc.length > 0) {
+      if (trimmedDesc.length < 10) descError = "Description must be at least 10 characters";
+      else if (trimmedDesc.length > 250) descError = "Description cannot exceed 250 characters";
+  }
+
+  const valid = trimmedName.length >= 3 && !nameError && !descError && selPerms.length > 0;
+
   const handleSubmit = () => {
-    if (!roleName.trim() || selPerms.length === 0) return;
+    if (!valid) return;
     setSubmitting(true);
-    if (editingRole) dispatch(updateStaffRoleRequest({ id: editingRole.id, name: roleName.trim(), description: roleDesc.trim(), permissions: selPerms }));
-    else dispatch(createStaffRoleRequest({ name: roleName.trim(), description: roleDesc.trim(), permissions: selPerms }));
+    if (editingRole) dispatch(updateStaffRoleRequest({ id: editingRole.id, name: trimmedName, description: trimmedDesc, permissions: selPerms }));
+    else dispatch(createStaffRoleRequest({ name: trimmedName, description: trimmedDesc, permissions: selPerms }));
   };
-  const valid = roleName.trim().length > 0 && selPerms.length > 0;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -62,8 +85,22 @@ const CreateRoleModal: React.FC<Props> = ({ visible, onClose, editingRole = null
           </View>
           <ScrollView style={s.body} contentContainerStyle={s.bodyContent} showsVerticalScrollIndicator={false}>
             {error && <View style={s.err}><Text style={s.errTxt}>{error}</Text></View>}
-            <View style={s.field}><Text style={s.label}>{t('admin.staff.roleNameLabel')}</Text><TextInput style={s.input} value={roleName} onChangeText={setRoleName} placeholder="e.g. Content Manager" placeholderTextColor={COLORS.outline} /></View>
-            <View style={s.field}><Text style={s.label}>{t('admin.staff.description')}</Text><TextInput style={s.input} value={roleDesc} onChangeText={setRoleDesc} placeholder="e.g. Can manage courses and training plans" placeholderTextColor={COLORS.outline} /></View>
+            <View style={s.field}>
+              <View style={s.labelRow}>
+                <Text style={s.label}>{t('admin.staff.roleNameLabel')} *</Text>
+                <Text style={s.charCount}>{roleName.length} / 50</Text>
+              </View>
+              <TextInput style={[s.input, nameError ? s.inputError : null]} value={roleName} onChangeText={setRoleName} placeholder="e.g. Content Manager" placeholderTextColor={COLORS.outline} maxLength={50} />
+              {nameError ? <Text style={s.inlineErrTxt}>{nameError}</Text> : null}
+            </View>
+            <View style={s.field}>
+              <View style={s.labelRow}>
+                <Text style={s.label}>{t('admin.staff.description')}</Text>
+                <Text style={s.charCount}>{roleDesc.length} / 250</Text>
+              </View>
+              <TextInput style={[s.input, descError ? s.inputError : null]} value={roleDesc} onChangeText={setRoleDesc} placeholder="e.g. Can manage courses and training plans" placeholderTextColor={COLORS.outline} maxLength={250} />
+              {descError ? <Text style={s.inlineErrTxt}>{descError}</Text> : null}
+            </View>
             <View style={s.field}>
               <View style={s.permHdr}><Text style={s.label}>{t('admin.staff.permissions')} *</Text><TouchableOpacity onPress={toggleAll}><Text style={s.selAll}>{selPerms.length === ALL_PERMISSIONS.length ? t('admin.staff.deselectAll') : t('admin.staff.selectAll')}</Text></TouchableOpacity></View>
               {Object.entries(PERMISSION_GROUPS).map(([gk, g]) => (
@@ -113,8 +150,12 @@ const s = StyleSheet.create({
   err: { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 12, padding: 12, marginBottom: SPACING.md },
   errTxt: { fontSize: 13, fontWeight: '600', color: '#dc2626' },
   field: { marginBottom: SPACING.md },
-  label: { fontSize: 13, fontWeight: '700', color: COLORS.onSurface, marginBottom: 8 },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  label: { fontSize: 13, fontWeight: '700', color: COLORS.onSurface },
+  charCount: { fontSize: 12, fontWeight: '500', color: COLORS.outline },
   input: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, fontWeight: '500', color: COLORS.onSurface },
+  inputError: { borderColor: '#ef4444' },
+  inlineErrTxt: { color: '#ef4444', fontSize: 12, marginTop: 4, fontWeight: '500', marginLeft: 4 },
   permHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   selAll: { fontSize: 12, fontWeight: '700', color: '#a855f7' },
   grpCard: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 16, overflow: 'hidden', marginBottom: 12 },

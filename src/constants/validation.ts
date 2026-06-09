@@ -20,7 +20,7 @@ export const VALIDATION_LIMITS = {
   },
   AUTH: {
     NAME_MIN_LENGTH: 2,
-    NAME_MAX_LENGTH: 20,
+    NAME_MAX_LENGTH: 50,
     PHONE_LENGTH: 10,
   }
 };
