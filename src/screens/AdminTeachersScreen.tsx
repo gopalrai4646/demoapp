@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchUsersRequest } from '../store/slices/userSlice';
+import { fetchUsersRequest, approveTeacherRequest } from '../store/slices/userSlice';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { Users, CheckCircle, Search, Mail, Calendar, Clock, CheckCircle2 } from 'lucide-react-native';
 import firestore from '@react-native-firebase/firestore';
@@ -58,16 +58,8 @@ const AdminTeachersScreen = () => {
         { text: t('adminTeachers.cancel') || 'Cancel', style: 'cancel' },
         { 
           text: t('adminTeachers.approve') || 'Approve', 
-          onPress: async () => {
-            try {
-              await firestore().collection('users').doc(userId).update({
-                status: 'approved'
-              });
-              // Refresh users list
-              dispatch(fetchUsersRequest());
-            } catch (error) {
-              console.error("Failed to approve teacher:", error);
-            }
+          onPress: () => {
+            dispatch(approveTeacherRequest(userId));
           }
         },
       ]

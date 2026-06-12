@@ -109,8 +109,9 @@
         "courses": { "label": "Kurse" },
         "training_plans": { "label": "Trainingspläne" },
         "users": { "label": "Benutzerverwaltung" },
-        "top_courses": { "label": "Top Kurse Analytics" },
-        "top_training_plans": { "label": "Top Trainingspläne Analytics" }
+        "teachers": { "label": "Lehrerverwaltung" },
+        "top_courses": { "label": "Top-Kurse Analytik" },
+        "top_training_plans": { "label": "Top-Pläne Analytik" }
       },
       "sub": {
         "dashboard": { "label": "Dashboard", "desc": "Plattform-Übersicht" },
@@ -126,6 +127,7 @@
         "users_read": { "label": "Anzeigen", "desc": "Benutzerliste" },
         "users_impersonate": { "label": "Imitieren", "desc": "Als User anmelden" },
         "users_delete": { "label": "Löschen", "desc": "Benutzerprofil löschen" },
+        "teachers_approve": { "label": "Genehmigen", "desc": "Lehrer genehmigen" },
         "top_courses": { "label": "Analyse", "desc": "Kurs-Stats" },
         "top_training_plans": { "label": "Analyse", "desc": "TP-Stats" }
       }

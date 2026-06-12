@@ -58,6 +58,18 @@ const userSlice = createSlice({
       state.users = state.users.filter(u => u.id !== action.payload);
       state.error = null;
     },
+    approveTeacherRequest: (state, _action: PayloadAction<string>) => {
+      state.loading = true;
+      state.error = null;
+    },
+    approveTeacherSuccess: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      const user = state.users.find(u => u.id === action.payload);
+      if (user) {
+        user.status = 'approved';
+      }
+      state.error = null;
+    },
     assignTrainingPlanRequest: (state, _action: PayloadAction<{ userId: string; trainingPlanIds: string[] }>) => {
       state.loading = true;
     },
@@ -121,6 +133,8 @@ export const {
   fetchUsersFailure,
   deleteUserRequest,
   deleteUserSuccess,
+  approveTeacherRequest,
+  approveTeacherSuccess,
   assignTrainingPlanRequest,
   assignTrainingPlanSuccess,
   unassignTrainingPlanRequest,

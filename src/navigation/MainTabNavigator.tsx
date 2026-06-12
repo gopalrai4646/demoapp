@@ -137,6 +137,13 @@ const MainTabNavigator = () => {
   const canSeePlans = isAdmin || isStudent || isTeacher || (isStaff && hasModuleAccess(permissions as Permission[], 'training_plans'));
   const canSeeUsers = isAdmin || isTeacher || (isStaff && hasModuleAccess(permissions as Permission[], 'users'));
 
+  const canApproveTeachers = isStaff && (permissions as string[])?.includes('teachers_approve');
+  const teacherHasAssignments = isTeacher && (
+    (user?.enrolledCourses && user.enrolledCourses.length > 0) || 
+    (user?.assignedTrainingPlans && user.assignedTrainingPlans.length > 0)
+  );
+  const hasMultipleMenuItems = isAdmin || teacherHasAssignments || canApproveTeachers;
+
   return (
     <Tab.Navigator
       tabBarPosition="bottom"
@@ -229,8 +236,8 @@ const MainTabNavigator = () => {
         />
       )}
 
-      {/* Admin and Teacher Menu Tab */}
-      {(isAdmin || isTeacher || isStaff) && (
+      {/* Menu Tab or Account Tab */}
+      {hasMultipleMenuItems ? (
         <Tab.Screen
           name="Menu"
           component={MenuStack}
@@ -249,10 +256,7 @@ const MainTabNavigator = () => {
             },
           })}
         />
-      )}
-
-      {/* Student Account Tab (Admins/Teachers access account from Menu) */}
-      {isStudent && (
+      ) : (
         <Tab.Screen
           name="Account"
           component={Account}

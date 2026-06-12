@@ -20,10 +20,11 @@ type NavigationProp = NativeStackNavigationProp<MenuStackParamList, 'MenuScreen'
 
 const MenuScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { role, user } = useSelector((state: RootState) => state.auth);
+  const { role, user, permissions } = useSelector((state: RootState) => state.auth);
   const { t } = useTranslation();
 
   const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
   const isTeacher = role === 'teacher';
 
   const renderMenuItem = (
@@ -49,31 +50,37 @@ const MenuScreen = () => {
     );
   };
 
+  const canApproveTeachers = isAdmin || (isStaff && permissions?.includes('teachers_approve'));
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.headerTitle}>{t('tabs.menu') || 'More'}</Text>
         
         <View style={styles.section}>
-          {isAdmin && (
+          {(isAdmin || canApproveTeachers) && (
             <>
               <Text style={styles.sectionTitle}>{t('menuScreen.administration') || 'Administration'}</Text>
               <View style={styles.card}>
-                {renderMenuItem(t('menuScreen.teacherApprovals') || 'Teacher Approvals', <GraduationCap size={22} color={COLORS.primary} />, 'Teachers', t('menuScreen.teacherApprovalsDesc') || 'Review and approve teacher applications')}
-                <View style={styles.divider} />
-                {renderMenuItem(t('menuScreen.staffRoles') || 'Staff Roles', <Shield size={22} color={COLORS.primary} />, 'StaffRoles', t('menuScreen.staffRolesDesc') || 'Manage staff permissions and access')}
+                {canApproveTeachers && (
+                  <>
+                    {renderMenuItem(t('menuScreen.teacherApprovals') || 'Teacher Approvals', <GraduationCap size={22} color={COLORS.primary} />, 'Teachers', t('menuScreen.teacherApprovalsDesc') || 'Review and approve teacher applications')}
+                    {isAdmin && <View style={styles.divider} />}
+                  </>
+                )}
+                {isAdmin && renderMenuItem(t('menuScreen.staffRoles') || 'Staff Roles', <Shield size={22} color={COLORS.primary} />, 'StaffRoles', t('menuScreen.staffRolesDesc') || 'Manage staff permissions and access')}
               </View>
             </>
           )}
 
-          {isTeacher && (
+          {isTeacher && ((user?.enrolledCourses && user.enrolledCourses.length > 0) || (user?.assignedTrainingPlans && user.assignedTrainingPlans.length > 0)) && (
             <>
               <Text style={styles.sectionTitle}>{t('menuScreen.assignedToMe') || 'Assigned to Me'}</Text>
               <View style={styles.card}>
                 {user?.enrolledCourses && user.enrolledCourses.length > 0 && (
                   <>
                     {renderMenuItem(t('menuScreen.assignedLectures') || 'Assigned Lectures', <PlaySquare size={22} color={COLORS.primary} />, 'AssignedCourses', t('menuScreen.assignedLecturesDesc') || 'View courses assigned to you')}
-                    <View style={styles.divider} />
+                    {(user?.assignedTrainingPlans && user.assignedTrainingPlans.length > 0) && <View style={styles.divider} />}
                   </>
                 )}
                 {user?.assignedTrainingPlans && user.assignedTrainingPlans.length > 0 && (

@@ -9,6 +9,8 @@ import {
   fetchUsersFailure,
   deleteUserRequest,
   deleteUserSuccess,
+  approveTeacherRequest,
+  approveTeacherSuccess,
   assignTrainingPlanRequest,
   assignTrainingPlanSuccess,
   unassignTrainingPlanRequest,
@@ -107,7 +109,34 @@ function* handleDeleteUser(action: ReturnType<typeof deleteUserRequest>): any {
   }
 }
 
+function* handleApproveTeacher(action: ReturnType<typeof approveTeacherRequest>): any {
+  try {
+    const userId = action.payload;
+    const currentUser = auth().currentUser;
+    if (!currentUser) throw new Error('Not authenticated');
 
+    const token = yield call([currentUser, currentUser.getIdToken]);
+
+    const response = yield call(fetch, `${ENV.API_URL}/api/admin/users/approve-teacher`, {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = yield call([response, response.json]);
+      throw new Error(errorData.error || 'Failed to approve teacher');
+    }
+
+    yield put(approveTeacherSuccess(userId));
+  } catch (error: any) {
+    console.error('Saga: Error approving teacher', error.message);
+    yield put(fetchUsersFailure(error.message));
+  }
+}
 
 function* handleAssignTrainingPlan(action: ReturnType<typeof assignTrainingPlanRequest>): any {
   try {
@@ -180,6 +209,7 @@ export function* userSaga() {
     fork(watchFetchUsers),
     takeLatest(logoutSuccess.type, handleLogout),
     takeLatest(deleteUserRequest.type, handleDeleteUser),
+    takeLatest(approveTeacherRequest.type, handleApproveTeacher),
     takeLatest(assignTrainingPlanRequest.type, handleAssignTrainingPlan),
     takeLatest(unassignTrainingPlanRequest.type, handleUnassignTrainingPlan),
   ]);

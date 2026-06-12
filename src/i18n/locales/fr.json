@@ -109,6 +109,7 @@
         "courses": { "label": "Cours" },
         "training_plans": { "label": "Plans de formation" },
         "users": { "label": "Gestion des utilisateurs" },
+        "teachers": { "label": "Gestion des enseignants" },
         "top_courses": { "label": "Analyses des meilleurs cours" },
         "top_training_plans": { "label": "Analyses des meilleurs plans" }
       },
@@ -126,6 +127,7 @@
         "users_read": { "label": "Voir", "desc": "Liste utilisateurs" },
         "users_impersonate": { "label": "Incarner", "desc": "Se connecter comme" },
         "users_delete": { "label": "Supprimer", "desc": "Supprimer le profil" },
+        "teachers_approve": { "label": "Approuver", "desc": "Approuver les enseignants" },
         "top_courses": { "label": "Analyses", "desc": "Stats cours" },
         "top_training_plans": { "label": "Analyses", "desc": "Stats plans" }
       }

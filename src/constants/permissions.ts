@@ -99,6 +99,16 @@ export const PERMISSION_GROUPS: Record<string, PermissionGroup> = {
       },
     },
   },
+  teachers: {
+    label: 'admin.permissions.groups.teachers.label',
+    icon: 'GraduationCap',
+    subPermissions: {
+      teachers_approve: {
+        label: 'admin.permissions.sub.teachers_approve.label',
+        description: 'admin.permissions.sub.teachers_approve.desc',
+      },
+    },
+  },
   top_courses: {
     label: 'admin.permissions.groups.top_courses.label',
     icon: 'BarChart3',

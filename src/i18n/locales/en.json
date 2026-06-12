@@ -109,8 +109,9 @@
         "courses": { "label": "Courses" },
         "training_plans": { "label": "Training Plans" },
         "users": { "label": "User Management" },
+        "teachers": { "label": "Teacher Management" },
         "top_courses": { "label": "Top Courses Analytics" },
-        "top_training_plans": { "label": "Top Training Plans Analytics" }
+        "top_training_plans": { "label": "Top Plans Analytics" }
       },
       "sub": {
         "dashboard": { "label": "Dashboard", "desc": "Platform overview" },
@@ -126,6 +127,7 @@
         "users_read": { "label": "View", "desc": "Browse users" },
         "users_impersonate": { "label": "Impersonate", "desc": "Login as user" },
         "users_delete": { "label": "Delete", "desc": "Delete user profile" },
+        "teachers_approve": { "label": "Approve", "desc": "Approve teachers" },
         "top_courses": { "label": "Analytics", "desc": "Course stats" },
         "top_training_plans": { "label": "Analytics", "desc": "TP stats" }
       }
