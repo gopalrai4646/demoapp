@@ -73,8 +73,11 @@ function createUserChannel(uid: string) {
               enrolledCourses: data.enrolledCourses || [],
               savedCourses: data.savedCourses || [],
               assignedTrainingPlans: data.assignedTrainingPlans || [],
+              purchasedCourseIds: data.purchasedCourses ? data.purchasedCourses.map((p: any) => p.courseId) : [],
               photoURL: data.photoURL || null,
-              phoneNumber: data.phoneNumber || null
+              phoneNumber: data.phoneNumber || null,
+              status: data.status,
+              teacherProfile: data.teacherProfile,
             },
             role: data.role || 'student',
             staffRoleId: data.staffRoleId || null,
@@ -195,8 +198,11 @@ function* handleLogin(action: ReturnType<typeof loginRequest>): any {
         enrolledCourses: userData.enrolledCourses || [], 
         savedCourses: userData.savedCourses || [], 
         assignedTrainingPlans: userData.assignedTrainingPlans || [],
+        purchasedCourseIds: userData.purchasedCourses ? userData.purchasedCourses.map((p: any) => p.courseId) : [],
         photoURL: userData.photoURL || null,
-        phoneNumber: userData.phoneNumber || null
+        phoneNumber: userData.phoneNumber || null,
+        status: userData.status,
+        teacherProfile: userData.teacherProfile,
       }, 
       role: userData.role || 'student',
       permissions: staffPermissions,
@@ -221,7 +227,7 @@ function* handleLogin(action: ReturnType<typeof loginRequest>): any {
 
 function* handleSignup(action: ReturnType<typeof signupRequest>): any {
   try {
-    const { email, pass, name, role, photoURL, phoneNumber } = action.payload;
+    const { email, pass, name, role, photoURL, phoneNumber, status, teacherProfile } = action.payload;
     const normalizedEmail = email.toLowerCase();
 
     const userCredential = yield call([auth(), auth().createUserWithEmailAndPassword], normalizedEmail, pass);
@@ -229,7 +235,8 @@ function* handleSignup(action: ReturnType<typeof signupRequest>): any {
     const user = userCredential.user;
     
     const userRef = firestore().collection('users').doc(user.uid);
-    yield call([userRef, 'set'] as any, {
+    
+    const newUserData: any = {
       uid: user.uid,
       email: user.email,
       displayName: name,
@@ -238,7 +245,12 @@ function* handleSignup(action: ReturnType<typeof signupRequest>): any {
       phoneNumber: phoneNumber || null,
       createdAt: firestore.FieldValue.serverTimestamp(),
       updatedAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    
+    if (status) newUserData.status = status;
+    if (teacherProfile) newUserData.teacherProfile = teacherProfile;
+
+    yield call([userRef, 'set'] as any, newUserData);
 
     yield put(authSuccess({ 
       user: { 
@@ -248,8 +260,11 @@ function* handleSignup(action: ReturnType<typeof signupRequest>): any {
         enrolledCourses: [], 
         savedCourses: [], 
         assignedTrainingPlans: [],
+        purchasedCourseIds: [],
         photoURL: photoURL || null,
-        phoneNumber: phoneNumber || null
+        phoneNumber: phoneNumber || null,
+        status,
+        teacherProfile,
       }, 
       role, 
       isNewUser: true 
@@ -362,8 +377,11 @@ function* handleGoogleLogin(): any {
         enrolledCourses: userData.enrolledCourses || [], 
         savedCourses: userData.savedCourses || [], 
         assignedTrainingPlans: userData.assignedTrainingPlans || [],
+        purchasedCourseIds: userData.purchasedCourses ? userData.purchasedCourses.map((p: any) => p.courseId) : [],
         photoURL: userData.photoURL || user.photoURL,
-        phoneNumber: userData.phoneNumber || user.phoneNumber || null
+        phoneNumber: userData.phoneNumber || user.phoneNumber || null,
+        status: userData.status,
+        teacherProfile: userData.teacherProfile,
       }, 
       role,
       permissions: staffPermissions,
@@ -578,8 +596,11 @@ function* handleImpersonateUser(action: ReturnType<typeof impersonateUserRequest
       enrolledCourses: userData.enrolledCourses || [],
       savedCourses: userData.savedCourses || [],
       assignedTrainingPlans: userData.assignedTrainingPlans || [],
+      purchasedCourseIds: userData.purchasedCourses ? userData.purchasedCourses.map((p: any) => p.courseId) : [],
       photoURL: userData.photoURL || null,
       phoneNumber: userData.phoneNumber || null,
+      status: userData.status,
+      teacherProfile: userData.teacherProfile,
     };
  
     // Fetch permissions if target user is staff
@@ -648,7 +669,9 @@ function* handleRestoreSession(action: ReturnType<typeof restoreSessionRequest>)
             savedCourses: userData.savedCourses || [], 
             assignedTrainingPlans: userData.assignedTrainingPlans || [],
             photoURL: userData.photoURL || user.photoURL,
-            phoneNumber: userData.phoneNumber || user.phoneNumber || null
+            phoneNumber: userData.phoneNumber || user.phoneNumber || null,
+            status: userData.status,
+            teacherProfile: userData.teacherProfile,
           }, 
           role: userData.role || 'student',
           permissions: staffPermissions,

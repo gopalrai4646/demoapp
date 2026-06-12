@@ -12,6 +12,8 @@ export interface Course {
   title: string;
   description: string;
   instructor: string;
+  instructorId?: string;
+  createdBy?: string;
   price: number;
   thumbnail?: string;
   videoUrl?: string; // kept for backward compatibility

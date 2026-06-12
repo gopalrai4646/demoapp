@@ -7,11 +7,18 @@ interface AuthState {
     displayName: string | null;
     enrolledCourses?: string[];
     savedCourses?: string[];
+    purchasedCourseIds?: string[];
     assignedTrainingPlans?: string[];
     photoURL: string | null;
     phoneNumber: string | null;
+    status?: 'pending' | 'approved';
+    teacherProfile?: {
+      experience: string;
+      videoPro: string;
+      audience: string;
+    };
   } | null;
-  role: 'student' | 'admin' | 'staff' | null;
+  role: 'student' | 'admin' | 'staff' | 'teacher' | null;
   permissions: string[];
   loading: boolean;
   error: string | null;
@@ -45,7 +52,20 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    signupRequest: (state, _action: PayloadAction<{ email: string; pass: string; name: string; role: 'student' | 'admin'; photoURL?: string; phoneNumber?: string }>) => {
+    signupRequest: (state, _action: PayloadAction<{ 
+      email: string; 
+      pass: string; 
+      name: string; 
+      role: 'student' | 'admin' | 'teacher'; 
+      photoURL?: string; 
+      phoneNumber?: string;
+      status?: 'pending' | 'approved';
+      teacherProfile?: {
+        experience: string;
+        videoPro: string;
+        audience: string;
+      };
+    }>) => {
       state.loading = true;
       state.error = null;
     },
@@ -78,7 +98,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    authSuccess: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | 'staff' | null; permissions?: string[]; isNewUser?: boolean }>) => {
+    authSuccess: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | 'staff' | 'teacher' | null; permissions?: string[]; isNewUser?: boolean }>) => {
       state.user = action.payload.user;
       state.role = action.payload.role ?? null;
       state.permissions = action.payload.permissions ?? [];
@@ -117,6 +137,10 @@ const authSlice = createSlice({
         if (!state.user.enrolledCourses.includes(action.payload)) {
           state.user.enrolledCourses.push(action.payload);
         }
+        if (!state.user.purchasedCourseIds) state.user.purchasedCourseIds = [];
+        if (!state.user.purchasedCourseIds.includes(action.payload)) {
+          state.user.purchasedCourseIds.push(action.payload);
+        }
       }
       state.loading = false;
     },
@@ -130,7 +154,7 @@ const authSlice = createSlice({
     updatePermissions: (state, action: PayloadAction<string[]>) => {
       state.permissions = action.payload;
     },
-    updateUserData: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | 'staff' | null; permissions?: string[] }>) => {
+    updateUserData: (state, action: PayloadAction<{ user: AuthState['user']; role?: 'student' | 'admin' | 'staff' | 'teacher' | null; permissions?: string[] }>) => {
       // Merges incoming Firestore data into the existing auth state ONLY if UIDs match
       if (!state.user || state.user.uid !== action.payload.user?.uid) return;
 

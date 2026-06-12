@@ -14,6 +14,12 @@ import UserCourseStack from './UserCourseStack';
 import UserTrainingPlanStack from './UserTrainingPlanStack';
 import AdminUsersScreen from '../screens/AdminUsersScreen';
 import AdminStaffRolesScreen from '../screens/AdminStaffRolesScreen';
+import AdminTeachersScreen from '../screens/AdminTeachersScreen';
+import TeacherDashboardScreen from '../screens/TeacherDashboardScreen';
+import TeacherCourseStack from './TeacherCourseStack';
+import { TeacherTrainingPlanStack } from './TeacherTrainingPlanStack';
+import TeacherUserStack from './TeacherUserStack';
+import MenuStack from './MenuStack';
 import { MainTabParamList } from './types';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants/Theme';
 import { 
@@ -24,7 +30,10 @@ import {
   Users, 
   GraduationCap,
   ClipboardList,
-  Shield
+  Shield,
+  PlaySquare,
+  ListTodo,
+  Menu as MenuIcon
 } from 'lucide-react-native';
 import { hasModuleAccess, Permission } from '../constants/permissions';
 
@@ -92,10 +101,14 @@ const CustomTabBar = ({ state, descriptors, navigation, insets, t, isAdmin }: an
                 size: 24,
               })}
             </View>
-            <Text style={[
-              styles.tabLabel,
-              { color: isFocused ? COLORS.primary : COLORS.onSurfaceVariant }
-            ]}>
+            <Text 
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={[
+                styles.tabLabel,
+                { color: isFocused ? COLORS.primary : COLORS.onSurfaceVariant }
+              ]}
+            >
               {label}
             </Text>
           </TouchableOpacity>
@@ -106,21 +119,23 @@ const CustomTabBar = ({ state, descriptors, navigation, insets, t, isAdmin }: an
 };
 
 const MainTabNavigator = () => {
-  const { role, permissions } = useSelector((state: RootState) => state.auth);
+  const { role, permissions, user } = useSelector((state: RootState) => state.auth);
   const isAdmin = role === 'admin';
   const isStaff = role === 'staff';
+  const isTeacher = role === 'teacher';
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
   // Students always see Courses & Plans (user versions).
   // Staff only see them if admin granted matching module permissions.
   // Admins always see everything.
-  const isStudent = !isAdmin && !isStaff;
+  // Teachers see Dashboard, manage their own courses, and see assigned plans.
+  const isStudent = !isAdmin && !isStaff && !isTeacher;
   const canSeeAdminDashboard = isAdmin || (isStaff && hasModuleAccess(permissions as Permission[], 'dashboard'));
-  const canSeeDashboard = isStudent || canSeeAdminDashboard;
-  const canSeeCourses = isAdmin || isStudent || (isStaff && hasModuleAccess(permissions as Permission[], 'courses'));
-  const canSeePlans = isAdmin || isStudent || (isStaff && hasModuleAccess(permissions as Permission[], 'training_plans'));
-  const canSeeUsers = isAdmin || (isStaff && hasModuleAccess(permissions as Permission[], 'users'));
+  const canSeeDashboard = isStudent || canSeeAdminDashboard || isTeacher;
+  const canSeeCourses = isAdmin || isStudent || isTeacher || (isStaff && hasModuleAccess(permissions as Permission[], 'courses'));
+  const canSeePlans = isAdmin || isStudent || isTeacher || (isStaff && hasModuleAccess(permissions as Permission[], 'training_plans'));
+  const canSeeUsers = isAdmin || isTeacher || (isStaff && hasModuleAccess(permissions as Permission[], 'users'));
 
   return (
     <Tab.Navigator
@@ -141,7 +156,7 @@ const MainTabNavigator = () => {
       {canSeeDashboard && (
         <Tab.Screen
           name="Dashboard"
-          component={canSeeAdminDashboard ? AdminDashboardScreen : Dashboard}
+          component={isTeacher ? TeacherDashboardScreen : (canSeeAdminDashboard ? AdminDashboardScreen : Dashboard)}
           options={{
             tabBarLabel: canSeeAdminDashboard ? t('tabs.reports') : t('tabs.dashboard'),
             tabBarIcon: ({ color }) => (
@@ -153,7 +168,7 @@ const MainTabNavigator = () => {
       {canSeeCourses && (
         <Tab.Screen
           name="Courses"
-          component={isAdmin || isStaff ? AdminCourseStack : UserCourseStack}
+          component={isTeacher ? TeacherCourseStack : (isAdmin || isStaff ? AdminCourseStack : UserCourseStack)}
           options={{
             tabBarLabel: t('tabs.courses'),
             tabBarIcon: ({ color }) => (
@@ -164,7 +179,7 @@ const MainTabNavigator = () => {
             tabPress: (e) => {
               e.preventDefault();
               navigation.navigate('Courses', {
-                screen: isAdmin || isStaff ? 'AdminCourseList' : 'UserCourses',
+                screen: isTeacher ? 'TeacherCourseList' : (isAdmin || isStaff ? 'AdminCourseList' : 'UserCourses'),
               });
             },
           })}
@@ -173,7 +188,7 @@ const MainTabNavigator = () => {
       {canSeePlans && (
         <Tab.Screen
           name="Plans"
-          component={isAdmin || isStaff ? AdminTrainingPlanStack : UserTrainingPlanStack}
+          component={isTeacher ? TeacherTrainingPlanStack : (isAdmin || isStaff ? AdminTrainingPlanStack : UserTrainingPlanStack)}
           options={{
             tabBarLabel: t('tabs.plans'),
             tabBarIcon: ({ color }) => (
@@ -184,7 +199,7 @@ const MainTabNavigator = () => {
             tabPress: (e) => {
               e.preventDefault();
               navigation.navigate('Plans', {
-                screen: isAdmin || isStaff ? 'AdminTrainingPlanList' : 'UserTrainingPlanList',
+                screen: isTeacher ? 'TeacherTrainingPlanList' : (isAdmin || isStaff ? 'AdminTrainingPlanList' : 'UserTrainingPlanList'),
               });
             },
           })}
@@ -194,37 +209,61 @@ const MainTabNavigator = () => {
       {canSeeUsers && (
         <Tab.Screen
           name="Users"
-          component={AdminUsersScreen}
+          component={isTeacher ? TeacherUserStack : AdminUsersScreen}
           options={{
             tabBarLabel: t('tabs.users'),
             tabBarIcon: ({ color }) => (
               <Users size={24} color={color} />
             ),
           }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              if (isTeacher) {
+                e.preventDefault();
+                navigation.navigate('Users', {
+                  screen: 'TeacherUserList',
+                });
+              }
+            },
+          })}
         />
       )}
-      {isAdmin && (
+
+      {/* Admin and Teacher Menu Tab */}
+      {(isAdmin || isTeacher || isStaff) && (
         <Tab.Screen
-          name="StaffRoles"
-          component={AdminStaffRolesScreen}
+          name="Menu"
+          component={MenuStack}
           options={{
-            tabBarLabel: t('tabs.staffRoles') || 'Staff',
+            tabBarLabel: t('tabs.menu') || 'More',
             tabBarIcon: ({ color }) => (
-              <Shield size={24} color={color} />
+              <MenuIcon size={24} color={color} />
+            ),
+          }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate('Menu', {
+                screen: 'MenuScreen',
+              });
+            },
+          })}
+        />
+      )}
+
+      {/* Student Account Tab (Admins/Teachers access account from Menu) */}
+      {isStudent && (
+        <Tab.Screen
+          name="Account"
+          component={Account}
+          options={{
+            tabBarLabel: t('tabs.account'),
+            tabBarIcon: ({ color }) => (
+              <GraduationCap size={24} color={color} />
             ),
           }}
         />
       )}
-      <Tab.Screen
-        name="Account"
-        component={Account}
-        options={{
-          tabBarLabel: isAdmin ? t('tabs.settings') : t('tabs.account'),
-          tabBarIcon: ({ color }) => (
-            isAdmin ? <Settings size={24} color={color} /> : <GraduationCap size={24} color={color} />
-          ),
-        }}
-      />
     </Tab.Navigator>
   );
 };
@@ -240,7 +279,7 @@ const styles = StyleSheet.create({
   tabItem: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   tabLabel: {
     fontSize: 10,

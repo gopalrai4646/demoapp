@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
@@ -18,6 +19,7 @@ import { Search, BookOpen, CheckCircle2, RotateCw, PauseCircle } from 'lucide-re
 import { fetchProgressRequest } from '../store/slices/progressSlice';
 import { AppHeader } from '../components/AppHeader';
 import { fetchCoursesRequest } from '../store/slices/courseSlice';
+import { initiatePaymentRequest } from '../store/slices/paymentSlice';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { UserCourseStackParamList } from '../navigation/types';
@@ -29,7 +31,7 @@ const UserCoursesScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
   const { t } = useTranslation();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, role } = useAppSelector((state) => state.auth);
   const { courses, loading: coursesLoading } = useAppSelector((state) => state.courses);
   const { progress } = useAppSelector((state) => state.progress);
 
@@ -115,11 +117,22 @@ const UserCoursesScreen = () => {
   const renderCourseCard = ({ item }: { item: any }) => {
     const pct = getCourseProgress(item);
     const isCompleted = pct >= 100;
+    const isTeacher = role === 'teacher';
+    const isPaidCourse = (item.price || 0) > 0;
+    const hasPurchased = user?.purchasedCourseIds?.includes(item.id);
+    const isEnrolled = user?.enrolledCourses?.includes(item.id);
+    const requiresPurchase = isTeacher && isPaidCourse && !hasPurchased;
 
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('CoursePlayer', { courseId: item.id })}
+        onPress={() => {
+          if (requiresPurchase) {
+             dispatch(initiatePaymentRequest({ courseId: item.id, amount: item.price || 0 }));
+          } else {
+             navigation.navigate('CoursePlayer', { courseId: item.id });
+          }
+        }}
       >
         <View style={styles.thumbnailContainer}>
           {item.thumbnail ? (
@@ -149,21 +162,34 @@ const UserCoursesScreen = () => {
           <Text style={styles.courseTitle} numberOfLines={2}>{item.title}</Text>
           <Text style={styles.instructorName}>{t('userCourses.instructorPrefix', { name: item.instructor })}</Text>
 
-          <View style={styles.progressHeader}>
-            <Text style={[styles.progressLabel, isCompleted && { color: '#4caf50' }]}>
-              {t('common.yourProgress')}
-            </Text>
-            <Text style={[styles.progressValue, { color: isCompleted ? '#4caf50' : COLORS.primary }]}>
-              {pct}%
-            </Text>
-          </View>
+          {requiresPurchase ? (
+            <View style={{ marginTop: 16 }}>
+              <TouchableOpacity 
+                style={[styles.buyNowBtn]}
+                onPress={() => dispatch(initiatePaymentRequest({ courseId: item.id, amount: item.price || 0 }))}
+              >
+                <Text style={styles.buyNowText}>Buy Now</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={styles.progressHeader}>
+                <Text style={[styles.progressLabel, isCompleted && { color: '#4caf50' }]}>
+                  {t('common.yourProgress')}
+                </Text>
+                <Text style={[styles.progressValue, { color: isCompleted ? '#4caf50' : COLORS.primary }]}>
+                  {pct}%
+                </Text>
+              </View>
 
-          <View style={styles.progressBarContainer}>
-            <View style={[
-              styles.progressBarFill,
-              { width: `${pct}%`, backgroundColor: isCompleted ? '#4caf50' : COLORS.primary }
-            ]} />
-          </View>
+              <View style={styles.progressBarContainer}>
+                <View style={[
+                  styles.progressBarFill,
+                  { width: `${pct}%`, backgroundColor: isCompleted ? '#4caf50' : COLORS.primary }
+                ]} />
+              </View>
+            </>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -428,6 +454,18 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 4,
+  },
+  buyNowBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buyNowText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   emptyContainer: {
     alignItems: 'center',

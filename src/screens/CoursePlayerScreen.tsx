@@ -58,7 +58,7 @@ const CoursePlayerScreen = () => {
   const { t } = useTranslation();
   const { courseId, initialVideoId } = route.params;
 
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, role } = useAppSelector((state) => state.auth);
   const { courses } = useAppSelector((state) => state.courses);
   const { progress } = useAppSelector((state) => state.progress);
 
@@ -99,6 +99,7 @@ const CoursePlayerScreen = () => {
 
   const toggleControls = () => {
     setShowControls(prev => !prev);
+    resetControlsTimeout();
   };
 
   useEffect(() => {
@@ -133,15 +134,10 @@ const CoursePlayerScreen = () => {
     };
   }, []);
 
-  // Hide tab bar and disable navigation gestures completely for the course player screen
+  // Auto-hide bottom tab bar globally
   useEffect(() => {
     const parent = navigation.getParent();
     const grandparent = parent?.getParent();
-
-    // Lock gestures for this entire screen
-    navigation.setOptions({ gestureEnabled: false } as any);
-    parent?.setOptions({ swipeEnabled: false, gestureEnabled: false } as any);
-    grandparent?.setOptions({ swipeEnabled: false, gestureEnabled: false } as any);
 
     if (isFullscreen) {
       parent?.setOptions({ tabBarStyle: { display: 'none' }, swipeEnabled: false, gestureEnabled: false } as any);
@@ -169,7 +165,20 @@ const CoursePlayerScreen = () => {
   }, [isFullscreen, navigation]);
 
   const course = useMemo(() => courses.find(c => c.id === courseId), [courses, courseId]);
-  const isEnrolled = useMemo(() => user?.enrolledCourses?.includes(courseId), [user, courseId]);
+  
+  const isEnrolled = useMemo(() => {
+    return user?.enrolledCourses?.includes(courseId) || user?.purchasedCourseIds?.includes(courseId) || false;
+  }, [user, courseId]);
+  
+  const requiresPurchase = useMemo(() => {
+    const isTeacher = role === 'teacher';
+    const isPaidCourse = (course?.price || 0) > 0;
+    const hasPurchased = user?.purchasedCourseIds?.includes(courseId);
+    return isTeacher && isPaidCourse && !hasPurchased;
+  }, [role, course, user, courseId]);
+
+  const canView = isEnrolled && !requiresPurchase;
+  
   const courseProgress = progress[courseId];
 
   useEffect(() => {
@@ -341,7 +350,7 @@ const CoursePlayerScreen = () => {
     );
   }
 
-  if (!isEnrolled) {
+  if (!canView) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>

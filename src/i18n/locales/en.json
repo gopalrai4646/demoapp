@@ -229,6 +229,21 @@
     "searchPlaceholder": "Search name or email...",
     "noStudents": "No students found"
   },
+  "adminTeachers": {
+    "title": "Teachers",
+    "subtitle": "Manage teacher approvals and profiles.",
+    "approveTitle": "Approve Teacher",
+    "approveConfirm": "Are you sure you want to approve {{name}} to be a teacher?",
+    "cancel": "Cancel",
+    "approve": "Approve",
+    "pending": "PENDING",
+    "approved": "APPROVED",
+    "unnamed": "Unnamed Teacher",
+    "experience": "Experience:",
+    "videoPro": "Video Pro:",
+    "audience": "Audience:",
+    "noTeachers": "No teachers found."
+  },
   "userCourses": {
     "myCourses": "My Courses",
     "trackProgress": "Track your learning progress",
@@ -301,7 +316,13 @@
     "searchCourses": "Search courses...",
     "add": "+ Add",
     "noMatchingCourses": "No matching courses found.",
-    "done": "Done"
+    "done": "Done",
+    "nameRequired": "Training plan name is required.",
+    "nameMinLength": "Name must be at least {{length}} characters.",
+    "descRequired": "Description is required.",
+    "descMinLength": "Description must be at least {{length}} characters.",
+    "imageRequired": "Please upload a training plan image.",
+    "coursesRequired": "Please select at least one course."
   },
   "adminCourseDetails": {
     "uploadError": "Upload Error",
@@ -337,7 +358,15 @@
     "noVideoUploaded": "No video uploaded",
     "uploadVideo": "Upload Video",
     "updateCourse": "Update Course",
-    "createCourse": "Create Course"
+    "createCourse": "Create Course",
+    "titleRequired": "Course title is required.",
+    "titleMinLength": "Title must be at least {{length}} characters.",
+    "descRequired": "Description is required.",
+    "descMinLength": "Description must be at least {{length}} characters.",
+    "priceInvalid": "Valid price is required.",
+    "thumbnailRequired": "Please upload a course thumbnail.",
+    "videosRequired": "Please add at least one lesson.",
+    "videoTitleRequired": "All lessons must have a title."
   },
   "userTrainingPlanDetails": {
     "coursesCount": "{{count}} Courses",
@@ -492,6 +521,69 @@
     "returnToLogin": "Return to login",
     "backToSignIn": "Back to Sign In",
     "successCheckEmail": "Success! Check your email for a password reset link.",
-    "enterEmailError": "Please enter your email address."
+    "enterEmailError": "Please enter your email address.",
+    "logout": "Logout"
+  },
+  "tabs": {
+    "dashboard": "Dashboard",
+    "reports": "Reports",
+    "courses": "Courses",
+    "plans": "Plans",
+    "users": "Users",
+    "staffRoles": "Staff",
+    "menu": "More",
+    "account": "Account",
+    "settings": "Settings"
+  },
+  "menuScreen": {
+    "administration": "Administration",
+    "teacherApprovals": "Teacher Approvals",
+    "teacherApprovalsDesc": "Review and approve teacher applications",
+    "staffRoles": "Staff Roles",
+    "staffRolesDesc": "Manage staff permissions and access",
+    "assignedToMe": "Assigned to Me",
+    "assignedLectures": "Assigned Lectures",
+    "assignedLecturesDesc": "View courses assigned to you",
+    "assignedTraining": "Assigned Training",
+    "assignedTrainingDesc": "View your assigned training plans",
+    "settings": "Settings",
+    "accountSettings": "Account Settings",
+    "accountSettingsDesc": "Manage your profile and preferences"
+  },
+  "teacherSignUp": {
+    "teachingExperience": "What kind of teaching have you done before?",
+    "teachingExpInformal": "In person, informally",
+    "teachingExpProfessional": "In person, professionally",
+    "teachingExpOnline": "Online",
+    "teachingExpOther": "Other",
+    "videoProficiency": "How much of a video \"pro\" are you?",
+    "videoProBeginner": "I am a beginner",
+    "videoProKnowledge": "I have some knowledge",
+    "videoProExperienced": "I am experienced",
+    "videoProReady": "I have videos ready to upload",
+    "audienceSize": "Do you have an audience to share your course with?",
+    "audienceNone": "Not at the moment",
+    "audienceSmall": "I have a small following",
+    "audienceSizeable": "I have a sizeable following",
+    "experienceRequired": "Teaching experience is required.",
+    "videoProRequired": "Video proficiency is required.",
+    "audienceRequired": "Audience size is required."
+  },
+  "adminTeachers": {
+    "title": "Teachers",
+    "approveTitle": "Approve Teacher",
+    "approveConfirm": "Are you sure you want to approve {{name}} to be a teacher?",
+    "cancel": "Cancel",
+    "approve": "Approve",
+    "unnamed": "Unnamed Teacher",
+    "applied": "Applied: ",
+    "questionnaire": "QUESTIONNAIRE ANSWERS",
+    "teachingExp": "Teaching Experience",
+    "videoPro": "Video Proficiency",
+    "audienceSize": "Audience Size",
+    "pending": "Pending",
+    "approved": "Approved",
+    "search": "Search teachers...",
+    "noTeachers": "No teachers found."
   }
 }

@@ -27,14 +27,38 @@ export type UserTrainingPlanStackParamList = {
   UserTrainingPlanDetails: { planId: string };
 };
 
+export type TeacherCourseStackParamList = {
+  TeacherCourseList: undefined;
+  TeacherCourseDetails: { courseId?: string };
+};
+
+export type TeacherTrainingPlanStackParamList = {
+  TeacherTrainingPlanList: undefined;
+  TeacherTrainingPlanDetails: { planId?: string };
+};
+
+export type TeacherUserStackParamList = {
+  TeacherUserList: undefined;
+  TeacherUserDetails: { userId: string };
+};
+
+export type MenuStackParamList = {
+  MenuScreen: undefined;
+  Teachers: undefined;
+  StaffRoles: undefined;
+  AssignedCourses: NavigatorScreenParams<UserCourseStackParamList> | undefined;
+  AssignedPlans: NavigatorScreenParams<UserTrainingPlanStackParamList> | undefined;
+  Account: undefined;
+};
+
 export type MainTabParamList = {
   Dashboard: undefined;
   Landing: undefined;
-  Courses: NavigatorScreenParams<AdminCourseStackParamList & UserCourseStackParamList> | undefined;
-  Plans: NavigatorScreenParams<AdminTrainingPlanStackParamList & UserTrainingPlanStackParamList> | undefined;
-  Users: undefined;
-  StaffRoles: undefined;
-  Account: undefined;
+  Courses: NavigatorScreenParams<AdminCourseStackParamList & UserCourseStackParamList & TeacherCourseStackParamList> | undefined;
+  Plans: NavigatorScreenParams<AdminTrainingPlanStackParamList & UserTrainingPlanStackParamList & TeacherTrainingPlanStackParamList> | undefined;
+  Users: NavigatorScreenParams<TeacherUserStackParamList> | undefined;
+  Menu: NavigatorScreenParams<MenuStackParamList> | undefined;
+  Account: undefined; // Students still use this directly in main tabs
 };
 
 export type RootStackParamList = {

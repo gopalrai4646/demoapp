@@ -6,6 +6,7 @@ export interface TrainingPlan {
   description: string;
   image: string;
   courseIds: string[];
+  createdBy?: string;
   createdAt: string;
 }
 

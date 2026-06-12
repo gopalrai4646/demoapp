@@ -9,8 +9,10 @@ import {
   Dimensions,
   ActivityIndicator,
   StatusBar,
+  Alert,
 } from 'react-native';
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { initiatePaymentRequest, clearPaymentError } from '../store/slices/paymentSlice';
 import { selectCourses, selectTrainingPlans } from '../store/selectors';
 import { COLORS, SPACING, TYPOGRAPHY, ROUNDNESS } from '../constants/Theme';
 import { BookOpen, Target, Play, GraduationCap, Video, ChevronLeft } from 'lucide-react-native';
@@ -22,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 const { width } = Dimensions.get('window');
 
 const UserTrainingPlanDetailsScreen = () => {
+  const dispatch = useAppDispatch();
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<UserTrainingPlanStackParamList, 'UserTrainingPlanDetails'>>();
   const { planId } = route.params;
@@ -29,6 +32,15 @@ const UserTrainingPlanDetailsScreen = () => {
 
   const trainingPlans = useAppSelector(selectTrainingPlans);
   const allCourses = useAppSelector(selectCourses);
+  const { user, role } = useAppSelector((state) => state.auth);
+  const { isProcessing, error: paymentError } = useAppSelector((state) => state.payment || { isProcessing: false, error: null });
+
+  React.useEffect(() => {
+    if (paymentError) {
+      Alert.alert(t('common.error') || 'Error', paymentError);
+      dispatch(clearPaymentError());
+    }
+  }, [paymentError, t, dispatch]);
 
   const plan = trainingPlans.find(tp => tp.id === planId);
   const planCourses = allCourses.filter(c => plan?.courseIds?.includes(c.id));
@@ -92,62 +104,84 @@ const UserTrainingPlanDetailsScreen = () => {
             </Text>
 
             <View style={styles.courseList}>
-              {planCourses.map((course, index) => (
-                <View key={course.id} style={styles.courseCard}>
-                  <View style={styles.courseCardHeader}>
-                    <View style={styles.indexCircle}>
-                      <Text style={styles.indexText}>{index + 1}</Text>
+              {planCourses.map((course, index) => {
+                const isPurchased = user?.purchasedCourseIds?.includes(course.id);
+                const isTeacher = role === 'teacher';
+                const isEnrolled = user?.enrolledCourses?.includes(course.id);
+                const requiresPurchase = isTeacher && Number(course.price) > 0 && !isPurchased;
+
+                return (
+                  <View key={course.id} style={styles.courseCard}>
+                    <View style={styles.courseCardHeader}>
+                      <View style={styles.indexCircle}>
+                        <Text style={styles.indexText}>{index + 1}</Text>
+                      </View>
+                      
+                      {course.thumbnail ? (
+                        <Image 
+                          source={{ uri: course.thumbnail }} 
+                          style={styles.courseThumbnail}
+                        />
+                      ) : (
+                        <View style={[styles.courseThumbnail, { backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }]}>
+                          <BookOpen size={24} color="#94a3b8" />
+                        </View>
+                      )}
+
+                      <View style={styles.courseMainInfo}>
+                        <View style={styles.titleRow}>
+                          <Text style={styles.courseTitle} numberOfLines={1}>{course.title}</Text>
+                          <View style={[styles.typeBadge, { backgroundColor: course.price === 0 ? '#ecfdf5' : '#fff7ed' }]}>
+                            <Text style={[styles.typeBadgeText, { color: course.price === 0 ? '#059669' : '#d97706' }]}>
+                              {course.price === 0 ? t('userTrainingPlanDetails.public') : t('userTrainingPlanDetails.private')}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.metaRow}>
+                          <View style={styles.metaItem}>
+                            <GraduationCap size={14} color="#64748b" />
+                            <Text style={styles.metaText}>{course.instructor}</Text>
+                          </View>
+                          <View style={styles.metaSeparator} />
+                          <View style={styles.metaItem}>
+                            <Video size={14} color="#64748b" />
+                            <Text style={styles.metaText}>{t('userTrainingPlanDetails.lessonsCount', { count: course.videos?.length || 0 })}</Text>
+                          </View>
+                        </View>
+                      </View>
                     </View>
-                    
-                    {course.thumbnail ? (
-                      <Image 
-                        source={{ uri: course.thumbnail }} 
-                        style={styles.courseThumbnail}
-                      />
+
+                    {requiresPurchase ? (
+                      <TouchableOpacity 
+                        style={[styles.startButton, { backgroundColor: COLORS.primary }]}
+                        onPress={() => dispatch(initiatePaymentRequest({ courseId: course.id, amount: Number(course.price) || 0 }))}
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? (
+                          <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                          <Text style={styles.startButtonText}>Buy Now</Text>
+                        )}
+                      </TouchableOpacity>
                     ) : (
-                      <View style={[styles.courseThumbnail, { backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }]}>
-                        <BookOpen size={24} color="#94a3b8" />
-                      </View>
+                      <TouchableOpacity 
+                        style={styles.startButton}
+                        onPress={() => {
+                            const targetStack = isTeacher ? 'AssignedCourses' : 'Courses';
+                            navigation.navigate(targetStack, { 
+                              screen: 'CoursePlayer', 
+                              params: { courseId: course.id } 
+                            });
+                        }}
+                      >
+                        <Play size={18} color="#fff" fill="#fff" />
+                        <Text style={styles.startButtonText}>{t('userTrainingPlanDetails.startCourse')}</Text>
+                      </TouchableOpacity>
                     )}
-
-                    <View style={styles.courseMainInfo}>
-                      <View style={styles.titleRow}>
-                        <Text style={styles.courseTitle} numberOfLines={1}>{course.title}</Text>
-                        <View style={[styles.typeBadge, { backgroundColor: course.price === 0 ? '#ecfdf5' : '#fff7ed' }]}>
-                          <Text style={[styles.typeBadgeText, { color: course.price === 0 ? '#059669' : '#d97706' }]}>
-                            {course.price === 0 ? t('userTrainingPlanDetails.public') : t('userTrainingPlanDetails.private')}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.metaRow}>
-                        <View style={styles.metaItem}>
-                          <GraduationCap size={14} color="#64748b" />
-                          <Text style={styles.metaText}>{course.instructor}</Text>
-                        </View>
-                        <View style={styles.metaSeparator} />
-                        <View style={styles.metaItem}>
-                          <Video size={14} color="#64748b" />
-                          <Text style={styles.metaText}>{t('userTrainingPlanDetails.lessonsCount', { count: course.videos?.length || 0 })}</Text>
-                        </View>
-                      </View>
-                    </View>
                   </View>
-
-                  <TouchableOpacity 
-                    style={styles.startButton}
-                    onPress={() => {
-                        navigation.navigate('Courses', { 
-                          screen: 'CoursePlayer', 
-                          params: { courseId: course.id } 
-                        });
-                    }}
-                  >
-                    <Play size={18} color="#fff" fill="#fff" />
-                    <Text style={styles.startButtonText}>{t('userTrainingPlanDetails.startCourse')}</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                );
+              })}
             </View>
           </View>
         </View>

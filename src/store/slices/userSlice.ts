@@ -4,7 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'student' | 'admin' | 'staff';
+  role: 'student' | 'admin' | 'staff' | 'teacher';
   staffRoleId?: string;
   enrolledCourses?: string[];
   savedCourses?: string[];
@@ -12,6 +12,12 @@ export interface User {
   photoURL: string | null;
   phoneNumber: string | null;
   createdAt?: string;
+  status?: 'pending' | 'approved';
+  teacherProfile?: {
+    experience: string;
+    videoPro: string;
+    audience: string;
+  };
 }
 
 interface UserState {
@@ -76,6 +82,31 @@ const userSlice = createSlice({
       }
       state.loading = false;
     },
+    enrollUserRequest: (state, _action: PayloadAction<{ userId: string; courseId: string }>) => {
+      state.loading = true;
+    },
+    enrollUserSuccess: (state, action: PayloadAction<{ userId: string; courseId: string }>) => {
+      const user = state.users.find(u => u.id === action.payload.userId);
+      if (user) {
+        const existing = user.enrolledCourses || [];
+        if (!existing.includes(action.payload.courseId)) {
+          user.enrolledCourses = [...existing, action.payload.courseId];
+        }
+      }
+      state.loading = false;
+    },
+    unenrollUserRequest: (state, _action: PayloadAction<{ userId: string; courseId: string }>) => {
+      state.loading = true;
+    },
+    unenrollUserSuccess: (state, action: PayloadAction<{ userId: string; courseId: string }>) => {
+      const user = state.users.find(u => u.id === action.payload.userId);
+      if (user) {
+        user.enrolledCourses = (user.enrolledCourses || []).filter(
+          id => id !== action.payload.courseId
+        );
+      }
+      state.loading = false;
+    },
     clearUsers: (state) => {
       state.users = [];
       state.loading = false;
@@ -94,6 +125,10 @@ export const {
   assignTrainingPlanSuccess,
   unassignTrainingPlanRequest,
   unassignTrainingPlanSuccess,
+  enrollUserRequest,
+  enrollUserSuccess,
+  unenrollUserRequest,
+  unenrollUserSuccess,
   clearUsers,
 } = userSlice.actions;
 

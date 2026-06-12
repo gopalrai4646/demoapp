@@ -24,7 +24,12 @@ function* handleInitiatePayment(
     const user = authState.user;
 
     if (!user) {
-      throw new Error('User not authenticated');
+      throw new Error('You must be logged in to make a purchase.');
+    }
+
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+      console.error('Razorpay API keys are not defined. Restart Metro with --reset-cache');
+      throw new Error('Payment gateway configuration error. Please contact support.');
     }
 
     if (amount === 0) {
@@ -79,7 +84,8 @@ function* handleInitiatePayment(
     const orderData = (yield call([orderResponse, 'json'])) as any;
 
     if (!orderResponse.ok) {
-      throw new Error(orderData.error?.description || 'Failed to create order');
+      console.error('Razorpay Order Error:', orderData.error?.description);
+      throw new Error('Unable to initialize payment at this time. Please try again later.');
     }
 
     const orderId = orderData.id;
@@ -107,14 +113,13 @@ function* handleInitiatePayment(
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
       paymentResponse;
 
-    const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = CryptoJS.HmacSHA256(
-      body,
+      orderId + '|' + razorpay_payment_id,
       RAZORPAY_KEY_SECRET
     ).toString(CryptoJS.enc.Hex);
 
     if (expectedSignature !== razorpay_signature) {
-      throw new Error('Payment signature verification failed');
+      throw new Error('Payment signature verification failed. Please contact support.');
     }
 
     // 4. Update Firestore directly
@@ -146,7 +151,13 @@ function* handleInitiatePayment(
     // 6. Instantly unlock the course in the UI!
     yield put(enrollCourseSuccess(courseId));
   } catch (error: any) {
-    yield put(paymentFailure({ error: error.message || 'Payment failed' }));
+    let errorMessage = error.message || 'Payment failed';
+    if (error.code === 2 || errorMessage.toLowerCase().includes('cancel')) {
+      errorMessage = 'Payment was cancelled.';
+    } else if (error.description) {
+      errorMessage = error.description;
+    }
+    yield put(paymentFailure({ error: errorMessage }));
   }
 }
 

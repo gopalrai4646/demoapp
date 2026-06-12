@@ -6,9 +6,10 @@ import { RootState } from '../store';
 import AuthStack from './AuthStack';
 import MainTabNavigator from './MainTabNavigator';
 import SplashScreen from '../screens/SplashScreen';
+import TeacherPendingScreen from '../screens/TeacherPendingScreen';
 
 const RootNavigator = () => {
-  const { user, initializing } = useSelector((state: RootState) => state.auth);
+  const { user, role, initializing } = useSelector((state: RootState) => state.auth);
   const [isSplashComplete, setIsSplashComplete] = useState(false);
 
   const handleSplashComplete = () => {
@@ -19,6 +20,10 @@ const RootNavigator = () => {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
   
+  if (user && role === 'teacher' && user.status === 'pending') {
+    return <TeacherPendingScreen />;
+  }
+
   return user ? <MainTabNavigator /> : <AuthStack />;
 };
 

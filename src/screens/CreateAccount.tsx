@@ -34,7 +34,10 @@ import {
   Mail, 
   Phone, 
   Lock,
-  ArrowLeft
+  ArrowLeft,
+  GraduationCap,
+  BookOpen,
+  Users
 } from 'lucide-react-native';
 
 const CreateAccount = () => {
@@ -44,7 +47,7 @@ const CreateAccount = () => {
   const { t } = useTranslation();
   const { loading, error } = useSelector((state: RootState) => state.auth);
 
-  const [role, setRole] = useState<'User' | 'Admin'>('User');
+  const [role, setRole] = useState<'User' | 'Admin' | 'Teacher'>('User');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -52,7 +55,10 @@ const CreateAccount = () => {
   const [photoURL, setPhotoURL] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [hasAdmin, setHasAdmin] = useState(false);
-  const [formErrors, setFormErrors] = useState<{name?: string; email?: string; password?: string; phoneNumber?: string; general?: string}>({});
+  const [experience, setExperience] = useState('');
+  const [videoPro, setVideoPro] = useState('');
+  const [audience, setAudience] = useState('');
+  const [formErrors, setFormErrors] = useState<{name?: string; email?: string; password?: string; phoneNumber?: string; experience?: string; videoPro?: string; audience?: string; general?: string}>({});
 
   // Check if an admin already exists in the database
   useEffect(() => {
@@ -108,7 +114,7 @@ const CreateAccount = () => {
   const handleSignUp = () => {
     setFormErrors({});
     let hasError = false;
-    const errors: {name?: string; email?: string; password?: string; phoneNumber?: string; general?: string} = {};
+    const errors: {name?: string; email?: string; password?: string; phoneNumber?: string; experience?: string; videoPro?: string; audience?: string; general?: string} = {};
 
     if (!name.trim()) {
       errors.name = t('auth.nameRequired', "Full name is required.");
@@ -144,6 +150,21 @@ const CreateAccount = () => {
       }
     }
 
+    if (role === 'Teacher') {
+      if (!experience.trim()) {
+        errors.experience = t('teacherSignUp.experienceRequired');
+        hasError = true;
+      }
+      if (!videoPro.trim()) {
+        errors.videoPro = t('teacherSignUp.videoProRequired');
+        hasError = true;
+      }
+      if (!audience.trim()) {
+        errors.audience = t('teacherSignUp.audienceRequired');
+        hasError = true;
+      }
+    }
+
     if (hasError) {
       setFormErrors(errors);
       return;
@@ -153,11 +174,39 @@ const CreateAccount = () => {
       email, 
       pass: password, 
       name, 
-      role: role === 'Admin' ? 'admin' : 'student',
+      role: role === 'Admin' ? 'admin' : (role === 'Teacher' ? 'teacher' : 'student'),
       phoneNumber: phone,
-      photoURL: photoURL || undefined
+      photoURL: photoURL || undefined,
+      ...(role === 'Teacher' ? {
+        status: 'pending',
+        teacherProfile: {
+          experience,
+          videoPro,
+          audience
+        }
+      } : {})
     }));
   };
+
+  const renderRadioGroup = (label: string, options: string[], selected: string, onSelect: (val: string) => void, error?: string) => (
+    <View style={styles.radioGroup}>
+      <Text style={styles.radioGroupLabel}>{label}</Text>
+      {options.map((opt) => (
+        <TouchableOpacity 
+          key={opt} 
+          style={[styles.radioOption, selected === opt && styles.radioOptionSelected, error && !selected && styles.radioOptionError]} 
+          onPress={() => onSelect(opt)}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.radioCircle, selected === opt && styles.radioCircleSelected]}>
+            {selected === opt && <View style={styles.radioInnerCircle} />}
+          </View>
+          <Text style={[styles.radioText, selected === opt && styles.radioTextSelected]}>{opt}</Text>
+        </TouchableOpacity>
+      ))}
+      {error && <Text style={styles.inlineErrorText}>{error}</Text>}
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -198,8 +247,7 @@ const CreateAccount = () => {
 
         <View style={styles.formContainer}>
           {/* Join As Segmented Control */}
-          {!hasAdmin && (
-            <View style={styles.segmentedControl}>
+          <View style={styles.segmentedControl}>
               <TouchableOpacity
                 style={[
                   styles.segmentButton,
@@ -223,25 +271,47 @@ const CreateAccount = () => {
               <TouchableOpacity
                 style={[
                   styles.segmentButton,
-                  role === 'Admin' && styles.segmentButtonActive,
+                  role === 'Teacher' && styles.segmentButtonActive,
                 ]}
-                onPress={() => setRole('Admin')}
+                onPress={() => setRole('Teacher')}
                 activeOpacity={0.8}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <ShieldCheck size={16} color={role === 'Admin' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
+                  <GraduationCap size={16} color={role === 'Teacher' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
                   <Text
                     style={[
                       styles.segmentText,
-                      role === 'Admin' && styles.segmentTextActive,
+                      role === 'Teacher' && styles.segmentTextActive,
                     ]}
                   >
-                    {t('auth.joinAsAdmin')}
+                    Teacher
                   </Text>
                 </View>
               </TouchableOpacity>
+              {/* Admin Segment */}
+              {!hasAdmin && (
+                <TouchableOpacity
+                  style={[
+                    styles.segmentButton,
+                    role === 'Admin' && styles.segmentButtonActive,
+                  ]}
+                  onPress={() => setRole('Admin')}
+                  activeOpacity={0.8}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <ShieldCheck size={16} color={role === 'Admin' ? '#fff' : '#464555'} style={{ marginRight: 8 }} />
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        role === 'Admin' && styles.segmentTextActive,
+                      ]}
+                    >
+                      {t('auth.joinAsAdmin')}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
-          )}
 
           {/* Profile Photo */}
           <View style={styles.photoContainer}>
@@ -348,6 +418,48 @@ const CreateAccount = () => {
               <Text style={styles.inlineErrorText}>{formErrors.password}</Text>
             )}
           </View>
+
+          {role === 'Teacher' && (
+            <>
+              {renderRadioGroup(
+                t('teacherSignUp.teachingExperience') || "What kind of teaching have you done before?", 
+                [
+                  t('teacherSignUp.teachingExpInformal') || "In person, informally", 
+                  t('teacherSignUp.teachingExpProfessional') || "In person, professionally", 
+                  t('teacherSignUp.teachingExpOnline') || "Online", 
+                  t('teacherSignUp.teachingExpOther') || "Other"
+                ],
+                experience,
+                (val) => { setExperience(val); if(formErrors.experience) setFormErrors(p => ({...p, experience: undefined})); },
+                formErrors.experience
+              )}
+              
+              {renderRadioGroup(
+                t('teacherSignUp.videoProficiency') || "How much of a video \"pro\" are you?", 
+                [
+                  t('teacherSignUp.videoProBeginner') || "I am a beginner", 
+                  t('teacherSignUp.videoProKnowledge') || "I have some knowledge", 
+                  t('teacherSignUp.videoProExperienced') || "I am experienced", 
+                  t('teacherSignUp.videoProReady') || "I have videos ready to upload"
+                ],
+                videoPro,
+                (val) => { setVideoPro(val); if(formErrors.videoPro) setFormErrors(p => ({...p, videoPro: undefined})); },
+                formErrors.videoPro
+              )}
+
+              {renderRadioGroup(
+                t('teacherSignUp.audienceSize') || "Do you have an audience to share your course with?", 
+                [
+                  t('teacherSignUp.audienceNone') || "Not at the moment", 
+                  t('teacherSignUp.audienceSmall') || "I have a small following", 
+                  t('teacherSignUp.audienceSizeable') || "I have a sizeable following"
+                ],
+                audience,
+                (val) => { setAudience(val); if(formErrors.audience) setFormErrors(p => ({...p, audience: undefined})); },
+                formErrors.audience
+              )}
+            </>
+          )}
 
           {/* Error Message */}
           {(error || formErrors.general) ? (
@@ -656,6 +768,62 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#4F46E5',
     fontWeight: '800',
+  },
+  radioGroup: {
+    marginBottom: 20,
+    width: '100%',
+  },
+  radioGroupLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#334155', // slate-700
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0', // slate-200
+  },
+  radioOptionSelected: {
+    borderColor: '#4F46E5',
+    backgroundColor: '#f5f3ff', // violet-50
+  },
+  radioOptionError: {
+    borderColor: '#f43f5e', // rose-500
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#94a3b8', // slate-400
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radioCircleSelected: {
+    borderColor: '#4F46E5',
+  },
+  radioInnerCircle: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#4F46E5',
+  },
+  radioText: {
+    fontSize: 14,
+    color: '#334155', // slate-700
+    fontWeight: '500',
+  },
+  radioTextSelected: {
+    color: '#4F46E5',
+    fontWeight: '600',
   },
 });
 
